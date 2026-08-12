@@ -16,8 +16,8 @@ COPY --from=webbuilder /web/dist ./web/dist
 # CGO_ENABLED=0 纯静态
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags "-s -w -X main.version=docker" -o /out/paladmin .
 
-# ---- 存档解析器（Python）----
-FROM python:3.12-slim-bookworm AS savcli
+# ---- 存档解析器（Python，用 PyInstaller 打包为单文件）----
+FROM python:3.12-bookworm AS savcli
 WORKDIR /sav
 COPY module/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt pyinstaller
@@ -41,6 +41,6 @@ COPY data /app/data
 RUN mkdir -p /app/backups /app/evidence /app/logs
 ENV SAVE__DECODE_PATH=/app/sav_cli
 
-EXPOSE 8080
+EXPOSE 8190
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/app/paladmin", "--config", "/app/config.yaml"]

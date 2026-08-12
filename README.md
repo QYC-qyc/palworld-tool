@@ -21,213 +21,115 @@
 
 ## 部署流程
 
-目标系统：**Ubuntu 22.04**（其他 Linux 发行版同理）。全部基于**代码部署**（从 Gitee 克隆源码后在服务器构建/运行），不使用预构建镜像。
+目标系统：**Ubuntu 22.04**（其他 Linux 同理）。采用**镜像部署**：本地构建镜像推送到 Gitee 容器镜像仓库，服务器直接 `docker pull` 运行，无需在服务器安装 Go/Node/Python。
 
-- **方式 A：二进制 + systemd**——直接在服务器编译运行，最简单
-- **方式 B：Docker**——用 Docker 多阶段构建，适合游戏服也容器化
-- **方式 C：加 PalDefender 实时防护**——Linux 游戏服 + Wine 容器运行 PalDefender
+镜像仓库：`gitee.com/qyc-qyc/docker-palworld-tool`
 
 > 游戏服需在 `PalWorldSettings.ini` 开启：`RESTAPIEnabled=True`、`RESTAPIPort=8212`、`RCONEnabled=True`、`RCONPort=25575`，并设置 `AdminPassword`。
 
-代码仓库：`https://gitee.com/QYC-qyc/palworld-tool.git`
+---
+
+### 一、构建并推送镜像（在你的开发机执行一次）
+
+需要本机有 Docker。
+
+```bash
+# Linux / macOS
+export DOCKER_USERNAME=QYC-qyc
+export DOCKER_PASSWORD=你的Gitee私人令牌   # Gitee→设置→私人令牌，需镜像仓库写权限
+bash scripts/docker-push.sh latest
+```
+```powershell
+# Windows PowerShell
+$env:DOCKER_PASSWORD="你的Gitee令牌"
+powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
+```
+
+脚本会用 `Dockerfile` 多阶段构建 linux/amd64 镜像（含前端、后端、sav_cli），推送到：
+```
+gitee.com/qyc-qyc/docker-palworld-tool:latest
+```
+
+> 若 Gitee 镜像仓库为私有，服务器需要 `docker login gitee.com` 后才能拉取；设为公开则免登录。
 
 ---
 
-### 方式 A：二进制 + systemd（服务器直接编译）
+### 二、服务器拉取并启动
 
-#### 1. 安装编译依赖
-
-```bash
-sudo apt update
-sudo apt install -y golang-go nodejs npm python3 python3-pip git
-```
-
-> Go 需 1.22+。若 apt 源版本较旧，从 https://go.dev/dl/ 安装新版。
-
-#### 2. 克隆代码并构建
+#### 方式 A：外置模式（原生 Linux 游戏服，最简单）
 
 ```bash
-git clone https://gitee.com/QYC-qyc/palworld-tool.git paladmin
-cd paladmin
-bash scripts/build.sh          # 编译后端 + 前端，产出 dist/paladmin/
-cd dist/paladmin
+# 1. 准备目录与配置
+mkdir -p paladmin && cd paladmin
+# 从仓库获取 compose 模板：
+curl -o docker-compose.yml https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.yml
+cp .env.example .env 2>/dev/null || true
+nano .env              # 填写 WEB_PASSWORD、GAME_ADMIN_PASSWORD
+nano docker-compose.yml # 修改存档挂载路径为真实路径
 ```
 
-#### 3. 安装存档解析依赖
+`.env` 内容：
 
-```bash
-sudo pip3 install -r module/requirements.txt --break-system-packages \
-  || sudo pip3 install -r module/requirements.txt
+```ini
+WEB_PASSWORD=你的面板强密码
+GAME_ADMIN_PASSWORD=游戏AdminPassword
 ```
 
-#### 4. 修改配置
-
-```bash
-cp config.example.yaml config.yaml
-nano config.yaml
-```
-
-至少确认：
+`docker-compose.yml` 关键项（已内置，按需修改）：
 
 ```yaml
-web:
-  password: "强密码"
-  port: 8190
-rest:
-  address: "http://127.0.0.1:8212"
-  password: "游戏AdminPassword"
-rcon:
-  address: "127.0.0.1:25575"
-save:
-  # find / -name Level.sav 2>/dev/null 查找，取所在目录
-  path: "/home/steam/Pal/Saved/SaveGames/0/<GUID>"
-process:
-  mode: "systemd"          # 回档需要，填游戏服务名
-  service: "palworld"
+services:
+  paladmin:
+    image: gitee.com/qyc-qyc/docker-palworld-tool:latest
+    ports:
+      - "8190:8190"
+    volumes:
+      - /你的真实路径/Pal/Saved:/game/Saved   # 回档需要读写，勿加 :ro
+    environment:
+      WEB__PASSWORD: "${WEB_PASSWORD}"
+      REST__ADDRESS: "http://palworld:8212"
+      REST__PASSWORD: "${GAME_ADMIN_PASSWORD}"
+      RCON__ADDRESS: "palworld:25575"
+      RCON__PASSWORD: "${GAME_ADMIN_PASSWORD}"
+      SAVE__PATH: "/game/Saved/SaveGames/0"
+      PROCESS__MODE: "docker"
+      PROCESS__CONTAINER: "palworld"   # 游戏容器名，回档时控制停启
 ```
 
-#### 5. 注册并启动服务
+启动：
 
 ```bash
-sudo bash install.sh       # 创建 paladmin 用户、注册 systemd、开机自启
-sudo systemctl status paladmin
-sudo journalctl -u paladmin -f
-```
-
-#### 6. 验证
-
-```bash
-curl http://127.0.0.1:8190/health    # 期望 {"status":"ok"}
-```
-
-浏览器打开 `http://服务器IP:8190` 登录。
-
----
-
-### 方式 B：Docker（源码构建）
-
-前提：服务器已安装 Docker。在服务器克隆代码后用 Dockerfile 现场构建 PalAdmin 镜像。
-
-```bash
-git clone https://gitee.com/QYC-qyc/palworld-tool.git paladmin
-cd paladmin
-
-cp .env.example .env
-nano .env                 # 设置 WEB_PASSWORD、GAME_ADMIN_PASSWORD
-nano docker-compose.yml   # 把存档挂载改成真实路径
-```
-
-`docker-compose.yml` 中 `paladmin` 服务使用 `build: .`（从源码构建），关键配置：
-
-```yaml
-volumes:
-  - /你的真实路径/Pal/Saved:/game/Saved   # 去掉 :ro 才能回档写入
-environment:
-  WEB__PASSWORD: "${WEB_PASSWORD}"
-  REST__ADDRESS: "http://palworld:8212"
-  REST__PASSWORD: "${GAME_ADMIN_PASSWORD}"
-  RCON__ADDRESS: "palworld:25575"
-  RCON__PASSWORD: "${GAME_ADMIN_PASSWORD}"
-  SAVE__PATH: "/game/Saved"
-  PROCESS__MODE: "docker"
-  PROCESS__CONTAINER: "palworld"
-```
-
-启动（`--build` 在服务器构建镜像）：
-
-```bash
-docker compose up -d --build
+docker login gitee.com          # 私有镜像需要；公开镜像可跳过
+docker compose up -d
 docker compose logs -f paladmin
 ```
 
-访问 `http://服务器IP:8190`。
+访问 `http://服务器IP:8190`，用 `WEB_PASSWORD` 登录。
+
+#### 方式 B：集成模式（Linux 游戏服 + PalDefender/Wine）
+
+若游戏服通过 Wine 运行了 PalDefender，使用集成模式对接其实时检测：
+
+```bash
+curl -o docker-compose.paldefender.yml \
+  https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.paldefender.yml
+# 准备 ./PalDefender（放入 PalDefender.dll、d3d9.dll 及 RESTAPI/Tokens）
+nano .env   # 额外填 PALDEFENDER_TOKEN
+docker compose -f docker-compose.paldefender.yml up -d
+```
+
+该 compose 包含三个容器：
+- `palworld`：原生 Linux 官方游戏服
+- `paldefender`：Wine 容器运行 PalDefender（仅它需要 Wine）
+- `paladmin`：拉取 `gitee.com/qyc-qyc/docker-palworld-tool` 镜像，`ANTICHEAT__MODE=integrated`
+
+面板「PalDefender」页显示绿色已连接即成功。
+
+> 集成模式 vs 外置模式：外置模式只有存档/在线检测，任何原生 Linux 服都能用；集成模式额外获得 PalDefender 的进程内实时伤害/非法 stat 拦截、私聊警告与 IP 封禁，但需要一个 Wine 容器运行 PalDefender。
 
 ---
 
-### 方式 C：加 PalDefender 实时防护（Linux 游戏服 + Wine 容器）
-
-> **⚠️ 关于 PalDefender**
->
-> [PalDefender](https://github.com/Ultimeit/PalDefender) 是 Windows DLL，**只有它需要 Wine**，游戏服本身仍是原生 Linux。三服务架构：
->
-> | 服务 | 运行方式 | 作用 |
-> |---|---|---|
-> | `palworld` | 原生 Linux 镜像 | 游戏服务器 |
-> | `paldefender` | Wine 容器 | 运行 Windows 版 PalDefender |
-> | `paladmin` | 从源码构建 | 面板 + 反作弊，集成模式对接 |
-
-使用 `docker-compose.paldefender.yml`（paladmin 用 `build: .` 从代码构建）：
-
-```bash
-git clone https://gitee.com/QYC-qyc/palworld-tool.git paladmin
-cd paladmin
-cp .env.example .env
-nano .env   # WEB_PASSWORD、GAME_ADMIN_PASSWORD、PALDEFENDER_TOKEN
-```
-
-#### 1. 准备 PalDefender 文件
-
-从 [PalDefender Releases](https://github.com/Ultimeit/PalDefender/releases) 下载 `PalDefender_Windows.zip`，解压为：
-
-```
-./PalDefender/
-├── PalDefender.dll
-├── d3d9.dll
-├── RESTAPI/Tokens/paladmin.json
-└── ...
-```
-
-`paladmin.json` 内容：
-
-```json
-{
-  "Name": "PalAdmin",
-  "Token": "一段随机长字符串（与 .env 的 PALDEFENDER_TOKEN 一致）",
-  "Permissions": ["REST.*"]
-}
-```
-
-#### 2. 核对 compose
-
-```bash
-nano docker-compose.paldefender.yml
-```
-
-- `palworld` 用原生 Linux 游戏服镜像
-- `paldefender` 用 Wine 镜像，`command: wine ...` 的路径依镜像调整
-- 三个服务共享 `./game` 卷
-
-#### 3. 启动
-
-```bash
-docker compose -f docker-compose.paldefender.yml up -d --build
-docker compose -f docker-compose.paldefender.yml logs -f
-```
-
-- 游戏服：UDP `8211`
-- 面板：`http://服务器IP:8190`
-- PalDefender REST：容器内 `:17993`
-
-#### 4. 验证集成
-
-1. 面板 →「PalDefender」页显示绿色**已连接**
-2. 游戏内执行 `/imcheater`，观察面板告警
-3. 「系统设置」确认 `anticheat.mode = integrated`
-
-> Wine 加载 PalDefender 的命令/路径与所选镜像强相关，compose 中的 `command` 为示例，需对照镜像文档调整。
-
-#### 集成模式 vs 外置模式
-
-| 能力 | 外置 (方式 B) | 集成 (方式 C) |
-|---|---|---|
-| 存档属性/复制/非法物品检测 | ✅ | ✅ |
-| 在线瞬移/多开检测 | ✅ | ✅ |
-| 进程内实时伤害/非法 stat 拦截 | ❌ | ✅ |
-| PalDefender 私聊警告/IP 封禁 | ❌ | ✅ |
-| 游戏服运行方式 | 原生 Linux | 原生 Linux |
-| 是否额外需要 Wine | ❌ | ✅（仅 PalDefender 容器） |
-
----
+### 防火墙
 
 ### 防火墙
 
@@ -252,20 +154,18 @@ sudo ufw allow 8211/udp     # 游戏端口
 
 ### 更新版本
 
+在开发机推送新镜像后，服务器拉取最新镜像并重启：
+
 ```bash
-# 进入代码目录拉取最新代码
-cd paladmin && git pull
+docker compose pull
+docker compose up -d
 
-# 二进制（systemd）：重新构建并重启
-bash scripts/build.sh && sudo systemctl restart paladmin
-
-# Docker（源码构建）：
-docker compose up -d --build
 # PalDefender 集成模式：
-docker compose -f docker-compose.paldefender.yml up -d --build
+docker compose -f docker-compose.paldefender.yml pull
+docker compose -f docker-compose.paldefender.yml up -d
 ```
 
-更多说明见 [DEPLOY.md](DEPLOY.md)。
+开发机推送：`bash scripts/docker-push.sh latest`（或 Windows 的 `docker-push.ps1`）。
 
 ## 配置
 
@@ -319,8 +219,10 @@ process:
 ├── module/         # Python sav_cli 存档解析器
 ├── web/            # Vue3 前端
 ├── data/gamedata/  # 合法数据表（帕鲁/物品/词条/限制）
-├── deploy/         # systemd unit
-├── scripts/        # 构建与安装脚本
+├── scripts/        # 镜像推送脚本（docker-push）
+├── Dockerfile      # 多阶段镜像构建
+├── docker-compose.yml         # 外置模式（拉镜像）
+├── docker-compose.paldefender.yml  # PalDefender 集成模式
 └── docs/           # 开发文档与联调清单
 ```
 

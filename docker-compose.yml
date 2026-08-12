@@ -1,35 +1,37 @@
+# ============================================================
+# 镜像部署：PalAdmin 外置模式（原生 Linux 游戏服）
+# 服务器直接拉取 Gitee 镜像仓库的镜像，不在服务器构建。
+#
+# 用法：
+#   cp .env.example .env && nano .env
+#   docker login gitee.com
+#   docker compose up -d
+# ============================================================
 services:
   paladmin:
-    build: .
-    image: paladmin:latest
+    image: gitee.com/qyc-qyc/docker-palworld-tool:latest
     container_name: paladmin
     restart: unless-stopped
     ports:
       - "8190:8190"
     volumes:
-      - ./config.yaml:/app/config.yaml:ro
+      - ./paladmin/config.yaml:/app/config.yaml
       - pst-data:/app/data
       - ./backups:/app/backups
       - ./evidence:/app/evidence
       - ./logs:/app/logs
-      # 游戏存档目录：按实际路径挂载。若游戏服也在容器，用共享卷。
-      - /home/steam/Pal/Saved:/game/Saved:ro
-      # 回档/进程控制：挂载 docker socket 以控制游戏容器（可选）
-      - /var/run/docker.sock:/var/run/docker.sock
+      # 游戏存档目录（回档需要读写，去掉 :ro）
+      - /home/steam/Pal/Saved:/game/Saved
     environment:
       WEB__PASSWORD: "${WEB_PASSWORD:-ChangeMe!2024}"
       REST__ADDRESS: "http://palworld:8212"
       REST__PASSWORD: "${GAME_ADMIN_PASSWORD:-}"
       RCON__ADDRESS: "palworld:25575"
       RCON__PASSWORD: "${GAME_ADMIN_PASSWORD:-}"
-      SAVE__PATH: "/game/Saved"
+      SAVE__PATH: "/game/Saved/SaveGames/0"
+      SAVE__DECODE_PATH: "/app/sav_cli"
       ANTICHEAT__ENABLED: "true"
       ANTICHEAT__MODE: "external"
-      # 若安装了 PalDefender（Wine/Proton 游戏服），改为 integrated 并配置：
-      # ANTICHEAT__MODE: "integrated"
-      # PALDEFENDER__ENABLED: "true"
-      # PALDEFENDER__ADDRESS: "http://palworld:17993"
-      # PALDEFENDER__TOKEN: "${PALDEFENDER_TOKEN:-}"
       PROCESS__MODE: "docker"
       PROCESS__CONTAINER: "palworld"
     networks:
