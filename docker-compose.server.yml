@@ -1,0 +1,41 @@
+# ============================================================
+# 服务器直接拉取 Gitee 镜像仓库的 PalAdmin 镜像（不在服务器构建）
+# 适用：原生 Linux 游戏服 + PalAdmin 外置模式
+# 用法：
+#   1. 修改镜像地址为你的 Gitee 镜像仓库
+#   2. cp .env.example .env 并改密码
+#   3. docker compose -f docker-compose.server.yml up -d
+# ============================================================
+services:
+  paladmin:
+    image: gitee.com/qyc-qyc/paladmin:latest   # 改成你的 Gitee 镜像地址
+    container_name: paladmin
+    restart: unless-stopped
+    ports:
+      - "8190:8190"
+    volumes:
+      - ./paladmin/config.yaml:/app/config.yaml
+      - ./paladmin/data:/app/data
+      - ./paladmin/backups:/app/backups
+      - ./paladmin/evidence:/app/evidence
+      - ./paladmin/logs:/app/logs
+      # 游戏存档目录（回档需要读写，不能加 :ro）
+      - /home/steam/Pal/Saved:/game/Saved
+    environment:
+      WEB__PASSWORD: "${WEB_PASSWORD:-ChangeMe!2024}"
+      REST__ADDRESS: "http://palworld:8212"
+      REST__PASSWORD: "${GAME_ADMIN_PASSWORD:-}"
+      RCON__ADDRESS: "palworld:25575"
+      RCON__PASSWORD: "${GAME_ADMIN_PASSWORD:-}"
+      SAVE__PATH: "/game/Saved/SaveGames/0"
+      SAVE__DECODE_PATH: "/app/sav_cli"
+      ANTICHEAT__ENABLED: "true"
+      ANTICHEAT__MODE: "external"
+      PROCESS__MODE: "docker"
+      PROCESS__CONTAINER: "palworld"
+    networks:
+      - palnet
+
+networks:
+  palnet:
+    external: false

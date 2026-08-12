@@ -1,0 +1,91 @@
+# ============================================================
+# 服务器部署：原生 Linux 游戏服 + PalDefender(Wine) + PalAdmin(从 Gitee 拉镜像)
+# 不在服务器构建，直接拉取已推送的 PalAdmin 镜像。
+#
+# 用法：
+#   1. docker login gitee.com
+#   2. 修改镜像地址、密码、存档路径
+#   3. docker compose -f docker-compose.gitee.yml up -d
+# ============================================================
+services:
+  # ---------- 原生 Linux 官方游戏服 ----------
+  palworld:
+    image: thijsvanloef/palworld-server-docker:latest
+    container_name: palworld
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      TZ: "Asia/Shanghai"
+      ALWAYS_UPDATE_ON_START: "true"
+      SERVER_NAME: "My PalWorld Server"
+      MAX_PLAYERS: "32"
+      REST_API_ENABLED: "true"
+      REST_API_PORT: "8212"
+      RCON_ENABLED: "true"
+      RCON_PORT: "25575"
+      ADMIN_PASSWORD: "${GAME_ADMIN_PASSWORD:-ChangeMe_GameAdminPassword}"
+    ports:
+      - "8211:8211/udp"
+      - "25575:25575/tcp"
+      - "8212:8212/tcp"
+    volumes:
+      - ./game:/palworld
+    networks:
+      - palnet
+
+  # ---------- PalDefender（仅它需要 Wine）----------
+  paldefender:
+    image: scottyhardy/docker-wine:latest
+    container_name: paldefender
+    restart: unless-stopped
+    depends_on:
+      - palworld
+    command: wine /palworld/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe
+    ports:
+      - "17993:17993/tcp"
+    volumes:
+      - ./game:/palworld
+      - ./PalDefender:/palworld/Pal/Binaries/Win64:ro
+    environment:
+      TZ: "Asia/Shanghai"
+    networks:
+      - palnet
+
+  # ---------- PalAdmin（从 Gitee 镜像仓库拉取）----------
+  paladmin:
+    image: gitee.com/qyc-qyc/paladmin:latest   # 改成你的 Gitee 镜像地址
+    container_name: paladmin
+    restart: unless-stopped
+    depends_on:
+      - palworld
+      - paldefender
+    ports:
+      - "8190:8190"
+    volumes:
+      - ./paladmin/config.yaml:/app/config.yaml
+      - ./paladmin/data:/app/data
+      - ./paladmin/backups:/app/backups
+      - ./paladmin/evidence:/app/evidence
+      - ./paladmin/logs:/app/logs
+      - ./game/Pal/Saved:/game/Saved
+    environment:
+      WEB__PASSWORD: "${WEB_PASSWORD:-ChangeMe_WebPassword}"
+      REST__ADDRESS: "http://palworld:8212"
+      REST__PASSWORD: "${GAME_ADMIN_PASSWORD:-ChangeMe_GameAdminPassword}"
+      RCON__ADDRESS: "palworld:25575"
+      RCON__PASSWORD: "${GAME_ADMIN_PASSWORD:-ChangeMe_GameAdminPassword}"
+      SAVE__PATH: "/game/Saved/SaveGames/0"
+      SAVE__DECODE_PATH: "/app/sav_cli"
+      ANTICHEAT__ENABLED: "true"
+      ANTICHEAT__MODE: "integrated"
+      PALDEFENDER__ENABLED: "true"
+      PALDEFENDER__ADDRESS: "http://paldefender:17993"
+      PALDEFENDER__TOKEN: "${PALDEFENDER_TOKEN:-ChangeMe_PalDefenderToken}"
+      PROCESS__MODE: "docker"
+      PROCESS__CONTAINER: "palworld"
+    networks:
+      - palnet
+
+networks:
+  palnet:
+    driver: bridge

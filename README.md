@@ -278,6 +278,65 @@ docker compose -f docker-compose.paldefender.yml logs -f
 
 > 两种模式 PalAdmin 都提供面板、告警、审计、回档、Webhook；集成模式多了 PalDefender 的进程内实时防护。
 
+---
+
+### 推送到 Gitee 镜像仓库，服务器直接拉取
+
+不想在服务器上构建镜像时，可把 PalAdmin 镜像推到 **Gitee 容器镜像仓库**，服务器直接拉取运行。
+
+#### 1. 在 Gitee 创建镜像仓库
+
+在 Gitee 新建容器镜像仓库，例如 `qyc-qyc/paladmin`。完整镜像地址形如：
+
+```
+gitee.com/qyc-qyc/paladmin:latest
+```
+
+> Gitee 镜像仓库的命名空间（用户名/组织）通常**全小写**，请以 Gitee 页面显示的地址为准。
+
+#### 2. 本地构建并推送
+
+脚本已提供，把命名空间改成你的 Gitee 用户名后执行：
+
+```bash
+# Linux / macOS
+export DOCKER_USERNAME=你的gitee用户名
+export DOCKER_PASSWORD=你的Gitee私人令牌   # 在 Gitee 设置→私人令牌生成
+bash scripts/docker-push.sh latest
+```
+
+```powershell
+# Windows PowerShell
+$env:DOCKER_PASSWORD="你的Gitee私人令牌"
+powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
+```
+
+脚本会 `docker build --platform linux/amd64` 后 `docker push` 到 Gitee。
+（脚本里默认 `qyc-qyc/paladmin`，按需修改 `$NAMESPACE`/`$IMAGE`。）
+
+#### 3. 服务器登录并拉取
+
+```bash
+docker login gitee.com                       # 用户名 + Gitee 私人令牌
+docker pull gitee.com/qyc-qyc/paladmin:latest
+```
+
+#### 4. 用拉取镜像的 compose 启动
+
+- **外置模式**（原生 Linux 游戏服，无 PalDefender）：
+  ```bash
+  cp .env.example .env && nano .env
+  # 把 docker-compose.server.yml 里的镜像地址改成你的
+  docker compose -f docker-compose.server.yml up -d
+  ```
+- **集成模式**（Linux 游戏服 + PalDefender(Wine)）：
+  ```bash
+  # 把 docker-compose.gitee.yml 里的镜像地址改成你的
+  docker compose -f docker-compose.gitee.yml up -d
+  ```
+
+这两个 compose 文件里 `paladmin` 服务只有 `image:`、**没有 `build:`**，因此服务器不会本地构建，只拉取 Gitee 上的镜像。更新版本时重新 `docker pull` 后重启即可。
+
 ## 配置
 
 主要配置（均也可在面板「系统设置」动态修改）：
