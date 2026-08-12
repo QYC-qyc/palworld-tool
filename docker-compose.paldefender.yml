@@ -81,8 +81,7 @@ services:
 
   # ---------- 3. PalAdmin 面板 + 反作弊 ----------
   paladmin:
-    build: .
-    image: paladmin:latest
+    image: gitee.com/qyc-qyc/docker-palworld-tool:latest
     container_name: paladmin
     restart: unless-stopped
     depends_on:

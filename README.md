@@ -239,53 +239,40 @@ docker compose -f docker-compose.paldefender.yml logs -f
 
 ---
 
-### 服务器不构建：从镜像仓库拉取
+### 服务器不构建：从 Gitee 镜像仓库拉取
 
-上面方式 B/C 默认在服务器 `docker compose up --build`（用项目 Dockerfile 现场构建 PalAdmin）。若希望服务器**只拉镜像、不构建**，可把镜像推送到镜像仓库。代码已同时托管在 Gitee 与 GitHub，对应两个常用镜像仓库：
+上面方式 B/C 默认在服务器 `docker compose up --build`（用项目 Dockerfile 现场构建 PalAdmin）。若希望服务器**只拉镜像、不构建**，镜像推送到专门的 Gitee 容器镜像仓库：
 
-| 镜像仓库 | 镜像地址 | 推送脚本 | 服务器 compose |
-|---|---|---|---|
-| **GHCR**（GitHub，推荐） | `ghcr.io/qyc-qyc/paladmin:latest` | `scripts/docker-push-ghcr.sh` / `.ps1` | `docker-compose.ghcr.yml` |
-| **Gitee** | `gitee.com/qyc-qyc/paladmin:latest` | `scripts/docker-push.sh` / `.ps1` | `docker-compose.server.yml`、`docker-compose.gitee.yml` |
+- 镜像仓库：<https://gitee.com/QYC-qyc/docker-palworld-tool>
+- 镜像地址：`gitee.com/qyc-qyc/docker-palworld-tool:latest`
 
-#### 用 GHCR（GitHub Container Registry）
-
-1. 在 GitHub 生成 Token：Settings → Developer settings → Personal access tokens → 勾选 `write:packages`。
-2. 本地构建并推送：
-
-   ```bash
-   # Linux/Mac
-   export GITHUB_USER=qyc-qyc
-   export GITHUB_TOKEN=你的GitHubToken
-   bash scripts/docker-push-ghcr.sh latest
-   ```
-   ```powershell
-   # Windows PowerShell
-   $env:GITHUB_TOKEN="你的GitHubToken"
-   powershell -ExecutionPolicy Bypass -File scripts\docker-push-ghcr.ps1
-   ```
-
-3. 服务器拉取并启动：
-
-   ```bash
-   docker login ghcr.io                          # GitHub 用户名 + Token
-   docker compose -f docker-compose.ghcr.yml up -d
-   ```
-
-> GHCR 首次推送的镜像默认是 private，可在 GitHub 包设置里改为 public，这样服务器 `docker pull` 就不必登录。
-
-#### 用 Gitee 容器镜像仓库
+#### 1. 本地构建并推送
 
 ```bash
-export DOCKER_USERNAME=qyc-qyc
-export DOCKER_PASSWORD=你的Gitee令牌
+# Linux / macOS
+export DOCKER_USERNAME=QYC-qyc
+export DOCKER_PASSWORD=你的Gitee私人令牌   # Gitee 设置→私人令牌，需镜像仓库写权限
 bash scripts/docker-push.sh latest
-docker login gitee.com
-docker compose -f docker-compose.server.yml up -d   # 外置
-docker compose -f docker-compose.gitee.yml up -d    # 集成
+```
+```powershell
+# Windows PowerShell
+$env:DOCKER_PASSWORD="你的Gitee令牌"
+powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
 ```
 
-更新版本时在服务器 `docker compose pull && docker compose up -d` 即可。
+#### 2. 服务器拉取并启动
+
+```bash
+docker login gitee.com                     # 用户名 QYC-qyc + Gitee 令牌
+
+# 外置模式（原生 Linux 游戏服，最简单）
+docker compose -f docker-compose.pull.yml up -d
+
+# 集成模式（Linux 游戏服 + PalDefender/Wine）
+docker compose -f docker-compose.paldefender.yml up -d
+```
+
+> `docker-compose.pull.yml` 与 `docker-compose.paldefender.yml` 里 `paladmin` 服务只有 `image:`、没有 `build:`，服务器不会本地构建。更新版本时 `docker compose pull && docker compose up -d` 即可。
 
 ---
 
