@@ -68,30 +68,25 @@ sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
 sudo curl -o docker-compose.yml \
   https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
 
-# 3. 下载示例配置（作为容器内默认配置，密码用 .env 覆盖）
-sudo curl -o config.yaml \
-  https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/config.example.yaml
-
-# 4. 配置密码
+# 3. 配置游戏服管理员密码（面板密码在网页向导设置，无需写在这里）
 cat > .env <<'EOF'
-WEB_PASSWORD=你的面板强密码
 GAME_ADMIN_PASSWORD=你想设置的游戏AdminPassword
 EOF
 
-# 5. 启动（首次会拉取游戏服镜像并自动安装游戏）
+# 4. 启动（首次会拉取游戏服镜像并自动安装游戏）
 sudo docker compose up -d
 sudo docker compose logs -f
 ```
 
-数据目录结构：
+数据目录结构（全部位于 `/www/palworld-tool/`）：
 
 ```
 /www/palworld-tool/
 ├── docker-compose.yml
-├── .env / config.yaml
-├── pst.db             # 数据库（自动生成）
-├── data/ backups/ evidence/ logs/   # 面板数据
-└── game/              # 游戏服安装目录与存档（容器自动写入）
+├── .env                       # 游戏服密码
+├── game/                      # 游戏服安装目录与存档（容器自动写入）
+├── backups/ evidence/ logs/   # 面板备份、证据、日志
+└── Docker volume pst-data     # 面板数据库与反作弊数据（容器管理）
 ```
 
 compose 关键配置：
@@ -107,9 +102,9 @@ services:
     ports:
       - "8190:8190"
     volumes:
+      - pst-data:/app/data                  # 数据库（named volume）
       - /www/palworld-tool/game/Pal/Saved:/game/Saved
     environment:
-      WEB__PASSWORD: "${WEB_PASSWORD}"
       REST__ADDRESS: "http://palworld:8212"
       REST__PASSWORD: "${GAME_ADMIN_PASSWORD}"
       RCON__ADDRESS: "palworld:25575"
@@ -118,6 +113,8 @@ services:
       PROCESS__MODE: "docker"
       PROCESS__CONTAINER: "palworld"
 ```
+
+> 面板密码不通过 `.env` 或配置文件设置，而是在首次访问网页时通过初始化向导设置，并保存在数据库中。
 
 启动后浏览器访问 `http://服务器IP:8190`，**首次进入会自动跳转到初始化向导**，设置面板登录密码（可同时填写游戏 REST/RCON 连接信息，也可稍后在「系统设置」配置）。完成后用该密码登录。
 
@@ -140,8 +137,8 @@ sudo ufw allow 8211/udp     # 游戏端口
 
 ### 部署后检查清单
 
-1. 登录面板 →「系统设置」填好连接信息并保存
-2. 仪表盘显示在线人数 / FPS = REST 对接成功
+1. 首次访问面板完成初始化向导（设置登录密码，可同时填游戏连接信息）
+2. 仪表盘显示在线人数 / FPS = REST 对接成功；若未连接，到「系统设置」检查地址密码
 3. 等待约 2 分钟，玩家页出现存档数据 = 存档解析正常
 4. **首次先关闭自动封禁**验证检测：「系统设置」把 kick/ban 关闭，只留 warn
 5. 按 [docs/联调清单.md](docs/联调清单.md) 完成端到端验证
@@ -160,28 +157,18 @@ docker compose up -d
 
 ## 配置
 
-主要配置（均也可在面板「系统设置」动态修改）：
+游戏连接、密码、反作弊、Webhook 等配置**均在面板「系统设置」中动态修改并即时生效**（保存在数据库）。配置文件 `config.yaml` 仅用于端口、存储路径等启动期静态项：
 
 ```yaml
 web:
-  password: "CHANGE_ME"     # 面板密码 / JWT 密钥
-  port: 8190
-rest:
-  address: "http://127.0.0.1:8212"   # 游戏服 REST API
-  password: "游戏AdminPassword"
-rcon:
-  address: "127.0.0.1:25575"
-save:
-  path: "/path/to/Saved/SaveGames/0/<GUID>"   # Level.sav 所在目录
-anticheat:
-  enabled: true
-  mode: "external"          # 纯 Linux 原生反作弊
-  punish:
-    warn: true
-    kick: false
-    ban: true               # 首次建议先关闭，验证检测准确性
-process:
-  mode: "docker"            # noop / docker（回档需要，控制游戏容器停启）
+  port: 8190                # 面板端口（静态，改后需重启）
+storage:
+  path: "./pst.db"          # 数据库路径
+log:
+  level: "info"
+```
+
+> 面板登录密码在**首次访问网页的初始化向导**中设置，不在配置文件里；忘记密码可通过删除数据库中的 `web.password` 记录后重新初始化。
   container: "palworld"
 ```
 
