@@ -177,6 +177,95 @@ git pull && docker compose up -d --build
 
 更多说明见 [DEPLOY.md](DEPLOY.md)。
 
+---
+
+### 方式 C：Docker 一键部署游戏服 + PalDefender + PalAdmin
+
+> **⚠️ 关于 PalDefender 的重要事实**
+>
+> [PalDefender](https://github.com/Ultimeit/PalDefender) 官方为 **Windows DLL**（通过 `d3d9.dll` 代理注入游戏进程），**不支持原生 Linux**。
+> 因此要在 Linux 服务器上使用 PalDefender，游戏服必须运行在 **Wine/Proton** 环境下（即 Windows 版服务端）。
+>
+> - 若使用**原生 Linux 版**游戏服 → 只能用 PalAdmin **外置模式**（存档扫描 + 官方 REST/RCON），无法加载 PalDefender。
+> - 若使用 **Wine/Proton 版**游戏服 → 可加载 PalDefender，并让 PalAdmin 以**集成模式**对接其实时检测与封禁能力。
+
+下面是「游戏服 + PalDefender + PalAdmin」三容器/一体化方案，使用 `docker-compose.paldefender.yml`。
+
+#### 1. 准备 PalDefender 文件
+
+从 [PalDefender Releases](https://github.com/Ultimeit/PalDefender/releases) 下载 `PalDefender_Windows.zip`，在项目目录解压为：
+
+```
+./PalDefender/
+├── PalDefender.dll
+├── d3d9.dll
+├── config/            # 首次启动后生成 Config.json、Banlist.json、RESTAPI/
+└── ...
+```
+
+> 具体挂载路径依游戏镜像的 Wine 目录结构而定，常见为 `Pal/Binaries/Win64/`。
+> PalDefender 的文件（`PalDefender.dll`、`d3d9.dll`）需放入该目录，compose 中把 `./PalDefender` 挂到对应路径。
+
+#### 2. 启用并配置 PalDefender REST API
+
+首次启动游戏容器后，在 `./PalDefender/config/RESTAPI/` 中：
+- `RESTConfig.json` 设 `"Enabled": true`（默认端口 `17993`）
+- 在 `Tokens/` 目录建一个 token 文件，例如 `paladmin.json`：
+
+```json
+{
+  "Name": "PalAdmin",
+  "Token": "生成一段随机长字符串",
+  "Permissions": ["REST.*"]
+}
+```
+
+该 Token 即下面 compose 中 `PALDEFENDER__TOKEN` 的值。最小权限可按需收窄为
+`REST.Players.Read`、`REST.Punishments.*`、`REST.Messages.*` 等。
+
+#### 3. 修改 compose 配置
+
+```bash
+cp docker-compose.paldefender.yml docker-compose.override.yml
+nano docker-compose.override.yml
+```
+
+必须核对/修改：
+- `image`：使用支持 Wine 的 Windows 版服务端镜像（如社区维护的 `jammsen/palworld-dedicated-server` 或其 Wine 变种，请使用你信任的镜像）
+- `ADMIN_PASSWORD` / `REST__PASSWORD` / `RCON__PASSWORD`：改为同一个强密码
+- `WEB__PASSWORD`：PalAdmin 面板密码
+- `PALDEFENDER__TOKEN`：上一步生成的 Token
+- 存档挂载路径与 PalDefender DLL 挂载路径（依镜像实际目录调整）
+
+#### 4. 启动
+
+```bash
+docker compose -f docker-compose.paldefender.yml up -d
+docker compose -f docker-compose.paldefender.yml logs -f
+```
+
+- 游戏服：UDP `8211`
+- PalAdmin 面板：`http://服务器IP:8190`
+- PalDefender REST：容器内 `:17993`（已加入同一网络，PalAdmin 通过 `http://palworld:17993` 访问）
+
+#### 5. 验证集成
+
+1. 浏览器打开 PalAdmin 面板 →「PalDefender」页，应显示绿色**已连接**
+2. 游戏内以管理员身份执行 `/imcheater`，观察 PalDefender 是否响应、PalAdmin 告警页是否出现记录
+3. 在「系统设置」确认 `anticheat.mode = integrated`，处置动作会通过 PalDefender 执行（私聊警告、封禁、IP 封禁）
+
+#### 集成模式 vs 外置模式
+
+| 能力 | 外置模式 (external) | 集成模式 (integrated, +PalDefender) |
+|---|---|---|
+| 存档属性/复制/非法物品检测 | ✅ | ✅ |
+| 在线瞬移/多开检测 | ✅ | ✅ |
+| 进程内实时伤害/非法 stat 拦截 | ❌ | ✅ |
+| PalDefender 私聊警告/IP 封禁 | ❌ | ✅ |
+| 仅需原生 Linux 游戏服 | ✅ | ❌（需 Wine 游戏服） |
+
+> 两种模式 PalAdmin 都提供面板、告警、审计、回档、Webhook；集成模式多了 PalDefender 的进程内实时防护。
+
 ## 配置
 
 主要配置（均也可在面板「系统设置」动态修改）：

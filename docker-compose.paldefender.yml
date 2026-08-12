@@ -1,0 +1,90 @@
+# ============================================================
+# 一体化部署：Wine 游戏服 + PalDefender（实时反作弊）+ PalAdmin
+# ------------------------------------------------------------
+# ⚠️ 重要说明：
+#   PalDefender 官方为 Windows DLL，不支持原生 Linux。
+#   因此游戏服必须使用 Wine/Proton 镜像（如 jammsen/palworld-dedicated-server
+#   的 Windows/Wine 变种，或 thijm/palworld、palworld-server-docker-wine 等社区镜像）。
+#   原生 Linux 版 Palworld 服务端无法加载 PalDefender，只能用 PalAdmin 外置模式。
+#
+# 使用前：
+#   1. 把 ./PalDefender/ 目录放入下载好的 PalDefender（PalDefender.dll、d3d9.dll、config/）
+#   2. 按需修改镜像、存档路径、ADMIN_PASSWORD、端口
+#   3. docker compose -f docker-compose.paldefender.yml up -d
+# ============================================================
+services:
+  palworld:
+    # 使用支持 Wine 的 Windows 版服务端镜像（社区维护，请替换为你信任的镜像与标签）
+    image: jammsen/palworld-dedicated-server:latest
+    container_name: palworld
+    restart: unless-stopped
+    environment:
+      # --- 服务器基础 ---
+      TZ: "Asia/Shanghai"
+      ALWAYS_UPDATE_ON_START: "true"
+      MULTITHREAD_ENABLED: "true"
+      COMMUNITY_SERVER: "false"
+      SERVER_NAME: "My PalWorld Server"
+      SERVER_PASSWORD: ""
+      MAX_PLAYERS: "32"
+      # --- 官方 REST / RCON（PalAdmin 使用）---
+      REST_API_ENABLED: "true"
+      REST_API_PORT: "8212"
+      RCON_ENABLED: "true"
+      RCON_PORT: "25575"
+      ADMIN_PASSWORD: "ChangeMe_GameAdminPassword"
+      # PalDefender 以 d3d9.dll 代理方式被游戏进程加载（DLL 放进游戏 Binaries/Win64）
+    ports:
+      - "8211:8211/udp"   # 游戏端口
+      - "25575:25575/tcp" # RCON（建议仅内网，不要对公网）
+      - "8212:8212/tcp"   # 官方 REST（建议仅内网）
+      - "17993:17993/tcp" # PalDefender REST API（建议仅内网/PalAdmin 访问）
+    volumes:
+      - ./game:/palworld
+      # 把 PalDefender 文件挂到游戏的 Binaries/Win64 目录：
+      # 容器内具体路径依镜像而定，下面是 Wine 镜像常见位置，按需调整。
+      - ./PalDefender:/palworld/Pal/Binaries/Win64/PalDefender:ro
+    networks:
+      - palnet
+
+  paladmin:
+    build: .
+    image: paladmin:latest
+    container_name: paladmin
+    restart: unless-stopped
+    depends_on:
+      - palworld
+    ports:
+      - "8190:8190"
+    volumes:
+      - ./paladmin/config.yaml:/app/config.yaml
+      - ./paladmin/data:/app/data
+      - ./paladmin/backups:/app/backups
+      - ./paladmin/evidence:/app/evidence
+      - ./paladmin/logs:/app/logs
+      # 与游戏服共享同一份存档（回档需要读写，不能加 :ro）
+      - ./game/Pal/Saved:/game/Saved
+    environment:
+      WEB__PASSWORD: "ChangeMe_WebPassword"
+      REST__ADDRESS: "http://palworld:8212"
+      REST__PASSWORD: "ChangeMe_GameAdminPassword"
+      RCON__ADDRESS: "palworld:25575"
+      RCON__PASSWORD: "ChangeMe_GameAdminPassword"
+      RCON__USE_BASE64: "true"      # Wine/Windows 版 RCON 建议开启
+      SAVE__PATH: "/game/Saved/SaveGames/0"
+      SAVE__DECODE_PATH: "/app/sav_cli"
+      # —— PalDefender 集成 ——
+      ANTICHEAT__ENABLED: "true"
+      ANTICHEAT__MODE: "integrated"
+      ANTICHEAT__SCAN_LIVE: "true"
+      PALDEFENDER__ENABLED: "true"
+      PALDEFENDER__ADDRESS: "http://palworld:17993"
+      PALDEFENDER__TOKEN: "ChangeMe_PalDefenderToken"
+      PROCESS__MODE: "docker"
+      PROCESS__CONTAINER: "palworld"
+    networks:
+      - palnet
+
+networks:
+  palnet:
+    driver: bridge
