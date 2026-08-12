@@ -1,31 +1,30 @@
 #!/usr/bin/env bash
 # 构建并推送 PalAdmin 镜像到 GitHub Container Registry (GHCR)
-# 仓库：https://github.com/QYC-qyc/palworld-tool
-# 镜像：ghcr.io/qyc-qyc/palworld-tool:<tag>
+# 镜像：ghcr.io/qyc-qyc/palworld-tool:latest（镜像已公开，服务器拉取无需登录）
 #
-# 用法：
-#   export GITHUB_USER=QYC-qyc
-#   export GITHUB_TOKEN=你的GitHubToken   # 需要 write:packages 权限
+# 注意：推送到 GHCR 仍需登录（仅首次执行一次，凭证会被 Docker 保存）：
+#   echo 你的GitHubToken | docker login ghcr.io -u QYC-qyc --password-stdin
+#
+# 之后直接运行：
 #   bash scripts/docker-push.sh [tag]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 REGISTRY="ghcr.io"
-NAMESPACE="${GITHUB_USER:-QYC-qyc}"
+NAMESPACE="QYC-qyc"
 IMAGE="palworld-tool"
 TAG="${1:-latest}"
-# GHCR 要求全小写
 FULL="${REGISTRY}/${NAMESPACE,,}/${IMAGE}:${TAG}"
+
+# 未登录则提示（推送必须认证）
+if ! docker buildx imagetools inspect "${REGISTRY}/${NAMESPACE,,}/${IMAGE}:latest" >/dev/null 2>&1; then
+  echo "==> 尚未登录 GHCR，请先执行一次："
+  echo "    echo 你的GitHubToken | docker login ghcr.io -u ${NAMESPACE} --password-stdin"
+  exit 1
+fi
 
 echo "==> 构建镜像 ${FULL} (linux/amd64)"
 docker build --platform linux/amd64 -t "${FULL}" .
-
-echo "==> 登录 ${REGISTRY}"
-if [ -n "${GITHUB_TOKEN:-}" ]; then
-  echo "$GITHUB_TOKEN" | docker login "$REGISTRY" -u "$NAMESPACE" --password-stdin
-else
-  docker login "$REGISTRY"
-fi
 
 echo "==> 推送 ${FULL}"
 docker push "${FULL}"
