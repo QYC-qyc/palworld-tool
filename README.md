@@ -138,10 +138,17 @@ docker compose logs -f paladmin
 ```bash
 curl -o docker-compose.paldefender.yml \
   https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.paldefender.yml
-# 准备 ./PalDefender（PalDefender.dll、d3d9.dll、RESTAPI/Tokens）
-echo 'PALDEFENDER_TOKEN=你的PDToken' >> .env
+# Token 会在首次启动时自动生成；也可在 .env 指定固定值
+# echo 'PALDEFENDER_TOKEN=你的PDToken' >> .env
 docker compose -f docker-compose.paldefender.yml up -d
 ```
+
+首次启动时，初始化脚本会自动：
+- 在 `paldefender-config/RESTAPI/Tokens/paladmin.json` 创建访问令牌
+- 启用 REST API（端口 17993）
+- 若未设 `PALDEFENDER_TOKEN`，自动生成随机串并打印到容器日志（`docker logs paldefender`）
+
+> **部署前需手动放入 PalDefender 本体**：把 `PalDefender.dll`、`d3d9.dll` 复制到游戏目录 `game/Pal/Binaries/Win64/`（首次游戏服启动生成该目录后）。配置与 Token 持久化在 `paldefender-config/`。
 
 该 compose 包含：
 - `palworld`：原生 Linux 游戏服

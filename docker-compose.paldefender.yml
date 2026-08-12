@@ -42,19 +42,29 @@ services:
     restart: unless-stopped
     depends_on:
       - palworld
-    # Wine 加载游戏可执行文件，由 d3d9.dll 代理注入 PalDefender
-    command: wine /palworld/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe
+    # 先运行初始化脚本自动创建 Token，再用 Wine 启动游戏
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        /init-paldefender.sh && \
+        exec wine /palworld/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe
     ports:
       - "17993:17993/tcp"
     volumes:
       # 游戏目录（与 palworld 共享）
       - /www/palworld-tool/game:/palworld
-      # Wine 配置/Prefix 持久化到工作目录
+      # Wine 配置/Prefix 持久化
       - /www/palworld-tool/wine:/home/wineuser
-      # PalDefender 本体（放入 Pal/Binaries/Win64）
-      - /www/palworld-tool/PalDefender:/palworld/Pal/Binaries/Win64:ro
+      # PalDefender 配置与 Token（持久化，首次启动自动创建 Token）
+      # 注意：PalDefender.dll、d3d9.dll 需要直接放进游戏的 Pal/Binaries/Win64/，
+      #       首次部署请手动复制到该目录；config 子目录会自动生成在这里。
+      - /www/palworld-tool/paldefender-config:/palworld/Pal/Binaries/Win64/config
+      # 初始化脚本
+      - ./deploy/paldefender-init.sh:/init-paldefender.sh:ro
     environment:
       TZ: "Asia/Shanghai"
+      # 可选：指定固定 Token；不填则首次自动生成并打印到日志
+      PALDEFENDER_TOKEN: "${PALDEFENDER_TOKEN:-}"
     networks:
       - palnet
 
