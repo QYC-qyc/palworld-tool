@@ -144,60 +144,28 @@ docker compose logs -f paladmin
 
 ---
 
-### 防火墙
-
-```bash
-sudo ufw allow 8190/tcp     # 面板端口
-# 游戏服的 8212(REST)、25575(RCON) 不要对公网开放，保持 127.0.0.1
-```
-
-> 公网使用强烈建议前面加 Nginx/Caddy 反向代理并启用 HTTPS。
-
----
-
-### 部署后检查清单
-
-1. 登录面板 →「系统设置」填好连接信息并保存
-2. 仪表盘显示在线人数 / FPS = REST 对接成功
-3. 等待约 2 分钟，玩家页出现存档数据 = 存档解析正常
-4. **首次先关闭自动封禁**验证检测准确性：
-   `config.yaml` 中 `anticheat.punish.ban: false`、`kick: false`，只留 `warn`
-5. 按 [docs/联调清单.md](docs/联调清单.md) 完成端到端验证
-6. 确认检测无误后再开启 kick/ban
-
-### 更新版本
-
-```bash
-# 二进制：重新解压发布包后
-sudo systemctl restart paladmin
-
-# Docker：
-git pull && docker compose up -d --build
-```
-
-更多说明见 [DEPLOY.md](DEPLOY.md)。
-
----
-
-### 方式 C：Docker 部署「Linux 游戏服 + PalDefender(Wine) + PalAdmin」
+### 方式 C：加 PalDefender 实时防护（Linux 游戏服 + Wine 容器）
 
 > **⚠️ 关于 PalDefender 的重要事实**
 >
 > [PalDefender](https://github.com/Ultimeit/PalDefender) 官方为 **Windows DLL**（通过 `d3d9.dll` 代理注入游戏进程），**不支持原生 Linux**。
 >
-> 但**只有 PalDefender 需要 Wine**——游戏服本身仍使用**官方原生 Linux 镜像**正常运行。
-> 架构上是三个容器：
+> 但**只有 PalDefender 需要 Wine**——游戏服本身仍使用**官方原生 Linux 镜像**。三服务架构：
 >
 > | 服务 | 运行方式 | 作用 |
 > |---|---|---|
 > | `palworld` | **原生 Linux** 官方镜像 | 游戏服务器 |
 > | `paldefender` | **Wine** 容器 | 运行 Windows 版 PalDefender，注入/防护 |
 > | `paladmin` | Linux 容器 | 面板 + 反作弊，集成模式对接 PalDefender |
->
-> - 若不使用 PalDefender → 游戏服原生 Linux 即可，PalAdmin 用**外置模式**。
-> - 若使用 PalDefender → 额外用一个 Wine 容器运行它，游戏服仍是原生 Linux，PalAdmin 以**集成模式**对接。
 
-下面使用 `docker-compose.paldefender.yml` 三服务编排。
+使用 `docker-compose.paldefender.yml`：
+
+```bash
+git clone https://gitee.com/QYC-qyc/palworld-tool.git paladmin
+cd paladmin
+cp .env.example .env
+nano .env   # 设置 WEB_PASSWORD、GAME_ADMIN_PASSWORD、PALDEFENDER_TOKEN
+```
 
 #### 1. 准备 PalDefender 文件
 
@@ -207,16 +175,15 @@ git pull && docker compose up -d --build
 ./PalDefender/
 ├── PalDefender.dll
 ├── d3d9.dll
-├── RESTAPI/            # Token 配置（见下一步）
+├── RESTAPI/Tokens/      # Token 配置（见下一步）
 └── ...
 ```
 
-> 这两个 DLL 会被挂载进游戏服的 `Pal/Binaries/Win64/` 目录，
-> 由 `paldefender`（Wine）容器加载并注入游戏进程。
+> 这两个 DLL 会被挂载进游戏服的 `Pal/Binaries/Win64/` 目录，由 `paldefender`（Wine）容器加载并注入游戏进程。
 
 #### 2. 配置 PalDefender REST Token
 
-在 `./PalDefender/RESTAPI/Tokens/` 目录建一个 token 文件（例如 `paladmin.json`）：
+在 `./PalDefender/RESTAPI/Tokens/` 目录建 `paladmin.json`：
 
 ```json
 {
@@ -226,24 +193,19 @@ git pull && docker compose up -d --build
 }
 ```
 
-该 Token 即 compose 中 `PALDEFENDER__TOKEN` 的值。最小权限可按需收窄为
-`REST.Players.Read`、`REST.Punishments.*`、`REST.Messages.*` 等。
-REST API 默认端口 `17993`（在 `paldefender` 服务内监听，不直接暴露公网）。
+把该 Token 填入 `.env` 的 `PALDEFENDER_TOKEN`。最小权限可收窄为 `REST.Players.Read`、`REST.Punishments.*`、`REST.Messages.*` 等。REST API 默认端口 `17993`，仅容器内通信，不暴露公网。
 
-#### 3. 修改 compose 配置
+#### 3. 核对 compose
 
 ```bash
-cp docker-compose.paldefender.yml docker-compose.override.yml
-nano docker-compose.override.yml
+nano docker-compose.paldefender.yml
 ```
 
-必须核对/修改：
-- **palworld 服务** `image`：官方/社区**原生 Linux** 游戏服镜像（示例 `thijsvanloef/palworld-server-docker`，按你信任的镜像替换）
-- **paldefender 服务** `image` / `command`：带 Wine 的镜像与启动命令（PalDefender 需以 Wine 加载 `PalServer-Win64-Shipping-Cmd.exe`，请按所选 Wine 镜像的实际路径调整）
-- `ADMIN_PASSWORD` / `REST__PASSWORD` / `RCON__PASSWORD`：改为同一个强密码
-- `WEB__PASSWORD`：PalAdmin 面板密码
-- `PALDEFENDER__TOKEN`：上一步生成的 Token
-- 共享卷 `./game`：三个服务都挂载它，保证游戏目录与存档一致
+必须核对：
+- **palworld** `image`：原生 Linux 游戏服镜像（示例 `thijsvanloef/palworld-server-docker`）
+- **paldefender** `image` / `command`：Wine 镜像及启动命令（`wine PalServer-Win64-Shipping-Cmd.exe` 的路径依镜像调整）
+- `./game` 共享卷：三个服务挂载同一份游戏目录与存档
+- `ADMIN_PASSWORD`、`WEB_PASSWORD`、`PALDEFENDER_TOKEN`：通过 `.env` 设置
 
 #### 4. 启动
 
@@ -253,21 +215,20 @@ docker compose -f docker-compose.paldefender.yml logs -f
 ```
 
 - 游戏服：UDP `8211`
-- PalAdmin 面板：`http://服务器IP:8190`
-- PalDefender REST：容器内 `:17993`（PalAdmin 通过 `http://paldefender:17993` 访问）
+- 面板：`http://服务器IP:8190`
+- PalDefender REST：容器内 `:17993`（面板通过 `http://paldefender:17993` 访问）
 
 #### 5. 验证集成
 
-1. 浏览器打开 PalAdmin 面板 →「PalDefender」页，应显示绿色**已连接**
-2. 游戏内以管理员身份执行 `/imcheater`，观察 PalDefender 是否响应、PalAdmin 告警页是否出现记录
-3. 在「系统设置」确认 `anticheat.mode = integrated`，处置动作会通过 PalDefender 执行（私聊警告、封禁、IP 封禁）
+1. 面板 →「PalDefender」页显示绿色**已连接**
+2. 游戏内管理员执行 `/imcheater`，观察 PalDefender 响应与面板告警
+3. 「系统设置」确认 `anticheat.mode = integrated`，处置动作通过 PalDefender 执行
 
-> **注意**：Wine 容器加载 PalDefender 的具体命令/路径与所选 Wine 镜像强相关，
-> compose 中的 `command: wine ...` 仅为示例，部署时需对照镜像文档和 PalDefender 安装说明调整。
+> **注意**：Wine 容器加载 PalDefender 的命令/路径与所选 Wine 镜像强相关，compose 中的 `command` 仅为示例，需对照镜像文档与 PalDefender 安装说明调整。
 
 #### 集成模式 vs 外置模式
 
-| 能力 | 外置模式 (external) | 集成模式 (integrated, +PalDefender) |
+| 能力 | 外置 (方式 B) | 集成 (方式 C) |
 |---|---|---|
 | 存档属性/复制/非法物品检测 | ✅ | ✅ |
 | 在线瞬移/多开检测 | ✅ | ✅ |
@@ -276,66 +237,76 @@ docker compose -f docker-compose.paldefender.yml logs -f
 | 游戏服运行方式 | 原生 Linux | 原生 Linux |
 | 是否额外需要 Wine | ❌ | ✅（仅 PalDefender 容器） |
 
-> 两种模式 PalAdmin 都提供面板、告警、审计、回档、Webhook；集成模式多了 PalDefender 的进程内实时防护。
+---
+
+### 服务器不构建：从 Gitee 镜像仓库拉取
+
+上面方式 B/C 默认在服务器 `docker compose up --build`（用项目 Dockerfile 现场构建 PalAdmin）。若希望服务器**只拉镜像、不构建**：
+
+1. 在 Gitee 创建**容器镜像仓库**（与代码仓库是两回事），例如 `qyc-qyc/paladmin`。
+2. 本地构建并推送：
+
+   ```bash
+   # Linux/Mac
+   export DOCKER_USERNAME=你的gitee用户名
+   export DOCKER_PASSWORD=你的Gitee私人令牌
+   bash scripts/docker-push.sh latest
+   ```
+   ```powershell
+   # Windows PowerShell
+   $env:DOCKER_PASSWORD="你的Gitee令牌"
+   powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
+   ```
+
+3. 服务器登录并启动（compose 文件里 `paladmin` 只有 `image:`、没有 `build:`）：
+
+   ```bash
+   docker login gitee.com
+   # 外置模式
+   docker compose -f docker-compose.server.yml up -d
+   # 集成模式
+   docker compose -f docker-compose.gitee.yml up -d
+   ```
+
+   记得把两个 compose 里的 `gitee.com/qyc-qyc/paladmin:latest` 改成你实际的镜像地址。更新时 `docker pull` 后重启即可。
 
 ---
 
-### 推送到 Gitee 镜像仓库，服务器直接拉取
-
-不想在服务器上构建镜像时，可把 PalAdmin 镜像推到 **Gitee 容器镜像仓库**，服务器直接拉取运行。
-
-#### 1. 在 Gitee 创建镜像仓库
-
-在 Gitee 新建容器镜像仓库，例如 `qyc-qyc/paladmin`。完整镜像地址形如：
-
-```
-gitee.com/qyc-qyc/paladmin:latest
-```
-
-> Gitee 镜像仓库的命名空间（用户名/组织）通常**全小写**，请以 Gitee 页面显示的地址为准。
-
-#### 2. 本地构建并推送
-
-脚本已提供，把命名空间改成你的 Gitee 用户名后执行：
+### 防火墙
 
 ```bash
-# Linux / macOS
-export DOCKER_USERNAME=你的gitee用户名
-export DOCKER_PASSWORD=你的Gitee私人令牌   # 在 Gitee 设置→私人令牌生成
-bash scripts/docker-push.sh latest
+sudo ufw allow 8190/tcp     # 面板端口
+sudo ufw allow 8211/udp     # 游戏端口
+# 游戏服的 8212(REST)、25575(RCON)、PalDefender 17993 不要对公网开放
 ```
 
-```powershell
-# Windows PowerShell
-$env:DOCKER_PASSWORD="你的Gitee私人令牌"
-powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
-```
+> 公网使用强烈建议前面加 Nginx/Caddy 反向代理并启用 HTTPS；REST/RCON/17993 仅绑定内网或经反代鉴权。
 
-脚本会 `docker build --platform linux/amd64` 后 `docker push` 到 Gitee。
-（脚本里默认 `qyc-qyc/paladmin`，按需修改 `$NAMESPACE`/`$IMAGE`。）
+---
 
-#### 3. 服务器登录并拉取
+### 部署后检查清单
+
+1. 登录面板 →「系统设置」填好连接信息并保存
+2. 仪表盘显示在线人数 / FPS = REST 对接成功
+3. 等待约 2 分钟，玩家页出现存档数据 = 存档解析正常
+4. **首次先关闭自动封禁**验证检测：「系统设置」把 kick/ban 关闭，只留 warn
+5. 按 [docs/联调清单.md](docs/联调清单.md) 完成端到端验证
+6. 确认检测无误后再开启 kick/ban
+
+### 更新版本
 
 ```bash
-docker login gitee.com                       # 用户名 + Gitee 私人令牌
-docker pull gitee.com/qyc-qyc/paladmin:latest
+# 二进制：重新解压发布包后
+sudo systemctl restart paladmin
+
+# Docker（服务器构建）：
+git pull && docker compose up -d --build
+
+# Docker（拉取 Gitee 镜像）：
+docker compose pull && docker compose up -d
 ```
 
-#### 4. 用拉取镜像的 compose 启动
-
-- **外置模式**（原生 Linux 游戏服，无 PalDefender）：
-  ```bash
-  cp .env.example .env && nano .env
-  # 把 docker-compose.server.yml 里的镜像地址改成你的
-  docker compose -f docker-compose.server.yml up -d
-  ```
-- **集成模式**（Linux 游戏服 + PalDefender(Wine)）：
-  ```bash
-  # 把 docker-compose.gitee.yml 里的镜像地址改成你的
-  docker compose -f docker-compose.gitee.yml up -d
-  ```
-
-这两个 compose 文件里 `paladmin` 服务只有 `image:`、**没有 `build:`**，因此服务器不会本地构建，只拉取 Gitee 上的镜像。更新版本时重新 `docker pull` 后重启即可。
+更多说明见 [DEPLOY.md](DEPLOY.md)。
 
 ## 配置
 
