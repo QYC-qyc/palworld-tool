@@ -35,27 +35,22 @@ ghcr.io/qyc-qyc/palworld-tool:latest
 
 ---
 
-### 一、构建并推送镜像（开发机，执行一次）
+### 一、镜像自动构建（推代码即可）
 
-需要本机安装 Docker。
+本项目已配置 **GitHub Actions**：当你 `git push` 到 `main` 分支（或发布 Release），GitHub 会自动在云端构建镜像并推送到 GHCR，**无需本地安装 Docker，也无需手动登录推送**。
 
-1. 在 GitHub 生成 Token：Settings → Developer settings → Personal access tokens → **Tokens (classic)** → Generate new token，勾选 **`write:packages`** 权限。
+```bash
+git add .
+git commit -m "更新"
+git push origin main
+```
 
-2. 构建并推送：
+- 工作流文件：`.github/workflows/docker.yml`
+- 构建触发后可在 GitHub 仓库 → **Actions** 页查看进度
+- 约 2-5 分钟后，新镜像出现在 `ghcr.io/qyc-qyc/palworld-tool`
+- 镜像自动打标签：`latest`（main 分支）、`major.minor`（Release）、提交短 SHA
 
-   ```bash
-   # Linux / macOS
-   export GITHUB_USER=QYC-qyc
-   export GITHUB_TOKEN=你的GitHubToken
-   bash scripts/docker-push.sh latest
-   ```
-   ```powershell
-   # Windows PowerShell
-   $env:GITHUB_TOKEN="你的GitHubToken"
-   powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
-   ```
-
-   镜像由 `Dockerfile` 多阶段构建（前端→后端→sav_cli），推送到 GHCR（镜像已设为公开）。
+> 若想在本地手动构建推送，仍可使用 `scripts/docker-push.sh`（需先 `docker login ghcr.io`）。
 
 ---
 
@@ -164,7 +159,7 @@ sudo ufw allow 8211/udp     # 游戏端口
 
 ### 更新版本
 
-在开发机推送新镜像后，服务器拉取最新镜像并重启：
+代码 `git push` 后，GitHub Actions 会自动构建并推送新镜像（约 2-5 分钟）。完成后在服务器拉取并重启：
 
 ```bash
 docker compose pull
@@ -175,7 +170,7 @@ docker compose -f docker-compose.paldefender.yml pull
 docker compose -f docker-compose.paldefender.yml up -d
 ```
 
-开发机推送：`bash scripts/docker-push.sh latest`（或 Windows 的 `docker-push.ps1`）。
+可以在 GitHub 仓库 → Actions 页确认构建状态。
 
 ## 配置
 
