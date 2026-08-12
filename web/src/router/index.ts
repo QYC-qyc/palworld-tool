@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { api } from '@/api'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/login', name: 'login', component: () => import('@/views/Login.vue') },
+    { path: '/setup', name: 'setup', component: () => import('@/views/Setup.vue'), meta: { public: true } },
+    { path: '/login', name: 'login', component: () => import('@/views/Login.vue'), meta: { public: true } },
     {
       path: '/',
       component: () => import('@/views/Layout.vue'),
@@ -13,9 +15,9 @@ const router = createRouter({
         { path: 'players', name: 'players', component: () => import('@/views/Players.vue') },
         { path: 'guilds', name: 'guilds', component: () => import('@/views/Guilds.vue') },
         { path: 'whitelist', name: 'whitelist', component: () => import('@/views/Whitelist.vue') },
+        { path: 'banlist', name: 'banlist', component: () => import('@/views/Banlist.vue') },
         { path: 'rcon', name: 'rcon', component: () => import('@/views/Rcon.vue') },
         { path: 'backups', name: 'backups', component: () => import('@/views/Backups.vue') },
-        { path: 'banlist', name: 'banlist', component: () => import('@/views/Banlist.vue') },
         { path: 'settings', name: 'settings', component: () => import('@/views/Settings.vue') },
         {
           path: 'anticheat',
@@ -37,10 +39,24 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
+  // 公开页面直接放行
+  if (to.meta.public) return next()
+
+  // 检查是否已初始化
+  try {
+    const status = await api.setupStatus()
+    if (!status.initialized) {
+      return next({ name: 'setup' })
+    }
+  } catch {
+    // 接口异常不阻塞，继续走登录校验
+  }
+
+  // 登录校验
   const token = localStorage.getItem('paladmin_token')
-  if (to.name !== 'login' && !token) next({ name: 'login' })
-  else next()
+  if (!token) return next({ name: 'login' })
+  next()
 })
 
 export default router

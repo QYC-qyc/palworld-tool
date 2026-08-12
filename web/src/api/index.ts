@@ -29,6 +29,14 @@ export async function request<T = any>(
 }
 
 export const api = {
+  // 初始化向导
+  setupStatus: () => request<{ initialized: boolean }>('/api/setup/status'),
+  setup: (data: Record<string, string>) =>
+    request<{ token: string }>('/api/setup', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   login: (password: string) =>
     request<{ token: string }>('/api/login', {
       method: 'POST',

@@ -119,13 +119,12 @@ services:
       PROCESS__CONTAINER: "palworld"
 ```
 
-访问 `http://服务器IP:8190`，用 `WEB_PASSWORD` 登录。
+启动后浏览器访问 `http://服务器IP:8190`，**首次进入会自动跳转到初始化向导**，设置面板登录密码（可同时填写游戏 REST/RCON 连接信息，也可稍后在「系统设置」配置）。完成后用该密码登录。
 
-> 如果游戏服已单独部署（不在同一 compose），把 `REST__ADDRESS`/`RCON__ADDRESS` 改成实际地址（如 `http://172.17.0.1:8212`），并删掉 palworld 服务；或用 `network_mode: host`。
+> 不再需要手动挂载 config.yaml 或预先设置密码；所有配置保存在数据库中，面板可改。
+> 若游戏服已单独部署，在向导或系统设置里把 REST/RCON 地址改成实际地址（如 `http://172.17.0.1:8212`）。
 
 ---
-
-### 防火墙
 
 ### 防火墙
 

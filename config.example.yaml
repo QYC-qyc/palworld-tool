@@ -1,7 +1,9 @@
 # PalAdmin 配置文件
+# 注意：管理员密码通过首次访问面板的初始化向导设置（存数据库），此处不配置。
+#       以下仅为端口、日志等静态/默认值；连接配置可在面板「系统设置」修改。
 
 web:
-  password: "CHANGE_ME_STRONG_PASSWORD"   # 请务必修改！WebUI 管理员密码，同时也是 JWT 密钥
+  password: ""               # 留空：首次访问面板时设置
   port: 8190
   tls: false
   cert_path: ""

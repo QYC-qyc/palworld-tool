@@ -108,8 +108,12 @@ func main() {
 // 并将数据库中的值应用到 viper，使后续读取以面板设置为准。
 func initRuntimeSettings(db *bbolt.DB) {
 	defaults := service.DefaultSettings()
-	// 用 config.yaml（viper）中的现有值作为首次写入的初始值
+	// 用 config.yaml/env 中的连接配置作为首次写入的默认值，
+	// 但 web.password 除外——它必须由首次访问面板的初始化向导设置。
 	for k := range defaults {
+		if k == service.SettingWebPassword {
+			continue
+		}
 		if v := viper.GetString(k); v != "" {
 			defaults[k] = v
 		}

@@ -1,13 +1,18 @@
 # ============================================================
-# 镜像部署：PalAdmin 外置模式（原生 Linux 游戏服 + 面板）
+# 镜像部署：PalAdmin（原生 Linux 游戏服 + 面板 + 反作弊）
 # 所有数据统一放在 /www/palworld-tool/ 下
 #
 # 用法：
-#   mkdir -p /www/palworld-tool && cd /www/palworld-tool
-#   curl -o docker-compose.yml https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
-#   curl -o .env https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/.env.example
-#   nano .env
-#   docker compose up -d
+#   sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
+#   sudo curl -o docker-compose.yml \
+#     https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
+#   cat > .env <<'EOF'
+#   WEB_PASSWORD=你的面板密码
+#   GAME_ADMIN_PASSWORD=游戏AdminPassword
+#   EOF
+#   sudo docker compose up -d
+#
+# 首次访问 http://服务器IP:8190 会进入初始化向导设置密码。
 # ============================================================
 services:
   # ---------- 游戏服（原生 Linux 官方镜像）----------
@@ -33,7 +38,6 @@ services:
       - "25575:25575/tcp"
       - "8212:8212/tcp"
     volumes:
-      # 游戏安装/存档目录统一放在工作目录下
       - /www/palworld-tool/game:/palworld
     networks:
       - palnet
@@ -48,20 +52,21 @@ services:
     ports:
       - "8190:8190"
     volumes:
-      - /www/palworld-tool/config.yaml:/app/config.yaml
-      - /www/palworld-tool/pst.db:/app/pst.db
-      - /www/palworld-tool/data:/app/data
+      # 数据库与反作弊数据（named volume，不会遮蔽镜像内程序）
+      - pst-data:/app/data
       - /www/palworld-tool/backups:/app/backups
       - /www/palworld-tool/evidence:/app/evidence
       - /www/palworld-tool/logs:/app/logs
       # 读取游戏存档（与游戏服共享 ./game）
       - /www/palworld-tool/game/Pal/Saved:/game/Saved
     environment:
-      WEB__PASSWORD: "${WEB_PASSWORD:-ChangeMe!2024}"
+      # 首次启动时用于初始化面板密码；初始化后以面板设置为准
+      WEB__PASSWORD: "${WEB_PASSWORD:-}"
+      STORAGE__PATH: "/app/data/pst.db"
       REST__ADDRESS: "http://palworld:8212"
-      REST__PASSWORD: "${GAME_ADMIN_PASSWORD:-ChangeMe_GameAdminPassword}"
+      REST__PASSWORD: "${GAME_ADMIN_PASSWORD:-}"
       RCON__ADDRESS: "palworld:25575"
-      RCON__PASSWORD: "${GAME_ADMIN_PASSWORD:-ChangeMe_GameAdminPassword}"
+      RCON__PASSWORD: "${GAME_ADMIN_PASSWORD:-}"
       SAVE__PATH: "/game/Saved/SaveGames/0"
       SAVE__DECODE_PATH: "/app/sav_cli"
       ANTICHEAT__ENABLED: "true"
@@ -70,6 +75,9 @@ services:
       PROCESS__CONTAINER: "palworld"
     networks:
       - palnet
+
+volumes:
+  pst-data:
 
 networks:
   palnet:

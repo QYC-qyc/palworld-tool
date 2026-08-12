@@ -23,6 +23,9 @@ type ErrorResponse struct {
 func RegisterRouter(r *gin.Engine) {
 	r.Use(gin.Recovery())
 
+	// 公开接口：初始化向导与登录
+	r.GET("/api/setup/status", setupStatus)
+	r.POST("/api/setup", setup)
 	r.POST("/api/login", loginHandler)
 
 	apiGroup := r.Group("/api")
