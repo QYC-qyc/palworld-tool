@@ -34,7 +34,8 @@ WORKDIR /app
 COPY --from=backend /out/paladmin /app/paladmin
 COPY --from=savcli /sav/dist/sav_cli /app/sav_cli
 COPY --from=webbuilder /web/dist /app/web/dist
-COPY config.yaml /app/config.yaml
+# 内置示例配置（真实 config.yaml 通过 compose 挂载覆盖，含密码不进镜像）
+COPY config.example.yaml /app/config.yaml
 COPY data /app/data
 
 # 运行时目录
