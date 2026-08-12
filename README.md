@@ -239,36 +239,53 @@ docker compose -f docker-compose.paldefender.yml logs -f
 
 ---
 
-### 服务器不构建：从 Gitee 镜像仓库拉取
+### 服务器不构建：从镜像仓库拉取
 
-上面方式 B/C 默认在服务器 `docker compose up --build`（用项目 Dockerfile 现场构建 PalAdmin）。若希望服务器**只拉镜像、不构建**：
+上面方式 B/C 默认在服务器 `docker compose up --build`（用项目 Dockerfile 现场构建 PalAdmin）。若希望服务器**只拉镜像、不构建**，可把镜像推送到镜像仓库。代码已同时托管在 Gitee 与 GitHub，对应两个常用镜像仓库：
 
-1. 在 Gitee 创建**容器镜像仓库**（与代码仓库是两回事），例如 `qyc-qyc/paladmin`。
+| 镜像仓库 | 镜像地址 | 推送脚本 | 服务器 compose |
+|---|---|---|---|
+| **GHCR**（GitHub，推荐） | `ghcr.io/qyc-qyc/paladmin:latest` | `scripts/docker-push-ghcr.sh` / `.ps1` | `docker-compose.ghcr.yml` |
+| **Gitee** | `gitee.com/qyc-qyc/paladmin:latest` | `scripts/docker-push.sh` / `.ps1` | `docker-compose.server.yml`、`docker-compose.gitee.yml` |
+
+#### 用 GHCR（GitHub Container Registry）
+
+1. 在 GitHub 生成 Token：Settings → Developer settings → Personal access tokens → 勾选 `write:packages`。
 2. 本地构建并推送：
 
    ```bash
    # Linux/Mac
-   export DOCKER_USERNAME=你的gitee用户名
-   export DOCKER_PASSWORD=你的Gitee私人令牌
-   bash scripts/docker-push.sh latest
+   export GITHUB_USER=qyc-qyc
+   export GITHUB_TOKEN=你的GitHubToken
+   bash scripts/docker-push-ghcr.sh latest
    ```
    ```powershell
    # Windows PowerShell
-   $env:DOCKER_PASSWORD="你的Gitee令牌"
-   powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
+   $env:GITHUB_TOKEN="你的GitHubToken"
+   powershell -ExecutionPolicy Bypass -File scripts\docker-push-ghcr.ps1
    ```
 
-3. 服务器登录并启动（compose 文件里 `paladmin` 只有 `image:`、没有 `build:`）：
+3. 服务器拉取并启动：
 
    ```bash
-   docker login gitee.com
-   # 外置模式
-   docker compose -f docker-compose.server.yml up -d
-   # 集成模式
-   docker compose -f docker-compose.gitee.yml up -d
+   docker login ghcr.io                          # GitHub 用户名 + Token
+   docker compose -f docker-compose.ghcr.yml up -d
    ```
 
-   记得把两个 compose 里的 `gitee.com/qyc-qyc/paladmin:latest` 改成你实际的镜像地址。更新时 `docker pull` 后重启即可。
+> GHCR 首次推送的镜像默认是 private，可在 GitHub 包设置里改为 public，这样服务器 `docker pull` 就不必登录。
+
+#### 用 Gitee 容器镜像仓库
+
+```bash
+export DOCKER_USERNAME=qyc-qyc
+export DOCKER_PASSWORD=你的Gitee令牌
+bash scripts/docker-push.sh latest
+docker login gitee.com
+docker compose -f docker-compose.server.yml up -d   # 外置
+docker compose -f docker-compose.gitee.yml up -d    # 集成
+```
+
+更新版本时在服务器 `docker compose pull && docker compose up -d` 即可。
 
 ---
 
