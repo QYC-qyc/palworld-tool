@@ -1,15 +1,16 @@
 # ============================================================
-# 代码部署：原生 Linux 游戏服 + PalDefender(Wine) + PalAdmin(本地构建)
-# 在服务器 clone 代码后直接 docker compose up -d --build
+# 集成模式：原生 Linux 游戏服 + PalDefender(Wine) + PalAdmin
+# 所有数据统一放在 /www/palworld-tool/ 下
 #
 # 用法：
-#   git clone https://gitee.com/QYC-qyc/palworld-tool.git
-#   cd palworld-tool
-#   cp .env.example .env && nano .env
-#   docker compose -f docker-compose.paldefender.yml up -d --build
+#   cd /www/palworld-tool
+#   curl -o docker-compose.paldefender.yml \
+#     https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.paldefender.yml
+#   # 准备 ./PalDefender（dll）、.env，然后：
+#   docker compose -f docker-compose.paldefender.yml up -d
 # ============================================================
 services:
-  # ---------- 原生 Linux 官方游戏服 ----------
+  # ---------- 原生 Linux 游戏服 ----------
   palworld:
     image: thijsvanloef/palworld-server-docker:latest
     container_name: palworld
@@ -30,7 +31,7 @@ services:
       - "25575:25575/tcp"
       - "8212:8212/tcp"
     volumes:
-      - ./game:/palworld
+      - /www/palworld-tool/game:/palworld
     networks:
       - palnet
 
@@ -41,18 +42,23 @@ services:
     restart: unless-stopped
     depends_on:
       - palworld
+    # Wine 加载游戏可执行文件，由 d3d9.dll 代理注入 PalDefender
     command: wine /palworld/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe
     ports:
       - "17993:17993/tcp"
     volumes:
-      - ./game:/palworld
-      - ./PalDefender:/palworld/Pal/Binaries/Win64:ro
+      # 游戏目录（与 palworld 共享）
+      - /www/palworld-tool/game:/palworld
+      # Wine 配置/Prefix 持久化到工作目录
+      - /www/palworld-tool/wine:/home/wineuser
+      # PalDefender 本体（放入 Pal/Binaries/Win64）
+      - /www/palworld-tool/PalDefender:/palworld/Pal/Binaries/Win64:ro
     environment:
       TZ: "Asia/Shanghai"
     networks:
       - palnet
 
-  # ---------- PalAdmin（从本地代码构建）----------
+  # ---------- PalAdmin 面板 ----------
   paladmin:
     image: ghcr.io/qyc-qyc/palworld-tool:latest
     container_name: paladmin
@@ -69,7 +75,7 @@ services:
       - /www/palworld-tool/backups:/app/backups
       - /www/palworld-tool/evidence:/app/evidence
       - /www/palworld-tool/logs:/app/logs
-      - ./game/Pal/Saved:/game/Saved
+      - /www/palworld-tool/game/Pal/Saved:/game/Saved
     environment:
       WEB__PASSWORD: "${WEB_PASSWORD:-ChangeMe_WebPassword}"
       REST__ADDRESS: "http://palworld:8212"

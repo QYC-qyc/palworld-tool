@@ -80,30 +80,34 @@ EOF
 sudo nano docker-compose.yml
 ```
 
-数据目录结构（全部位于 `/www/palworld-tool/`）：
+所有数据统一位于 `/www/palworld-tool/`：
 
 ```
 /www/palworld-tool/
-├── docker-compose.yml
-├── .env
-├── config.yaml        # 面板配置
+├── docker-compose.yml / docker-compose.paldefender.yml
+├── .env / config.yaml
 ├── pst.db             # 数据库（首次运行自动生成）
-├── data/              # 反作弊数据
-├── backups/           # 存档备份
-├── evidence/          # 告警证据
-└── logs/              # 运行日志
+├── data/ backups/ evidence/ logs/   # 面板数据
+├── game/              # 游戏服安装目录与存档（容器自动写入）
+└── wine/              # Wine 配置/Prefix（仅集成模式）
 ```
 
-`docker-compose.yml` 关键配置：
+游戏服容器 `palworld` 会自动把服务端安装到 `./game`，存档位于 `./game/Pal/Saved`，面板与之共享。集成模式下 Wine 配置持久化在 `./wine`。
+
+`docker-compose.yml` 同时包含 `palworld`（游戏服）和 `paladmin`（面板）两个容器，游戏数据自动放在 `./game`：
 
 ```yaml
 services:
+  palworld:
+    image: thijsvanloef/palworld-server-docker:latest
+    volumes:
+      - /www/palworld-tool/game:/palworld      # 游戏安装与存档
   paladmin:
     image: ghcr.io/qyc-qyc/palworld-tool:latest
     ports:
       - "8190:8190"
     volumes:
-      - /你的真实路径/Pal/Saved:/game/Saved   # 回档需要读写，勿加 :ro
+      - /www/palworld-tool/game/Pal/Saved:/game/Saved
     environment:
       WEB__PASSWORD: "${WEB_PASSWORD}"
       REST__ADDRESS: "http://palworld:8212"
@@ -112,6 +116,7 @@ services:
       RCON__PASSWORD: "${GAME_ADMIN_PASSWORD}"
       SAVE__PATH: "/game/Saved/SaveGames/0"
       PROCESS__MODE: "docker"
+      PROCESS__CONTAINER: "palworld"
       PROCESS__CONTAINER: "palworld"
 ```
 
