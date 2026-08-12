@@ -59,11 +59,16 @@ git push origin main
 #### 方式 A：外置模式（原生 Linux 游戏服，最简单）
 
 ```bash
-mkdir -p paladmin && cd paladmin
+# 创建工作目录（所有数据统一放在 /www/palworld-tool/ 下）
+sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
 
 # 获取 compose 模板
-curl -o docker-compose.yml \
+sudo curl -o docker-compose.yml \
   https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
+
+# 下载示例配置并改名为 config.yaml
+sudo curl -o config.yaml \
+  https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/config.example.yaml
 
 # 配置环境变量
 cat > .env <<'EOF'
@@ -71,8 +76,22 @@ WEB_PASSWORD=你的面板强密码
 GAME_ADMIN_PASSWORD=游戏AdminPassword
 EOF
 
-# 修改存档挂载路径
-nano docker-compose.yml   # 把 /home/steam/Pal/Saved 改成真实路径
+# 修改存档挂载路径（把 /home/steam/Pal/Saved 改成你的真实路径）
+sudo nano docker-compose.yml
+```
+
+数据目录结构（全部位于 `/www/palworld-tool/`）：
+
+```
+/www/palworld-tool/
+├── docker-compose.yml
+├── .env
+├── config.yaml        # 面板配置
+├── pst.db             # 数据库（首次运行自动生成）
+├── data/              # 反作弊数据
+├── backups/           # 存档备份
+├── evidence/          # 告警证据
+└── logs/              # 运行日志
 ```
 
 `docker-compose.yml` 关键配置：

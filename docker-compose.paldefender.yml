@@ -63,11 +63,12 @@ services:
     ports:
       - "8190:8190"
     volumes:
-      - ./paladmin/config.yaml:/app/config.yaml
-      - ./paladmin/data:/app/data
-      - ./paladmin/backups:/app/backups
-      - ./paladmin/evidence:/app/evidence
-      - ./paladmin/logs:/app/logs
+      - /www/palworld-tool/config.yaml:/app/config.yaml
+      - /www/palworld-tool/pst.db:/app/pst.db
+      - /www/palworld-tool/data:/app/data
+      - /www/palworld-tool/backups:/app/backups
+      - /www/palworld-tool/evidence:/app/evidence
+      - /www/palworld-tool/logs:/app/logs
       - ./game/Pal/Saved:/game/Saved
     environment:
       WEB__PASSWORD: "${WEB_PASSWORD:-ChangeMe_WebPassword}"

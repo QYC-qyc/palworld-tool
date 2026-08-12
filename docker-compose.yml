@@ -1,10 +1,13 @@
 # ============================================================
 # 镜像部署：PalAdmin 外置模式（原生 Linux 游戏服）
-# 服务器直接拉取 Gitee 镜像仓库的镜像，不在服务器构建。
+# 服务器直接拉取 GHCR 镜像，无需在服务器构建。
 #
 # 用法：
-#   cp .env.example .env && nano .env
-#   docker login gitee.com
+#   mkdir -p /www/palworld-tool && cd /www/palworld-tool
+#   curl -o docker-compose.yml https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
+#   curl -o .env https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/.env.example
+#   nano .env                       # 设置密码
+#   # 把下方 volumes 中的存档路径改成真实路径
 #   docker compose up -d
 # ============================================================
 services:
@@ -15,12 +18,14 @@ services:
     ports:
       - "8190:8190"
     volumes:
-      - ./paladmin/config.yaml:/app/config.yaml
-      - pst-data:/app/data
-      - ./backups:/app/backups
-      - ./evidence:/app/evidence
-      - ./logs:/app/logs
-      # 游戏存档目录（回档需要读写，去掉 :ro）
+      # 配置与数据库（放在 /www/palworld-tool/ 下，持久化面板设置、告警、封禁）
+      - /www/palworld-tool/config.yaml:/app/config.yaml
+      - /www/palworld-tool/pst.db:/app/pst.db
+      - /www/palworld-tool/data:/app/data
+      - /www/palworld-tool/backups:/app/backups
+      - /www/palworld-tool/evidence:/app/evidence
+      - /www/palworld-tool/logs:/app/logs
+      # 游戏存档目录（改成你服务器真实的 Saved 路径；回档需要读写，勿加 :ro）
       - /home/steam/Pal/Saved:/game/Saved
     environment:
       WEB__PASSWORD: "${WEB_PASSWORD:-ChangeMe!2024}"
@@ -36,9 +41,6 @@ services:
       PROCESS__CONTAINER: "palworld"
     networks:
       - palnet
-
-volumes:
-  pst-data:
 
 networks:
   palnet:
