@@ -16,7 +16,6 @@ const router = createRouter({
         { path: 'rcon', name: 'rcon', component: () => import('@/views/Rcon.vue') },
         { path: 'backups', name: 'backups', component: () => import('@/views/Backups.vue') },
         { path: 'banlist', name: 'banlist', component: () => import('@/views/Banlist.vue') },
-        { path: 'paldefender', name: 'paldefender', component: () => import('@/views/PalDefender.vue') },
         { path: 'settings', name: 'settings', component: () => import('@/views/Settings.vue') },
         {
           path: 'anticheat',

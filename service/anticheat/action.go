@@ -11,23 +11,14 @@ import (
 	"paladmin/service"
 )
 
-// ActionExecutor 执行处置动作。集成模式下优先用 PalDefender，否则用官方 REST/RCON。
+// ActionExecutor 通过游戏官方 REST/RCON 执行处置动作（纯 Linux 原生，无需 Wine/PalDefender）。
 type ActionExecutor struct {
 	db  *bbolt.DB
 	cfg *config.AnticheatConfig
-	pd  *tool.PalDefenderClient
 }
 
 func NewActionExecutor(db *bbolt.DB, cfg *config.AnticheatConfig) *ActionExecutor {
-	e := &ActionExecutor{db: db, cfg: cfg}
-	if cfg.Mode == "integrated" {
-		e.pd = tool.NewPalDefender()
-		if !e.pd.Available() {
-			logger.Warn("反作弊模式为 integrated，但 PalDefender 未配置完整，回退到官方 REST")
-			e.pd = nil
-		}
-	}
-	return e
+	return &ActionExecutor{db: db, cfg: cfg}
 }
 
 // Execute 对一个 Finding 执行其规则的全部动作
@@ -41,20 +32,13 @@ func (e *ActionExecutor) Execute(f Finding) error {
 				if e.cfg.Punish.WarnWithReason && f.Rule.Reason != "" {
 					msg = fmt.Sprintf("警告: %s", f.Rule.Reason)
 				}
-				// 优先私聊玩家，否则全服通告
-				if e.pd != nil && f.UserID != "" {
-					_ = e.pd.SendMessage([]string{f.UserID}, "PlayerLogImportant", msg)
-				} else if f.Nickname != "" {
+				if f.Nickname != "" {
 					_ = tool.Broadcast(fmt.Sprintf("[反作弊] %s: %s", f.Nickname, msg))
 				}
 			}
 		case ActionKick:
 			if e.cfg.Punish.Kick {
-				if e.pd != nil {
-					err = e.pd.Kick(f.UserID, f.Rule.Reason)
-				} else {
-					err = tool.KickPlayer(f.UserID)
-				}
+				err = tool.KickPlayer(f.UserID)
 				logger.Warnf("踢出 %s (%s): %v", f.Nickname, f.Rule.Reason, err)
 				_ = AddAudit(e.db, "anticheat", "kick", f.UserID, f.Title, resultStr(err))
 			}
@@ -65,11 +49,7 @@ func (e *ActionExecutor) Execute(f Finding) error {
 						logger.Errorf("封禁前备份失败: %v", berr)
 					}
 				}
-				if e.pd != nil {
-					err = e.pd.Ban(f.UserID, f.Rule.Reason, false)
-				} else {
-					err = tool.BanPlayer(f.UserID)
-				}
+				err = tool.BanPlayer(f.UserID)
 				_ = service.AddBan(e.db, database.BanRecord{
 					Type: database.BanUser, Identifier: f.UserID,
 					Reason: f.Rule.Reason, Issuer: "anticheat",
@@ -77,12 +57,7 @@ func (e *ActionExecutor) Execute(f Finding) error {
 				logger.Warnf("封禁 %s (%s): %v", f.Nickname, f.Rule.Reason, err)
 				_ = AddAudit(e.db, "anticheat", "ban", f.UserID, f.Title, resultStr(err))
 				if e.cfg.Punish.Announce {
-					announce := fmt.Sprintf("[反作弊] 玩家 %s 因 %s 被封禁", f.Nickname, f.Rule.Reason)
-					if e.pd != nil {
-						_ = e.pd.Broadcast(announce)
-					} else {
-						_ = tool.Broadcast(announce)
-					}
+					_ = tool.Broadcast(fmt.Sprintf("[反作弊] 玩家 %s 因 %s 被封禁", f.Nickname, f.Rule.Reason))
 				}
 			}
 		case ActionIPBan:
@@ -92,11 +67,7 @@ func (e *ActionExecutor) Execute(f Finding) error {
 						Type: database.BanIP, Identifier: p.Ip,
 						Reason: f.Rule.Reason, Issuer: "anticheat",
 					})
-					if e.pd != nil {
-						_ = e.pd.BanIP(p.Ip, f.Rule.Reason, f.UserID)
-					} else {
-						_ = tool.BanPlayer(f.UserID)
-					}
+					_ = tool.BanPlayer(f.UserID)
 				}
 				_ = AddAudit(e.db, "anticheat", "ipban", f.UserID, f.Title, "attempted")
 			}

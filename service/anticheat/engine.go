@@ -144,15 +144,6 @@ func (e *Engine) ScanLive(players []database.OnlinePlayer, whitelist []database.
 	return e.process(findings)
 }
 
-// ProcessExternal 处理外部（如 PalDefender）上报的 Finding
-func (e *Engine) ProcessExternal(f Finding) {
-	if !e.cfg.Enabled {
-		return
-	}
-	f.Source = "paldefender"
-	e.process([]Finding{f})
-}
-
 func (e *Engine) process(findings []Finding) int {
 	count := 0
 	for _, f := range findings {

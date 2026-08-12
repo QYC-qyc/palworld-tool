@@ -63,7 +63,6 @@ const menuOptions = [
   { label: '公会', key: '/guilds' },
   { label: '白名单', key: '/whitelist' },
   { label: '封禁列表', key: '/banlist' },
-  { label: 'PalDefender', key: '/paldefender' },
   { label: 'RCON 控制台', key: '/rcon' },
   { label: '备份管理', key: '/backups' },
   { label: '系统设置', key: '/settings' },

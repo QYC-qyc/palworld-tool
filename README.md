@@ -1,11 +1,11 @@
 # PalAdmin
 
-幻兽帕鲁（Palworld）服务器管理与反作弊系统，参考 [palworld-server-tool](https://github.com/zaigie/palworld-server-tool) 与 [PalDefender](https://github.com/Ultimeit/PalDefender) 设计。
+幻兽帕鲁（Palworld）服务器管理与反作弊系统，参考 [palworld-server-tool](https://github.com/zaigie/palworld-server-tool) 设计。纯 Linux 原生方案，无需 Wine。
 
 - 🖥️ **服务器管理**：在线玩家监控、玩家/公会/背包/帕鲁数据、踢封禁、RCON 控制台、白名单、广播、关服
 - 🛡️ **反作弊引擎**：12 条存档规则 + 5 条在线规则，四级处置阶梯（警告 → 踢出 → 封禁 → IP 封禁）
 - 🔍 **检测能力**：帕鲁属性/天赋/灵魂越界、Boss/塔主帕鲁、复制帕鲁（InstanceID + 特征指纹）、非法物品、物品堆叠异常、瞬移、同 IP 多开、等级突变
-- 🔌 **PalDefender 集成**：可选对接其进程内实时反作弊 REST API（`:17993`），外置/集成双模式
+- 🐧 **纯 Linux 原生**：无需 Wine 或 Windows 兼容层，原生 Linux 游戏服直接运行
 - 💾 **存档回档**：停服 → 自动安全备份 → 恢复 → 启服，支持 docker 进程控制
 - ⚙️ **面板动态设置**：连接信息、密码、反作弊开关等可在网页修改即时生效，无需改文件重启
 - 🔔 **告警通知**：Webhook 推送（钉钉 / 企业微信 / Discord / 通用），证据留存与审计日志
@@ -21,9 +21,9 @@
 
 ## 部署流程
 
-目标系统：**Ubuntu 22.04**（其他 Linux 同理）。仅支持**镜像部署**：开发机构建镜像推送到 GitHub Container Registry (GHCR)，服务器直接 `docker pull` 运行，无需在服务器安装 Go/Node/Python。
+目标系统：**Ubuntu 22.04**（其他 Linux 同理）。采用**镜像部署**：推代码后 GitHub Actions 自动构建镜像，服务器直接 `docker pull` 运行，无需在服务器安装 Go/Node/Python。
 
-镜像地址（**已公开，免登录拉取**）：
+镜像地址（**公开，免登录拉取**）：
 
 ```
 ghcr.io/qyc-qyc/palworld-tool:latest
@@ -31,13 +31,15 @@ ghcr.io/qyc-qyc/palworld-tool:latest
 
 代码仓库：<https://github.com/QYC-qyc/palworld-tool>
 
+> 反作弊为**纯 Linux 原生方案**，不依赖 Wine 或 PalDefender：通过定期解析存档 + 官方 REST/RCON 在线监控实现检测与处置，原生 Linux 游戏服直接可用。
+>
 > 游戏服需在 `PalWorldSettings.ini` 开启：`RESTAPIEnabled=True`、`RESTAPIPort=8212`、`RCONEnabled=True`、`RCONPort=25575`，并设置 `AdminPassword`。
 
 ---
 
 ### 一、镜像自动构建（推代码即可）
 
-本项目已配置 **GitHub Actions**：当你 `git push` 到 `main` 分支（或发布 Release），GitHub 会自动在云端构建镜像并推送到 GHCR，**无需本地安装 Docker，也无需手动登录推送**。
+项目配置了 **GitHub Actions**：`git push` 到 `main` 后自动在云端构建镜像并推送到 GHCR，无需本地 Docker：
 
 ```bash
 git add .
@@ -45,63 +47,61 @@ git commit -m "更新"
 git push origin main
 ```
 
-- 工作流文件：`.github/workflows/docker.yml`
-- 构建触发后可在 GitHub 仓库 → **Actions** 页查看进度
-- 约 2-5 分钟后，新镜像出现在 `ghcr.io/qyc-qyc/palworld-tool`
-- 镜像自动打标签：`latest`（main 分支）、`major.minor`（Release）、提交短 SHA
+- 工作流：`.github/workflows/docker.yml`
+- 进度查看：GitHub 仓库 → **Actions**
+- 约 2-5 分钟后镜像更新到 `ghcr.io/qyc-qyc/palworld-tool`
+- 镜像标签：`latest`（main）、版本号、提交短 SHA
 
-> 若想在本地手动构建推送，仍可使用 `scripts/docker-push.sh`（需先 `docker login ghcr.io`）。
+> 也可用 `scripts/docker-push.sh/.ps1` 在本地手动构建推送。
 
 ---
 
 ### 二、服务器拉取并启动
 
-#### 方式 A：外置模式（原生 Linux 游戏服，最简单）
+`docker-compose.yml` 同时包含 `palworld`（原生 Linux 游戏服）和 `paladmin`（面板），所有数据统一放在 `/www/palworld-tool/`。
 
 ```bash
-# 创建工作目录（所有数据统一放在 /www/palworld-tool/ 下）
+# 1. 创建目录
 sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
 
-# 获取 compose 模板
+# 2. 下载 compose
 sudo curl -o docker-compose.yml \
   https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
 
-# 下载示例配置并改名为 config.yaml
+# 3. 下载示例配置（作为容器内默认配置，密码用 .env 覆盖）
 sudo curl -o config.yaml \
   https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/config.example.yaml
 
-# 配置环境变量
+# 4. 配置密码
 cat > .env <<'EOF'
 WEB_PASSWORD=你的面板强密码
-GAME_ADMIN_PASSWORD=游戏AdminPassword
+GAME_ADMIN_PASSWORD=你想设置的游戏AdminPassword
 EOF
 
-# 修改存档挂载路径（把 /home/steam/Pal/Saved 改成你的真实路径）
-sudo nano docker-compose.yml
+# 5. 启动（首次会拉取游戏服镜像并自动安装游戏）
+sudo docker compose up -d
+sudo docker compose logs -f
 ```
 
-所有数据统一位于 `/www/palworld-tool/`：
+数据目录结构：
 
 ```
 /www/palworld-tool/
-├── docker-compose.yml / docker-compose.paldefender.yml
+├── docker-compose.yml
 ├── .env / config.yaml
-├── pst.db             # 数据库（首次运行自动生成）
+├── pst.db             # 数据库（自动生成）
 ├── data/ backups/ evidence/ logs/   # 面板数据
-├── game/              # 游戏服安装目录与存档（容器自动写入）
-└── wine/              # Wine 配置/Prefix（仅集成模式）
+└── game/              # 游戏服安装目录与存档（容器自动写入）
 ```
 
-游戏服容器 `palworld` 会自动把服务端安装到 `./game`，存档位于 `./game/Pal/Saved`，面板与之共享。集成模式下 Wine 配置持久化在 `./wine`。
-
-`docker-compose.yml` 同时包含 `palworld`（游戏服）和 `paladmin`（面板）两个容器，游戏数据自动放在 `./game`：
+compose 关键配置：
 
 ```yaml
 services:
   palworld:
     image: thijsvanloef/palworld-server-docker:latest
     volumes:
-      - /www/palworld-tool/game:/palworld      # 游戏安装与存档
+      - /www/palworld-tool/game:/palworld
   paladmin:
     image: ghcr.io/qyc-qyc/palworld-tool:latest
     ports:
@@ -117,65 +117,25 @@ services:
       SAVE__PATH: "/game/Saved/SaveGames/0"
       PROCESS__MODE: "docker"
       PROCESS__CONTAINER: "palworld"
-      PROCESS__CONTAINER: "palworld"
-```
-
-启动（镜像已公开，无需登录）：
-
-```bash
-docker compose up -d
-docker compose logs -f paladmin
 ```
 
 访问 `http://服务器IP:8190`，用 `WEB_PASSWORD` 登录。
 
-> 如果游戏服不是容器而是装在主机上，把 `palworld` 换成宿主机地址（如 `http://172.17.0.1:8212`、`172.17.0.1:25575`），并把游戏加入同一网络或用 `network_mode: host`。
-
-#### 方式 B：集成模式（Linux 游戏服 + PalDefender/Wine）
-
-若游戏服通过 Wine 运行 PalDefender：
-
-```bash
-curl -o docker-compose.paldefender.yml \
-  https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.paldefender.yml
-# Token 会在首次启动时自动生成；也可在 .env 指定固定值
-# echo 'PALDEFENDER_TOKEN=你的PDToken' >> .env
-docker compose -f docker-compose.paldefender.yml up -d
-```
-
-首次启动时，初始化脚本会自动：
-- 在 `paldefender-config/RESTAPI/Tokens/paladmin.json` 创建访问令牌
-- 启用 REST API（端口 17993）
-- 若未设 `PALDEFENDER_TOKEN`，自动生成随机串并打印到容器日志（`docker logs paldefender`）
-
-> **部署前需手动放入 PalDefender 本体**：把 `PalDefender.dll`、`d3d9.dll` 复制到游戏目录 `game/Pal/Binaries/Win64/`（首次游戏服启动生成该目录后）。配置与 Token 持久化在 `paldefender-config/`。
-
-该 compose 包含：
-- `palworld`：原生 Linux 游戏服
-- `paldefender`：Wine 容器运行 PalDefender（仅它需要 Wine）
-- `paladmin`：拉取 `ghcr.io/qyc-qyc/palworld-tool`，`ANTICHEAT__MODE=integrated`
-
-面板「PalDefender」页显示绿色已连接即成功。
-
-| 能力 | 外置 (A) | 集成 (B) |
-|---|---|---|
-| 存档/复制/非法物品检测 | ✅ | ✅ |
-| 瞬移/多开检测 | ✅ | ✅ |
-| 进程内实时伤害/非法 stat 拦截 | ❌ | ✅ |
-| PalDefender 私聊/IP 封禁 | ❌ | ✅ |
-| 额外需要 Wine | ❌ | ✅（仅 PalDefender 容器） |
+> 如果游戏服已单独部署（不在同一 compose），把 `REST__ADDRESS`/`RCON__ADDRESS` 改成实际地址（如 `http://172.17.0.1:8212`），并删掉 palworld 服务；或用 `network_mode: host`。
 
 ---
+
+### 防火墙
 
 ### 防火墙
 
 ```bash
 sudo ufw allow 8190/tcp     # 面板端口
 sudo ufw allow 8211/udp     # 游戏端口
-# 游戏服的 8212(REST)、25575(RCON)、PalDefender 17993 不要对公网开放
+# 游戏服的 8212(REST)、25575(RCON) 不要对公网开放
 ```
 
-> 公网使用强烈建议前面加 Nginx/Caddy 反向代理并启用 HTTPS；REST/RCON/17993 仅绑定内网或经反代鉴权。
+> 公网使用强烈建议前面加 Nginx/Caddy 反向代理并启用 HTTPS；REST/RCON 仅绑定内网或经反代鉴权。
 
 ---
 
@@ -195,10 +155,6 @@ sudo ufw allow 8211/udp     # 游戏端口
 ```bash
 docker compose pull
 docker compose up -d
-
-# PalDefender 集成模式：
-docker compose -f docker-compose.paldefender.yml pull
-docker compose -f docker-compose.paldefender.yml up -d
 ```
 
 可以在 GitHub 仓库 → Actions 页确认构建状态。
@@ -220,7 +176,7 @@ save:
   path: "/path/to/Saved/SaveGames/0/<GUID>"   # Level.sav 所在目录
 anticheat:
   enabled: true
-  mode: "external"          # external（存档扫描）/ integrated（对接 PalDefender）
+  mode: "external"          # 纯 Linux 原生反作弊
   punish:
     warn: true
     kick: false
@@ -245,7 +201,7 @@ process:
 ├── internal/
 │   ├── config/     # 配置加载与动态应用
 │   ├── database/   # bbolt 初始化与数据模型
-│   ├── tool/       # 官方 REST / RCON / PalDefender / Webhook 客户端
+│   ├── tool/       # 官方 REST / RCON / Webhook 客户端
 │   ├── task/       # 定时任务（在线/存档/备份同步）
 │   ├── executor/   # RCON 执行器
 │   ├── source/     # 存档来源（本地，预留 http/docker）
@@ -258,8 +214,7 @@ process:
 ├── data/gamedata/  # 合法数据表（帕鲁/物品/词条/限制）
 ├── scripts/        # 镜像推送脚本（docker-push）
 ├── Dockerfile      # 多阶段镜像构建
-├── docker-compose.yml         # 外置模式（拉镜像）
-├── docker-compose.paldefender.yml  # PalDefender 集成模式
+├── docker-compose.yml
 └── docs/           # 开发文档与联调清单
 ```
 
@@ -315,7 +270,6 @@ docker build -t paladmin:local .
 ## 致谢
 
 - [palworld-server-tool](https://github.com/zaigie/palworld-server-tool) —— 存档解析与基础管理框架参考
-- [PalDefender](https://github.com/Ultimeit/PalDefender) —— 反作弊设计理念、处置阶梯、REST API 参考
 - [palworld-save-tools](https://github.com/cheahjs/palworld-save-tools) —— 存档格式解析
 - ID 数据参考 [paldeck.cc](https://paldeck.cc)
 

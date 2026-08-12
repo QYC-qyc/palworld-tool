@@ -98,10 +98,4 @@ export const api = {
   getSettings: () => request<Record<string, any>>('/api/settings'),
   saveSettings: (settings: Record<string, any>) =>
     request('/api/settings', { method: 'PUT', body: JSON.stringify(settings) }),
-
-  // PalDefender 集成
-  pdStatus: () => request<any>('/api/paldefender/status'),
-  pdPlayers: () => request<any[]>('/api/paldefender/players'),
-  pdBanlist: () => request<any[]>('/api/paldefender/banlist'),
-  pdReload: () => request('/api/paldefender/reload', { method: 'POST' }),
 }

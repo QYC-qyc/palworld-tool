@@ -88,12 +88,6 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.GET("/anticheat/stats", acStats)
 		authGroup.GET("/anticheat/audit", listAudit)
 		authGroup.POST("/anticheat/reload", reloadAC)
-
-		// PalDefender 集成
-		authGroup.GET("/paldefender/status", pdStatus)
-		authGroup.GET("/paldefender/banlist", pdBanlist)
-		authGroup.GET("/paldefender/players", pdPlayers)
-		authGroup.POST("/paldefender/reload", pdReload)
 	}
 
 	// 健康检查
