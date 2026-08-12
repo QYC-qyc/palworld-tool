@@ -21,9 +21,9 @@
 
 ## 部署流程
 
-目标系统：**Ubuntu 22.04**（其他 Linux 同理）。仅支持**镜像部署**：在开发机构建镜像推送到 GitHub Container Registry (GHCR)，服务器直接 `docker pull` 运行，无需在服务器安装 Go/Node/Python。
+目标系统：**Ubuntu 22.04**（其他 Linux 同理）。仅支持**镜像部署**：开发机构建镜像推送到 GitHub Container Registry (GHCR)，服务器直接 `docker pull` 运行，无需在服务器安装 Go/Node/Python。
 
-镜像地址：
+镜像地址（**已公开，免登录拉取**）：
 
 ```
 ghcr.io/qyc-qyc/palworld-tool:latest
@@ -55,9 +55,7 @@ ghcr.io/qyc-qyc/palworld-tool:latest
    powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
    ```
 
-   镜像由 `Dockerfile` 多阶段构建（前端→后端→sav_cli），推送到 GHCR。
-
-3. （可选）把镜像改为公开：GitHub 个人主页 → Packages → `palworld-tool` → Package settings → Change visibility → Public。公开后服务器 `docker pull` 无需登录。
+   镜像由 `Dockerfile` 多阶段构建（前端→后端→sav_cli），推送到 GHCR（镜像已设为公开）。
 
 ---
 
@@ -103,10 +101,9 @@ services:
       PROCESS__CONTAINER: "palworld"
 ```
 
-启动：
+启动（镜像已公开，无需登录）：
 
 ```bash
-# 私有镜像先登录：docker login ghcr.io -u QYC-qyc
 docker compose up -d
 docker compose logs -f paladmin
 ```
