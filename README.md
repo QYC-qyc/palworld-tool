@@ -6,10 +6,10 @@
 - 🛡️ **反作弊引擎**：12 条存档规则 + 5 条在线规则，四级处置阶梯（警告 → 踢出 → 封禁 → IP 封禁）
 - 🔍 **检测能力**：帕鲁属性/天赋/灵魂越界、Boss/塔主帕鲁、复制帕鲁（InstanceID + 特征指纹）、非法物品、物品堆叠异常、瞬移、同 IP 多开、等级突变
 - 🔌 **PalDefender 集成**：可选对接其进程内实时反作弊 REST API（`:17993`），外置/集成双模式
-- 💾 **存档回档**：停服 → 自动安全备份 → 恢复 → 启服，支持 systemd / docker 进程控制
+- 💾 **存档回档**：停服 → 自动安全备份 → 恢复 → 启服，支持 docker 进程控制
 - ⚙️ **面板动态设置**：连接信息、密码、反作弊开关等可在网页修改即时生效，无需改文件重启
 - 🔔 **告警通知**：Webhook 推送（钉钉 / 企业微信 / Discord / 通用），证据留存与审计日志
-- 🗄️ **轻量部署**：Go 纯静态二进制 + bbolt 单文件数据库，无外部依赖；前端 Vue3 + Naive UI 内嵌
+- 🐳 **轻量部署**：单容器镜像（含前端、后端、存档解析），推送到 GHCR，服务器 `docker pull` 即用；bbolt 单文件数据库，无外部依赖
 
 ## 技术栈
 
@@ -21,36 +21,43 @@
 
 ## 部署流程
 
-目标系统：**Ubuntu 22.04**（其他 Linux 同理）。采用**镜像部署**：本地构建镜像推送到 Gitee 容器镜像仓库，服务器直接 `docker pull` 运行，无需在服务器安装 Go/Node/Python。
+目标系统：**Ubuntu 22.04**（其他 Linux 同理）。仅支持**镜像部署**：在开发机构建镜像推送到 GitHub Container Registry (GHCR)，服务器直接 `docker pull` 运行，无需在服务器安装 Go/Node/Python。
 
-镜像仓库：`gitee.com/qyc-qyc/docker-palworld-tool`
+镜像地址：
+
+```
+ghcr.io/qyc-qyc/palworld-tool:latest
+```
+
+代码仓库：<https://github.com/QYC-qyc/palworld-tool>
 
 > 游戏服需在 `PalWorldSettings.ini` 开启：`RESTAPIEnabled=True`、`RESTAPIPort=8212`、`RCONEnabled=True`、`RCONPort=25575`，并设置 `AdminPassword`。
 
 ---
 
-### 一、构建并推送镜像（在你的开发机执行一次）
+### 一、构建并推送镜像（开发机，执行一次）
 
-需要本机有 Docker。
+需要本机安装 Docker。
 
-```bash
-# Linux / macOS
-export DOCKER_USERNAME=QYC-qyc
-export DOCKER_PASSWORD=你的Gitee私人令牌   # Gitee→设置→私人令牌，需镜像仓库写权限
-bash scripts/docker-push.sh latest
-```
-```powershell
-# Windows PowerShell
-$env:DOCKER_PASSWORD="你的Gitee令牌"
-powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
-```
+1. 在 GitHub 生成 Token：Settings → Developer settings → Personal access tokens → **Tokens (classic)** → Generate new token，勾选 **`write:packages`** 权限。
 
-脚本会用 `Dockerfile` 多阶段构建 linux/amd64 镜像（含前端、后端、sav_cli），推送到：
-```
-gitee.com/qyc-qyc/docker-palworld-tool:latest
-```
+2. 构建并推送：
 
-> 若 Gitee 镜像仓库为私有，服务器需要 `docker login gitee.com` 后才能拉取；设为公开则免登录。
+   ```bash
+   # Linux / macOS
+   export GITHUB_USER=QYC-qyc
+   export GITHUB_TOKEN=你的GitHubToken
+   bash scripts/docker-push.sh latest
+   ```
+   ```powershell
+   # Windows PowerShell
+   $env:GITHUB_TOKEN="你的GitHubToken"
+   powershell -ExecutionPolicy Bypass -File scripts\docker-push.ps1
+   ```
+
+   镜像由 `Dockerfile` 多阶段构建（前端→后端→sav_cli），推送到 GHCR。
+
+3. （可选）把镜像改为公开：GitHub 个人主页 → Packages → `palworld-tool` → Package settings → Change visibility → Public。公开后服务器 `docker pull` 无需登录。
 
 ---
 
@@ -59,28 +66,28 @@ gitee.com/qyc-qyc/docker-palworld-tool:latest
 #### 方式 A：外置模式（原生 Linux 游戏服，最简单）
 
 ```bash
-# 1. 准备目录与配置
 mkdir -p paladmin && cd paladmin
-# 从仓库获取 compose 模板：
-curl -o docker-compose.yml https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.yml
-cp .env.example .env 2>/dev/null || true
-nano .env              # 填写 WEB_PASSWORD、GAME_ADMIN_PASSWORD
-nano docker-compose.yml # 修改存档挂载路径为真实路径
-```
 
-`.env` 内容：
+# 获取 compose 模板
+curl -o docker-compose.yml \
+  https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
 
-```ini
+# 配置环境变量
+cat > .env <<'EOF'
 WEB_PASSWORD=你的面板强密码
 GAME_ADMIN_PASSWORD=游戏AdminPassword
+EOF
+
+# 修改存档挂载路径
+nano docker-compose.yml   # 把 /home/steam/Pal/Saved 改成真实路径
 ```
 
-`docker-compose.yml` 关键项（已内置，按需修改）：
+`docker-compose.yml` 关键配置：
 
 ```yaml
 services:
   paladmin:
-    image: gitee.com/qyc-qyc/docker-palworld-tool:latest
+    image: ghcr.io/qyc-qyc/palworld-tool:latest
     ports:
       - "8190:8190"
     volumes:
@@ -93,43 +100,49 @@ services:
       RCON__PASSWORD: "${GAME_ADMIN_PASSWORD}"
       SAVE__PATH: "/game/Saved/SaveGames/0"
       PROCESS__MODE: "docker"
-      PROCESS__CONTAINER: "palworld"   # 游戏容器名，回档时控制停启
+      PROCESS__CONTAINER: "palworld"
 ```
 
 启动：
 
 ```bash
-docker login gitee.com          # 私有镜像需要；公开镜像可跳过
+# 私有镜像先登录：docker login ghcr.io -u QYC-qyc
 docker compose up -d
 docker compose logs -f paladmin
 ```
 
 访问 `http://服务器IP:8190`，用 `WEB_PASSWORD` 登录。
 
+> 如果游戏服不是容器而是装在主机上，把 `palworld` 换成宿主机地址（如 `http://172.17.0.1:8212`、`172.17.0.1:25575`），并把游戏加入同一网络或用 `network_mode: host`。
+
 #### 方式 B：集成模式（Linux 游戏服 + PalDefender/Wine）
 
-若游戏服通过 Wine 运行了 PalDefender，使用集成模式对接其实时检测：
+若游戏服通过 Wine 运行 PalDefender：
 
 ```bash
 curl -o docker-compose.paldefender.yml \
-  https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.paldefender.yml
-# 准备 ./PalDefender（放入 PalDefender.dll、d3d9.dll 及 RESTAPI/Tokens）
-nano .env   # 额外填 PALDEFENDER_TOKEN
+  https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.paldefender.yml
+# 准备 ./PalDefender（PalDefender.dll、d3d9.dll、RESTAPI/Tokens）
+echo 'PALDEFENDER_TOKEN=你的PDToken' >> .env
 docker compose -f docker-compose.paldefender.yml up -d
 ```
 
-该 compose 包含三个容器：
-- `palworld`：原生 Linux 官方游戏服
+该 compose 包含：
+- `palworld`：原生 Linux 游戏服
 - `paldefender`：Wine 容器运行 PalDefender（仅它需要 Wine）
-- `paladmin`：拉取 `gitee.com/qyc-qyc/docker-palworld-tool` 镜像，`ANTICHEAT__MODE=integrated`
+- `paladmin`：拉取 `ghcr.io/qyc-qyc/palworld-tool`，`ANTICHEAT__MODE=integrated`
 
 面板「PalDefender」页显示绿色已连接即成功。
 
-> 集成模式 vs 外置模式：外置模式只有存档/在线检测，任何原生 Linux 服都能用；集成模式额外获得 PalDefender 的进程内实时伤害/非法 stat 拦截、私聊警告与 IP 封禁，但需要一个 Wine 容器运行 PalDefender。
+| 能力 | 外置 (A) | 集成 (B) |
+|---|---|---|
+| 存档/复制/非法物品检测 | ✅ | ✅ |
+| 瞬移/多开检测 | ✅ | ✅ |
+| 进程内实时伤害/非法 stat 拦截 | ❌ | ✅ |
+| PalDefender 私聊/IP 封禁 | ❌ | ✅ |
+| 额外需要 Wine | ❌ | ✅（仅 PalDefender 容器） |
 
 ---
-
-### 防火墙
 
 ### 防火墙
 
@@ -190,7 +203,8 @@ anticheat:
     kick: false
     ban: true               # 首次建议先关闭，验证检测准确性
 process:
-  mode: "systemd"           # noop / systemd / docker（回档需要）
+  mode: "docker"            # noop / docker（回档需要，控制游戏容器停启）
+  container: "palworld"
 ```
 
 ## 截图
@@ -268,9 +282,12 @@ cd web && npm install && npm run dev
 
 # 测试
 go test ./...
+
+# 本地构建镜像
+docker build -t paladmin:local .
 ```
 
-交叉编译 Linux 二进制（在 Windows 上）：`powershell -File build-linux.ps1`
+推送镜像到 GHCR：`bash scripts/docker-push.sh latest`（Windows 用 `docker-push.ps1`）。
 
 ## 致谢
 
