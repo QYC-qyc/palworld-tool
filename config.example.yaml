@@ -1,0 +1,113 @@
+# PalAdmin 配置文件
+
+web:
+  password: "CHANGE_ME_STRONG_PASSWORD"   # 请务必修改！WebUI 管理员密码，同时也是 JWT 密钥
+  port: 8190
+  tls: false
+  cert_path: ""
+  key_path: ""
+  public_url: ""
+
+task:
+  sync_interval: 60
+  player_logging: true
+  player_login_message: "玩家 {username} 加入服务器!\n当前在线人数: {online_num}"
+  player_logout_message: "玩家 {username} 离开服务器!\n当前在线人数: {online_num}"
+
+rcon:
+  address: "127.0.0.1:25575"
+  password: ""
+  use_base64: false
+  timeout: 5
+
+rest:
+  address: "http://127.0.0.1:8212"
+  username: "admin"
+  password: ""
+  timeout: 5
+
+save:
+  path: "/home/steam/Pal/Saved"
+  decode_path: ""
+  sync_interval: 120
+  backup_interval: 14400
+
+manage:
+  kick_non_whitelist: false
+
+backup:
+  keep_count: 48
+  keep_days: 14
+  on_ban: true
+
+# 游戏服务端进程控制（回档功能需要）
+process:
+  mode: "noop"            # noop（不控制，需手动停服回档）/ systemd / docker
+  service: "palworld"     # systemd 模式：服务名
+  container: "palworld"   # docker 模式：容器名
+
+storage:
+  path: "./pst.db"
+  snapshot_keep_per_player: 200
+  retention_days: 90
+
+anticheat:
+  enabled: true
+  mode: "external"          # external / integrated
+  scan_on_save_sync: true
+  scan_live: true
+  cooldown: 600
+  evidence: true
+  evidence_dir: "./evidence"
+  data_dir: "./data/gamedata"
+  pal_rules_dir: "./data/palrules"
+  punish:
+    warn: true
+    warn_with_reason: true
+    kick: false
+    ban: true
+    ipban: false
+    announce: true
+    backup_before_ban: true
+  use_admin_whitelist: false
+  admin_ips:
+    - "127.0.0.1"
+  use_whitelist: false
+  whitelist_message: "该服务器启用白名单，你不在名单中。"
+  steamid_protection: true
+  banned_names: []
+  banned_chat_words: []
+  banned_technologies: []
+  illegal_pal_stats: true
+  pal_stats_max_rank: -1
+  block_tower_boss_capture: true
+  import_action: "block"
+  rules:
+    S001: { enabled: true, severity: "critical", actions: ["warn","ban"] }
+    S007: { enabled: true, severity: "critical", actions: ["ban"] }
+    L001:
+      enabled: true
+      severity: "warn"
+      actions: ["warn","kick"]
+      params: { max_speed: 2500 }
+
+paldefender:
+  enabled: false
+  address: "http://127.0.0.1:17993"
+  token: ""
+  timeout: 5
+  sync_banlist: true
+  sync_import_rules: true
+
+notify:
+  webhook_url: ""
+  webhook_type: "generic"
+  broadcast_ingame: false
+  min_severity: "warn"
+
+log:
+  level: "info"
+  file: "./logs/pst.log"
+  chat: true
+  rcon: true
+  player_logins: true

@@ -1,0 +1,175 @@
+package task
+
+import (
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/go-co-op/gocron/v2"
+	"github.com/spf13/viper"
+	"go.etcd.io/bbolt"
+	"paladmin/internal/database"
+	"paladmin/internal/logger"
+	"paladmin/internal/tool"
+	"paladmin/service"
+	"paladmin/service/anticheat"
+)
+
+var (
+	scheduler gocron.Scheduler
+	dbRef     *bbolt.DB
+	engineRef *anticheat.Engine
+
+	playerCache = map[string]string{}
+	firstPoll   = true
+)
+
+// Init 设置依赖
+func Init(db *bbolt.DB, e *anticheat.Engine) {
+	dbRef = db
+	engineRef = e
+}
+
+// SyncPlayersOnce 执行一次在线玩家同步
+func SyncPlayersOnce() {
+	if dbRef == nil {
+		return
+	}
+	online, err := tool.ShowPlayers()
+	if err != nil {
+		logger.Errorf("同步在线玩家失败: %v", err)
+		return
+	}
+	if err := service.PutPlayersOnline(dbRef, online); err != nil {
+		logger.Errorf("写入在线玩家失败: %v", err)
+	}
+
+	if viper.GetBool("task.player_logging") {
+		playerLogging(online)
+	}
+	if viper.GetBool("manage.kick_non_whitelist") {
+		checkAndKickPlayers(online)
+	}
+	if engineRef != nil {
+		wl, _ := service.ListWhitelist(dbRef)
+		engineRef.ScanLive(online, wl)
+	}
+}
+
+// SyncSavOnce 执行一次存档同步
+func SyncSavOnce() error {
+	return tool.Decode(viper.GetString("save.path"))
+}
+
+func backupTask() {
+	path, err := tool.Backup()
+	if err != nil {
+		logger.Errorf("备份失败: %v", err)
+		return
+	}
+	_ = service.AddBackup(dbRef, database.Backup{Path: path})
+	logger.Infof("自动备份完成: %s", path)
+}
+
+func playerLogging(players []database.OnlinePlayer) {
+	loginMsg := viper.GetString("task.player_login_message")
+	logoutMsg := viper.GetString("task.player_logout_message")
+	tmp := map[string]string{}
+	for _, p := range players {
+		if p.PlayerUid != "" {
+			tmp[p.PlayerUid] = p.Nickname
+		}
+	}
+	if !firstPoll {
+		for id, name := range tmp {
+			if _, ok := playerCache[id]; !ok {
+				broadcastVariables(loginMsg, name, len(players))
+			}
+		}
+		for id, name := range playerCache {
+			if _, ok := tmp[id]; !ok {
+				broadcastVariables(logoutMsg, name, len(players))
+			}
+		}
+	}
+	firstPoll = false
+	playerCache = tmp
+}
+
+func broadcastVariables(message, username string, online int) {
+	message = strings.ReplaceAll(message, "{username}", username)
+	message = strings.ReplaceAll(message, "{online_num}", strconv.Itoa(online))
+	for _, line := range strings.Split(message, "\n") {
+		if line == "" {
+			continue
+		}
+		if err := tool.Broadcast(line); err != nil {
+			logger.Warnf("广播失败: %v", err)
+		}
+		time.Sleep(time.Second)
+	}
+}
+
+func checkAndKickPlayers(players []database.OnlinePlayer) {
+	whitelist, err := service.ListWhitelist(dbRef)
+	if err != nil {
+		return
+	}
+	for _, p := range players {
+		if p.SteamId == "" {
+			continue
+		}
+		whitelisted := false
+		for _, w := range whitelist {
+			if (p.PlayerUid != "" && p.PlayerUid == w.PlayerUID) || (p.SteamId == w.SteamID) {
+				whitelisted = true
+				break
+			}
+		}
+		if !whitelisted {
+			if err := tool.KickPlayer(p.SteamId); err != nil {
+				logger.Warnf("踢出非白名单玩家 %s 失败: %v", p.Nickname, err)
+			}
+		}
+	}
+}
+
+// Schedule 启动定时任务
+func Schedule() error {
+	s, err := gocron.NewScheduler()
+	if err != nil {
+		return err
+	}
+	scheduler = s
+
+	if interval := viper.GetInt("task.sync_interval"); interval > 0 {
+		go SyncPlayersOnce()
+		if _, err := s.NewJob(gocron.DurationJob(time.Duration(interval)*time.Second),
+			gocron.NewTask(SyncPlayersOnce)); err != nil {
+			logger.Errorf("注册在线同步任务失败: %v", err)
+		}
+	}
+	if interval := viper.GetInt("save.sync_interval"); interval > 0 {
+		go func() { _ = SyncSavOnce() }()
+		if _, err := s.NewJob(gocron.DurationJob(time.Duration(interval)*time.Second),
+			gocron.NewTask(func() { _ = SyncSavOnce() })); err != nil {
+			logger.Errorf("注册存档同步任务失败: %v", err)
+		}
+	}
+	if interval := viper.GetInt("save.backup_interval"); interval > 0 {
+		go backupTask()
+		if _, err := s.NewJob(gocron.DurationJob(time.Duration(interval)*time.Second),
+			gocron.NewTask(backupTask)); err != nil {
+			logger.Errorf("注册备份任务失败: %v", err)
+		}
+	}
+	s.Start()
+	return nil
+}
+
+// Shutdown 停止调度器
+func Shutdown() {
+	if scheduler != nil {
+		_ = scheduler.Shutdown()
+	}
+}

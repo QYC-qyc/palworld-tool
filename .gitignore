@@ -1,0 +1,43 @@
+# ===== 构建产物 =====
+/paladmin
+/paladmin.exe
+*.exe
+*.dll
+*.so
+/web/dist/
+dist/
+
+# ===== 依赖 =====
+/web/node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ===== 本地 Go 工具链（项目外，保险起见） =====
+/goroot/
+/gopath/
+/gocache/
+
+# ===== 敏感配置与运行时数据（切勿提交） =====
+config.yaml
+.env
+*.db
+*.db-*
+*.log
+run.log
+pst.db
+/backups/
+/evidence/
+/logs/
+
+# ===== IDE / OS =====
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ===== 开发参考资料（体积大，另行下载） =====
+/_reference/
+/_paldefender/

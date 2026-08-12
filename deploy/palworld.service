@@ -1,0 +1,17 @@
+# 示例：游戏服务端 systemd unit（供回档功能控制）
+# 安装到 /etc/systemd/system/palworld.service，按实际路径修改
+[Unit]
+Description=Palworld Dedicated Server
+After=network.target
+
+[Service]
+Type=simple
+User=steam
+WorkingDirectory=/home/steam/Steam/steamapps/common/PalServer
+ExecStart=/home/steam/Steam/steamapps/common/PalServer/PalServer.sh
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

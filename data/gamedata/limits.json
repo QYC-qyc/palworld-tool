@@ -1,0 +1,33 @@
+{
+  "_comment": "全局合法上限，随游戏版本更新。用于反作弊规则的阈值参考。",
+  "player": {
+    "max_level": 65,
+    "max_exp": 5000000,
+    "max_hp": 100000,
+    "max_status_point": 999
+  },
+  "pal": {
+    "max_level": 65,
+    "max_rank": 5,
+    "max_hp": 30000,
+    "max_melee": 1000,
+    "max_ranged": 1000,
+    "max_defense": 1000,
+    "max_workspeed": 1000,
+    "max_talent": 100,
+    "max_soul": 20,
+    "max_passives": 4
+  },
+  "item": {
+    "default_max_stack": 9999,
+    "max_stack_overrides": {
+      "Money": 9999999
+    }
+  },
+  "guild": {
+    "max_base_camp_level": 20,
+    "max_bases": 4
+  },
+  "boss_prefixes": ["BOSS_", "GYM_"],
+  "illegal_item_keywords": ["Debug", "GM", "Dev", "Test", "Dummy"]
+}
