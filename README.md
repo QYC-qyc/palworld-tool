@@ -130,14 +130,24 @@ sudo docker compose up -d
    - **游戏安装目录**：如 `/home/steam/PalServer`
    - 可选：启动额外参数、游戏端口
    - 点击「保存配置」
-3. 点击「**安装 / 更新游戏服**」
+3. **配置目录权限**：PalAdmin 服务以 `paladmin` 用户运行，需要对你自定义的游戏安装目录（以及 SteamCMD 目录，如有必要）有读写权限，否则点击安装时会报 `permission denied`：
+
+   ```bash
+   # 将 <游戏安装目录> 替换为你在面板填写的实际路径，例如 /www/Game/PalWorld
+   sudo mkdir -p <游戏安装目录>
+   sudo chown -R paladmin:paladmin <游戏安装目录>
+   ```
+
+   也可以直接把游戏装在 paladmin 用户自己的目录下（如 `/home/paladmin/PalServer`），无需额外授权。
+
+4. 点击「**安装 / 更新游戏服**」
    - 面板执行 `steamcmd +force_install_dir <目录> +login anonymous +app_update 2394010 validate +quit`
    - 实时进度显示在日志区，首次约几分钟
-4. 安装完成后点击「**启动**」运行游戏服
-5. 进入「**游戏配置**」（`.ini`），确认游戏服开启了 REST API：
+5. 安装完成后点击「**启动**」运行游戏服
+6. 进入「**游戏配置**」（`.ini`），确认游戏服开启了 REST API：
    - `RESTAPIEnabled=true`、`RESTAPIPort=8212`、`AdminPassword=...`
    - 配置保存后重启游戏服生效
-6. 进入「**系统设置**」，填写游戏服 REST 地址（如 `http://127.0.0.1:8212`）和 AdminPassword，面板即可同步在线玩家、执行 RCON 等
+7. 进入「**系统设置**」，填写游戏服 REST 地址（如 `http://127.0.0.1:8212`）和 AdminPassword，面板即可同步在线玩家、执行 RCON 等
 
 > 首次启动时日志可能出现"备份失败"、"同步在线玩家失败"，这是因为游戏服尚未安装/配置，完成上述步骤后会消失。
 
