@@ -141,6 +141,21 @@ func (m *Manager) Install() error {
 		return fmt.Errorf("创建安装目录失败: %w", err)
 	}
 
+	// 首次运行 SteamCMD 需要先完成自更新与配置初始化，否则 app_update 会报 Missing configuration
+	m.logBuf.WriteString("=== SteamCMD 初始化（自更新）===\n")
+	initCmd := exec.Command(m.cfg.SteamCmdPath, "+login", "anonymous", "+quit")
+	initCmd.Dir = filepath.Dir(m.cfg.SteamCmdPath)
+	initCmd.SysProcAttr = newSysProcAttr(true)
+	initOut, _ := initCmd.StdoutPipe()
+	initCmd.Stderr = initCmd.Stdout
+	if err := initCmd.Start(); err != nil {
+		return fmt.Errorf("启动 SteamCMD 初始化失败: %w", err)
+	}
+	go m.pipeLog(initOut)
+	if err := initCmd.Wait(); err != nil {
+		m.logBuf.WriteString(fmt.Sprintf("警告: SteamCMD 初始化返回错误: %v（继续尝试安装）\n", err))
+	}
+
 	// steamcmd +force_install_dir <dir> +login anonymous +app_update 2394010 validate +quit
 	args := []string{
 		"+force_install_dir", m.cfg.InstallDir,
@@ -153,7 +168,7 @@ func (m *Manager) Install() error {
 	cmd.SysProcAttr = newSysProcAttr(true)
 
 	stdout, _ := cmd.StdoutPipe()
-	stderr, _ := cmd.StderrPipe()
+	cmd.Stderr = cmd.Stdout
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("启动 SteamCMD 失败: %w", err)
 	}
@@ -162,7 +177,6 @@ func (m *Manager) Install() error {
 
 	// 实时收集输出
 	go m.pipeLog(stdout)
-	go m.pipeLog(stderr)
 
 	go func() {
 		_ = cmd.Wait()
