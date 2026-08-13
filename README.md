@@ -58,6 +58,10 @@ CentOS / RHEL 等请参考 SteamCMD 官方文档。Windows 下载 SteamCMD 压�
 
 ### 第二步：安装 PalAdmin
 
+提供两种方式，**推荐方式一（二进制直装）**，可直接调用宿主机 SteamCMD。
+
+#### 方式一：二进制 + systemd（推荐）
+
 一键脚本（自动下载对应架构二进制、创建用户、注册 systemd 服务）：
 
 ```bash
@@ -69,6 +73,28 @@ curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh |
 - 数据存放在 `/var/lib/paladmin/`
 - 注册并启动 `paladmin` 系统服务
 - 自动选择 amd64 / arm64 架构
+
+常用命令：
+
+```bash
+sudo systemctl status paladmin      # 状态
+sudo systemctl restart paladmin     # 重启
+journalctl -u paladmin -f           # 日志
+```
+
+#### 方式二：Docker 部署
+
+如果偏好容器化，用 Docker 运行面板（需把宿主机 SteamCMD 与游戏目录挂载进容器）：
+
+```bash
+sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
+sudo curl -o docker-compose.yml \
+  https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.yml
+sudo docker compose up -d
+```
+
+> Docker 方式下，面板通过挂载的 `/opt/steamcmd`、`/opt/palserver` 调用 SteamCMD；
+> 若你的路径不同，编辑 `docker-compose.yml` 修改挂载。游戏服进程在容器内运行，使用 host 网络。
 
 ### 第三步：初始化与配置游戏服
 
@@ -93,20 +119,26 @@ sudo ufw allow 8211/udp
 
 ### 常用运维命令
 
+**二进制方式：**
+
 ```bash
-# 服务管理
-sudo systemctl status paladmin
-sudo systemctl restart paladmin
-sudo systemctl stop paladmin
-
-# 查看日志
-journalctl -u paladmin -f
-
-# 更新 PalAdmin（重新运行安装脚本即可）
+sudo systemctl status paladmin      # 状态
+sudo systemctl restart paladmin     # 重启
+journalctl -u paladmin -f           # 日志
+# 更新 PalAdmin：重新运行安装脚本
 curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
-
-# 更新游戏服：在面板「游戏服」页点击「安装/更新」
 ```
+
+**Docker 方式：**
+
+```bash
+cd /www/palworld-tool
+docker compose logs -f paladmin     # 日志
+docker compose restart              # 重启
+docker compose pull && docker compose up -d   # 更新
+```
+
+游戏服本身的更新统一在面板「游戏服」页点击「安装/更新」。
 
 ## 使用说明
 

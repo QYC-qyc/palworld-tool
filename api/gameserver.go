@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"paladmin/internal/gamesrv"
 	"paladmin/service"
 )
@@ -110,14 +111,29 @@ func saveGameServerConfig(cfg gamesrv.Config) {
 }
 
 func loadGameServerConfig() gamesrv.Config {
+	cfg := gamesrv.Config{
+		SteamCmdPath: viper.GetString("gamesrv.steamcmd_path"),
+		InstallDir:   viper.GetString("gamesrv.install_dir"),
+		ExtraArgs:    viper.GetString("gamesrv.extra_args"),
+		GamePort:     viper.GetString("gamesrv.game_port"),
+	}
 	if db == nil {
-		return gamesrv.Config{}
+		return cfg
 	}
-	all, _ := service.GetAllSettings(db)
-	return gamesrv.Config{
-		SteamCmdPath: all[settingSteamCmd],
-		InstallDir:   all[settingInstall],
-		ExtraArgs:    all[settingExtraArgs],
-		GamePort:     all[settingGamePort],
+	// 数据库中保存的值优先于环境变量
+	if all, err := service.GetAllSettings(db); err == nil {
+		if v, ok := all[settingSteamCmd]; ok && v != "" {
+			cfg.SteamCmdPath = v
+		}
+		if v, ok := all[settingInstall]; ok && v != "" {
+			cfg.InstallDir = v
+		}
+		if v, ok := all[settingExtraArgs]; ok {
+			cfg.ExtraArgs = v
+		}
+		if v, ok := all[settingGamePort]; ok && v != "" {
+			cfg.GamePort = v
+		}
 	}
+	return cfg
 }
