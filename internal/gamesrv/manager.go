@@ -1,287 +1,279 @@
-// Package gamesrv 通过 Docker API 管理幻兽帕鲁服务端容器的部署、启动、停止、更新。
+// Package gamesrv 通过用户自行安装的 SteamCMD 管理幻兽帕鲁服务端：
+// 用 steamcmd 路径执行安装/更新/校验，用服务端可执行文件启动/停止。
 package gamesrv
 
 import (
-	"context"
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
-
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/client"
-	"github.com/docker/go-connections/nat"
 )
+
+// Palworld Steam APP ID
+const steamAppID = "2394010"
 
 const (
-	DefaultImage      = "thijsvanloef/palworld-server-docker:latest"
-	DefaultContainer  = "palworld"
-	DefaultGamePort   = "8211"
-	DefaultRCONPort   = "25575"
-	DefaultRESTPort   = "8212"
-	DefaultDataDir    = "/www/palworld-tool/game"
+	DefaultGamePort = "8211"
+	DefaultRCONPort = "25575"
+	DefaultRESTPort = "8212"
 )
 
-// Status 容器与游戏服状态
+// Config 游戏服与 SteamCMD 配置（用户在面板填写）
+type Config struct {
+	// SteamCmdPath SteamCMD 可执行文件路径
+	// Linux: /home/steam/steamcmd/steamcmd.sh
+	// Windows: C:\steamcmd\steamcmd.exe
+	SteamCmdPath string `json:"steamcmd_path"`
+	// InstallDir 游戏安装目录（SteamCMD 的 force_install_dir）
+	InstallDir string `json:"install_dir"`
+	// ExtraArgs 服务端额外启动参数
+	ExtraArgs string `json:"extra_args"`
+	GamePort  string `json:"game_port"`
+}
+
+// Status 游戏服状态
 type Status struct {
-	Installed  bool   `json:"installed"`   // 镜像是否已拉取
-	Running    bool   `json:"running"`     // 容器是否在运行
-	Container  string `json:"container"`
-	Image      string `json:"image"`
+	Installed  bool   `json:"installed"`   // 服务端可执行文件存在
+	SteamReady bool   `json:"steam_ready"` // steamcmd 可执行文件存在
+	Running    bool   `json:"running"`     // 服务端进程在运行
+	Updating   bool   `json:"updating"`    // 正在安装/更新
+	PID        int    `json:"pid,omitempty"`
+	ServerExe  string `json:"server_exe"`  // 服务端可执行文件路径
+	InstallDir string `json:"install_dir"`
 	GamePort   string `json:"game_port"`
-	DataDir    string `json:"data_dir"`
-	Version    string `json:"version,omitempty"`
 	State      string `json:"state,omitempty"`
 }
 
-// Config 部署游戏服所需的配置
-type Config struct {
-	Image        string `json:"image"`
-	Container    string `json:"container"`
-	AdminPassword string `json:"admin_password"`
-	ServerName   string `json:"server_name"`
-	GamePort     string `json:"game_port"`
-	RCONPort     string `json:"rcon_port"`
-	RESTPort     string `json:"rest_port"`
-	DataDir      string `json:"data_dir"`
-}
-
-func (c *Config) applyDefaults() {
-	if c.Image == "" { c.Image = DefaultImage }
-	if c.Container == "" { c.Container = DefaultContainer }
-	if c.GamePort == "" { c.GamePort = DefaultGamePort }
-	if c.RCONPort == "" { c.RCONPort = DefaultRCONPort }
-	if c.RESTPort == "" { c.RESTPort = DefaultRESTPort }
-	if c.DataDir == "" { c.DataDir = DefaultDataDir }
-}
-
-// Manager 封装 Docker 客户端
+// Manager 管理游戏服进程与 SteamCMD
 type Manager struct {
-	cli *client.Client
+	cfg       Config
+	serverCmd *exec.Cmd
+	updateCmd *exec.Cmd
+	logBuf    *ringLog
 }
 
-// NewManager 连接本机 Docker daemon（通过 /var/run/docker.sock）
-func NewManager() (*Manager, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return nil, err
+func NewManager() *Manager {
+	return &Manager{logBuf: newRingLog(200)}
+}
+
+func (m *Manager) SetConfig(cfg Config) {
+	if cfg.GamePort == "" {
+		cfg.GamePort = DefaultGamePort
 	}
-	return &Manager{cli: cli}, nil
+	m.cfg = cfg
+}
+func (m *Manager) ConfigValue() Config { return m.cfg }
+func (m *Manager) Available() bool    { return true }
+
+// serverExePath 返回服务端可执行文件完整路径
+func (m *Manager) serverExePath() string {
+	if m.cfg.InstallDir == "" {
+		return ""
+	}
+	exe := "PalServer.sh"
+	if runtime.GOOS == "windows" {
+		exe = "PalServer.exe"
+	}
+	return filepath.Join(m.cfg.InstallDir, exe)
 }
 
-// Available Docker 是否可用
-func (m *Manager) Available() bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	_, err := m.cli.Ping(ctx)
-	return err == nil
-}
-
-// GetStatus 查看游戏服状态
+// GetStatus 查看状态
 func (m *Manager) GetStatus() (*Status, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
-	defer cancel()
-
-	st := &Status{Container: DefaultContainer, Image: DefaultImage, GamePort: DefaultGamePort, DataDir: DefaultDataDir}
-
-	// 容器状态
-	c, err := m.cli.ContainerInspect(ctx, DefaultContainer)
-	if err == nil {
-		st.Installed = true
-		st.Running = c.State != nil && c.State.Running
-		if c.State != nil {
-			st.State = c.State.Status
-		}
-		if c.Image != "" {
-			st.Version = c.Image
-		}
-	} else if !client.IsErrNotFound(err) {
-		return st, nil
+	st := &Status{
+		InstallDir: m.cfg.InstallDir,
+		GamePort:   m.cfg.GamePort,
 	}
+	if st.GamePort == "" {
+		st.GamePort = DefaultGamePort
+	}
+	st.ServerExe = m.serverExePath()
 
-	// 镜像是否存在
-	imgs, err := m.cli.ImageList(ctx, types.ImageListOptions{
-		Filters: filters.NewArgs(filters.Arg("reference", DefaultImage)),
-	})
-	if err == nil && len(imgs) > 0 {
-		st.Installed = true
+	// steamcmd 是否存在
+	if m.cfg.SteamCmdPath != "" {
+		if info, err := os.Stat(m.cfg.SteamCmdPath); err == nil && !info.IsDir() {
+			st.SteamReady = true
+		}
+	}
+	// 服务端是否已安装
+	if st.ServerExe != "" {
+		if info, err := os.Stat(st.ServerExe); err == nil && !info.IsDir() {
+			st.Installed = true
+		}
+	}
+	// 是否在更新
+	if m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid) {
+		st.Updating = true
+	}
+	// 服务端是否在运行
+	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
+		st.Running = true
+		st.PID = m.serverCmd.Process.Pid
+		st.State = "running"
+	} else if st.Updating {
+		st.State = "updating"
+	} else {
+		st.State = "stopped"
 	}
 	return st, nil
 }
 
-// Install 拉取镜像并创建游戏服容器（首次部署）
-func (m *Manager) Install(cfg Config) (string, error) {
-	cfg.applyDefaults()
-
-	ctx := context.Background()
-
-	// 镜像已存在则跳过拉取
-	if !m.imageExists(cfg.Image) {
-		if err := m.pullImage(ctx, cfg.Image); err != nil {
-			return "", fmt.Errorf("拉取镜像失败: %w", err)
-		}
+// Install 用 SteamCMD 安装/更新游戏服（阻塞直到完成，实时输出日志）
+func (m *Manager) Install() error {
+	if m.cfg.SteamCmdPath == "" {
+		return errors.New("未配置 SteamCMD 路径")
+	}
+	if m.cfg.InstallDir == "" {
+		return errors.New("未配置游戏安装目录")
+	}
+	if info, err := os.Stat(m.cfg.SteamCmdPath); err != nil || info.IsDir() {
+		return fmt.Errorf("SteamCMD 不存在: %s", m.cfg.SteamCmdPath)
+	}
+	if m.isUpdating() {
+		return errors.New("正在安装/更新中")
+	}
+	if err := os.MkdirAll(m.cfg.InstallDir, 0755); err != nil {
+		return fmt.Errorf("创建安装目录失败: %w", err)
 	}
 
-	// 容器已存在则不重复创建
-	if m.containerExists(ctx, cfg.Container) {
-		return "容器已存在，可直接启动", nil
+	// steamcmd +force_install_dir <dir> +login anonymous +app_update 2394010 validate +quit
+	args := []string{
+		"+force_install_dir", m.cfg.InstallDir,
+		"+login", "anonymous",
+		"+app_update", steamAppID, "validate",
+		"+quit",
 	}
+	cmd := exec.Command(m.cfg.SteamCmdPath, args...)
+	cmd.Dir = filepath.Dir(m.cfg.SteamCmdPath)
+	cmd.SysProcAttr = newSysProcAttr(true)
 
-	// 确保数据目录存在
-	if err := os.MkdirAll(cfg.DataDir, 0755); err != nil {
-		return "", fmt.Errorf("创建数据目录失败: %w", err)
+	stdout, _ := cmd.StdoutPipe()
+	stderr, _ := cmd.StderrPipe()
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("启动 SteamCMD 失败: %w", err)
 	}
+	m.updateCmd = cmd
+	m.logBuf.WriteString(fmt.Sprintf("=== SteamCMD 开始安装/更新 (app %s) ===\n", steamAppID))
 
-	// 端口
-	gamePort, _ := nat.NewPort("udp", cfg.GamePort)
-	rconPort, _ := nat.NewPort("tcp", cfg.RCONPort)
-	restPort, _ := nat.NewPort("tcp", cfg.RESTPort)
+	// 实时收集输出
+	go m.pipeLog(stdout)
+	go m.pipeLog(stderr)
 
-	resp, err := m.cli.ContainerCreate(ctx,
-		&container.Config{
-			Image: cfg.Image,
-			Env: buildEnv(cfg),
-			ExposedPorts: nat.PortSet{
-				gamePort: {}, rconPort: {}, restPort: {},
-			},
-		},
-		&container.HostConfig{
-			PortBindings: nat.PortMap{
-				gamePort: []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: cfg.GamePort + "/udp"}},
-				rconPort: []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: cfg.RCONPort}},
-				restPort: []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: cfg.RESTPort}},
-			},
-			Mounts: []mount.Mount{{
-				Type:   mount.TypeBind,
-				Source: cfg.DataDir,
-				Target: "/palworld",
-			}},
-			RestartPolicy: container.RestartPolicy{Name: "unless-stopped"},
-		},
-		nil, nil, cfg.Container,
-	)
-	if err != nil {
-		return "", fmt.Errorf("创建容器失败: %w", err)
-	}
-
-	if err := m.cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-		return "", fmt.Errorf("启动容器失败: %w", err)
-	}
-
-	return "游戏服已部署并启动，首次启动会自动下载安装服务端文件，请等待几分钟", nil
+	go func() {
+		_ = cmd.Wait()
+		m.logBuf.WriteString("=== SteamCMD 结束 ===\n")
+		m.updateCmd = nil
+	}()
+	return nil
 }
 
-func buildEnv(cfg Config) []string {
-	env := []string{
-		"TZ=Asia/Shanghai",
-		"ALWAYS_UPDATE_ON_START=true",
-		"MULTITHREAD_ENABLED=true",
-		"COMMUNITY_SERVER=false",
-		"REST_API_ENABLED=true",
-		"REST_API_PORT=" + cfg.RESTPort,
-		"RCON_ENABLED=true",
-		"RCON_PORT=" + cfg.RCONPort,
-		"ADMIN_PASSWORD=" + cfg.AdminPassword,
-		"SERVER_NAME=" + cfg.ServerName,
-		"MAX_PLAYERS=32",
-	}
-	return env
+func (m *Manager) isUpdating() bool {
+	return m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid)
 }
 
-// Start 启动容器
+// Start 启动游戏服
 func (m *Manager) Start() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	if !m.containerExists(ctx, DefaultContainer) {
-		return errors.New("游戏服尚未部署，请先点击安装")
+	exe := m.serverExePath()
+	if exe == "" {
+		return errors.New("未配置安装目录")
 	}
-	return m.cli.ContainerStart(ctx, DefaultContainer, types.ContainerStartOptions{})
+	info, err := os.Stat(exe)
+	if err != nil || info.IsDir() {
+		return errors.New("服务端未安装，请先在面板点击安装")
+	}
+	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
+		return errors.New("游戏服已在运行")
+	}
+
+	args := []string{}
+	if m.cfg.ExtraArgs != "" {
+		args = append(args, strings.Fields(m.cfg.ExtraArgs)...)
+	}
+
+	cmd := exec.Command(exe, args...)
+	cmd.Dir = filepath.Dir(exe)
+	cmd.SysProcAttr = newSysProcAttr(true)
+	stdout, _ := cmd.StdoutPipe()
+	stderr, _ := cmd.StderrPipe()
+
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("启动失败: %w", err)
+	}
+	m.serverCmd = cmd
+	m.logBuf.WriteString("=== 游戏服启动 ===\n")
+	go m.pipeLog(stdout)
+	go m.pipeLog(stderr)
+	go func() { _ = cmd.Wait(); m.logBuf.WriteString("=== 游戏服已停止 ===\n") }()
+
+	time.Sleep(2 * time.Second)
+	if !m.isAlive(cmd.Process.Pid) {
+		return errors.New("进程启动后立即退出，请检查日志")
+	}
+	return nil
 }
 
-// Stop 停止容器
+// Stop 停止游戏服
 func (m *Manager) Stop() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-	timeout := 30
-	return m.cli.ContainerStop(ctx, DefaultContainer, container.StopOptions{Timeout: &timeout})
+	if m.serverCmd == nil || m.serverCmd.Process == nil || !m.isAlive(m.serverCmd.Process.Pid) {
+		return errors.New("游戏服未运行")
+	}
+	return gracefulStop(m.serverCmd, 30*time.Second)
 }
 
 // Restart 重启
 func (m *Manager) Restart() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
-	timeout := 30
-	return m.cli.ContainerRestart(ctx, DefaultContainer, container.StopOptions{Timeout: &timeout})
-}
-
-// Update 拉取最新镜像并重建容器（保留数据）
-func (m *Manager) Update(cfg Config) (string, error) {
-	cfg.applyDefaults()
-	ctx := context.Background()
-
-	if err := m.pullImage(ctx, cfg.Image); err != nil {
-		return "", fmt.Errorf("更新镜像失败: %w", err)
-	}
-	// 停止并删除旧容器（数据在挂载卷中，不丢失）
-	if m.containerExists(ctx, cfg.Container) {
-		timeout := 30
-		_ = m.cli.ContainerStop(ctx, cfg.Container, container.StopOptions{Timeout: &timeout})
-		if err := m.cli.ContainerRemove(ctx, cfg.Container, types.ContainerRemoveOptions{Force: true}); err != nil {
-			return "", fmt.Errorf("删除旧容器失败: %w", err)
+	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
+		if err := m.Stop(); err != nil {
+			return err
 		}
+		time.Sleep(2 * time.Second)
 	}
-	return m.Install(cfg)
+	return m.Start()
 }
 
-// Logs 获取最近日志
-func (m *Manager) Logs(lines int) (string, error) {
-	ctx := context.Background()
-	if !m.containerExists(ctx, DefaultContainer) {
-		return "", errors.New("容器不存在")
-	}
-	if lines <= 0 {
-		lines = 100
-	}
-	opts := types.ContainerLogsOptions{
-		ShowStdout: true, ShowStderr: true, Tail: fmt.Sprintf("%d", lines),
-	}
-	rc, err := m.cli.ContainerLogs(ctx, DefaultContainer, opts)
-	if err != nil {
-		return "", err
-	}
-	defer rc.Close()
-	buf := new(strings.Builder)
-	_, err = io.Copy(buf, rc)
-	return buf.String(), err
+// Logs 返回最近日志
+func (m *Manager) Logs(lines int) string {
+	return m.logBuf.String()
 }
 
 // ---- helpers ----
 
-func (m *Manager) imageExists(ref string) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
-	defer cancel()
-	imgs, err := m.cli.ImageList(ctx, types.ImageListOptions{
-		Filters: filters.NewArgs(filters.Arg("reference", ref)),
-	})
-	return err == nil && len(imgs) > 0
-}
-
-func (m *Manager) containerExists(ctx context.Context, name string) bool {
-	_, err := m.cli.ContainerInspect(ctx, name)
-	return err == nil
-}
-
-func (m *Manager) pullImage(ctx context.Context, ref string) error {
-	rc, err := m.cli.ImagePull(ctx, ref, types.ImagePullOptions{})
-	if err != nil {
-		return err
+func (m *Manager) pipeLog(rc io.ReadCloser) {
+	scanner := bufio.NewScanner(rc)
+	scanner.Buffer(make([]byte, 1024*1024), 1024*1024)
+	for scanner.Scan() {
+		m.logBuf.WriteString(scanner.Text() + "\n")
 	}
-	defer rc.Close()
-	_, err = io.Copy(io.Discard, rc)
-	return err
 }
+
+func (m *Manager) isAlive(pid int) bool {
+	if pid <= 0 {
+		return false
+	}
+	return processAlive(pid)
+}
+
+// ringLog 简易环形日志缓冲
+type ringLog struct {
+	lines []string
+	cap   int
+}
+
+func newRingLog(cap int) *ringLog { return &ringLog{cap: cap} }
+func (r *ringLog) WriteString(s string) {
+	for _, l := range strings.Split(s, "\n") {
+		if l == "" {
+			continue
+		}
+		r.lines = append(r.lines, l)
+		if len(r.lines) > r.cap {
+			r.lines = r.lines[len(r.lines)-r.cap:]
+		}
+	}
+}
+func (r *ringLog) String() string { return strings.Join(r.lines, "\n") }

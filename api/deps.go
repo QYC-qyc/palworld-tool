@@ -20,4 +20,7 @@ func SetDeps(database *bbolt.DB, e *anticheat.Engine, c *config.Config) {
 	engine = e
 	cfg = c
 	gameAPI, _ = newGameServerAPI()
+	if gameAPI != nil && db != nil {
+		gameAPI.mgr.SetConfig(loadGameServerConfig())
+	}
 }

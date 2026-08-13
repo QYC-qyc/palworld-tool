@@ -2,42 +2,38 @@ import { request } from './index'
 
 export interface GameServerStatus {
   available: boolean
-  message?: string
   status?: {
     installed: boolean
+    steam_ready: boolean
     running: boolean
-    container: string
-    image: string
+    updating: boolean
+    pid?: number
+    server_exe: string
+    install_dir: string
     game_port: string
-    data_dir: string
     state?: string
-    version?: string
   }
 }
 
-export interface InstallConfig {
-  admin_password: string
-  server_name?: string
+export interface GameServerConfig {
+  steamcmd_path: string
+  install_dir: string
+  extra_args?: string
   game_port?: string
-  rcon_port?: string
-  rest_port?: string
-  data_dir?: string
 }
 
 export const gameApi = {
   status: () => request<GameServerStatus>('/api/gameserver'),
-  install: (cfg: InstallConfig) =>
-    request<{ success: boolean; message?: string }>('/api/gameserver/install', {
-      method: 'POST',
+  getConfig: () => request<GameServerConfig>('/api/gameserver/config'),
+  saveConfig: (cfg: GameServerConfig) =>
+    request<{ success: boolean }>('/api/gameserver/config', {
+      method: 'PUT',
       body: JSON.stringify(cfg),
     }),
-  start: () => request<{ success: boolean }>('/api/gameserver/start', { method: 'POST' }),
-  stop: () => request<{ success: boolean }>('/api/gameserver/stop', { method: 'POST' }),
-  restart: () => request<{ success: boolean }>('/api/gameserver/restart', { method: 'POST' }),
-  update: (cfg: Partial<InstallConfig>) =>
-    request<{ success: boolean; message?: string }>('/api/gameserver/update', {
-      method: 'POST',
-      body: JSON.stringify(cfg),
-    }),
+  install: () =>
+    request<{ success: boolean; message?: string }>('/api/gameserver/install', { method: 'POST' }),
+  start: () => request<{ success: boolean; message?: string }>('/api/gameserver/start', { method: 'POST' }),
+  stop: () => request<{ success: boolean; message?: string }>('/api/gameserver/stop', { method: 'POST' }),
+  restart: () => request<{ success: boolean; message?: string }>('/api/gameserver/restart', { method: 'POST' }),
   logs: () => request<{ logs: string }>('/api/gameserver/logs'),
 }

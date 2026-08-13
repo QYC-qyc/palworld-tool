@@ -78,14 +78,15 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.POST("/banip", banIP)
 		authGroup.POST("/unbanip", unbanIP)
 
-		// 游戏服管理（通过 Docker 部署/启动/停止/更新）
+		// 游戏服管理（SteamCMD 安装/更新 + 进程启停）
 		if gameAPI != nil {
 			authGroup.GET("/gameserver", gameAPI.status)
+			authGroup.GET("/gameserver/config", gameAPI.getConfig)
+			authGroup.PUT("/gameserver/config", gameAPI.saveConfig)
 			authGroup.POST("/gameserver/install", gameAPI.install)
 			authGroup.POST("/gameserver/start", gameAPI.start)
 			authGroup.POST("/gameserver/stop", gameAPI.stop)
 			authGroup.POST("/gameserver/restart", gameAPI.restart)
-			authGroup.POST("/gameserver/update", gameAPI.update)
 			authGroup.GET("/gameserver/logs", gameAPI.logs)
 		}
 

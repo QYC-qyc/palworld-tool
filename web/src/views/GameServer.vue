@@ -1,59 +1,89 @@
 <template>
   <n-space vertical :size="16">
-    <n-card title="幻兽帕鲁服务端" size="small">
-      <n-space vertical>
-        <!-- Docker 不可用 -->
-        <n-alert v-if="!dockerAvailable" type="error" title="无法连接 Docker">
-          {{ status?.message || '请确认面板容器已挂载 /var/run/docker.sock' }}
-        </n-alert>
+    <n-alert type="info" :show-icon="false">
+      游戏服由你自行用 SteamCMD 安装。请先在下方填写 SteamCMD 可执行文件路径与游戏安装目录，
+      点击「安装/更新」会执行：<code>steamcmd +force_install_dir &lt;dir&gt; +login anonymous +app_update 2394010 validate +quit</code>
+    </n-alert>
 
-        <template v-else>
-          <!-- 状态展示 -->
-          <n-descriptions bordered :column="2" label-placement="left" size="small">
-            <n-descriptions-item label="状态">
-              <n-tag :type="running ? 'success' : installed ? 'warning' : 'default'" size="small">
-                {{ running ? '运行中' : installed ? '已停止' : '未安装' }}
-              </n-tag>
-              <span v-if="state" style="margin-left:8px;color:#888;font-size:12px">{{ state }}</span>
-            </n-descriptions-item>
-            <n-descriptions-item label="容器">{{ status?.status?.container }}</n-descriptions-item>
-            <n-descriptions-item label="镜像">{{ status?.status?.image }}</n-descriptions-item>
-            <n-descriptions-item label="游戏端口">{{ status?.status?.game_port }}/udp</n-descriptions-item>
-            <n-descriptions-item label="数据目录">{{ status?.status?.data_dir }}</n-descriptions-item>
-          </n-descriptions>
-
-          <!-- 未安装：部署表单 -->
-          <n-card v-if="!installed" title="一键部署" size="small" embedded>
-            <n-form label-placement="left" label-width="120">
-              <n-form-item label="管理员密码">
-                <n-input v-model:value="installForm.admin_password" type="password"
-                  show-password-on="click" placeholder="游戏服 AdminPassword（REST/RCON 共用）" />
-              </n-form-item>
-              <n-form-item label="服务器名称">
-                <n-input v-model:value="installForm.server_name" placeholder="My PalWorld Server" />
-              </n-form-item>
-              <n-form-item label="游戏端口">
-                <n-input v-model:value="installForm.game_port" placeholder="8211" />
-              </n-form-item>
-              <n-button type="primary" :loading="acting" @click="doInstall">
-                部署并启动
-              </n-button>
-            </n-form>
-          </n-card>
-
-          <!-- 已安装：控制按钮 -->
-          <n-space v-else>
-            <n-button type="success" :disabled="running" :loading="acting" @click="doStart">启动</n-button>
-            <n-button type="warning" :disabled="!running" :loading="acting" @click="doStop">停止</n-button>
-            <n-button :loading="acting" @click="doRestart">重启</n-button>
-            <n-button type="error" :loading="acting" @click="doUpdate">更新</n-button>
-          </n-space>
-        </template>
-      </n-space>
+    <!-- 状态 -->
+    <n-card title="运行状态" size="small">
+      <n-descriptions v-if="status" bordered :column="2" label-placement="left" size="small">
+        <n-descriptions-item label="状态">
+          <n-tag :type="stateType" size="small">{{ stateText }}</n-tag>
+        </n-descriptions-item>
+        <n-descriptions-item label="进程 PID">
+          {{ status.status?.pid || '-' }}
+        </n-descriptions-item>
+        <n-descriptions-item label="SteamCMD">
+          <n-tag :type="status.status?.steam_ready ? 'success' : 'error'" size="small">
+            {{ status.status?.steam_ready ? '已就绪' : '未找到' }}
+          </n-tag>
+        </n-descriptions-item>
+        <n-descriptions-item label="服务端">
+          <n-tag :type="status.status?.installed ? 'success' : 'warning'" size="small">
+            {{ status.status?.installed ? '已安装' : '未安装' }}
+          </n-tag>
+        </n-descriptions-item>
+      </n-descriptions>
     </n-card>
 
-    <n-card title="最近日志" size="small">
-      <n-button size="tiny" @click="loadLogs" style="margin-bottom:8px">刷新</n-button>
+    <!-- 路径配置 -->
+    <n-card title="路径配置" size="small">
+      <n-form label-placement="top">
+        <n-grid cols="1 s:2" :x-gap="16" responsive="screen">
+          <n-gi>
+            <n-form-item label="SteamCMD 路径">
+              <n-input v-model:value="cfg.steamcmd_path"
+                placeholder="Linux: /home/steam/steamcmd/steamcmd.sh" />
+            </n-form-item>
+          </n-gi>
+          <n-gi>
+            <n-form-item label="游戏安装目录">
+              <n-input v-model:value="cfg.install_dir"
+                placeholder="如 /home/steam/PalServer" />
+            </n-form-item>
+          </n-gi>
+          <n-gi>
+            <n-form-item label="启动额外参数（可选）">
+              <n-input v-model:value="cfg.extra_args"
+                placeholder="如 -port=8211 -publiclobby -useperfthreads" />
+            </n-form-item>
+          </n-gi>
+          <n-gi>
+            <n-form-item label="游戏端口">
+              <n-input v-model:value="cfg.game_port" placeholder="8211" />
+            </n-form-item>
+          </n-gi>
+        </n-grid>
+        <n-button type="primary" @click="saveConfig">保存配置</n-button>
+      </n-form>
+    </n-card>
+
+    <!-- 操作 -->
+    <n-card title="操作" size="small">
+      <n-space>
+        <n-button type="info" :loading="acting === 'install'" @click="doInstall">
+          安装 / 更新游戏服
+        </n-button>
+        <n-button type="success" :disabled="!canStart" :loading="acting==='start'" @click="doStart">
+          启动
+        </n-button>
+        <n-button type="warning" :disabled="!isRunning" :loading="acting==='stop'" @click="doStop">
+          停止
+        </n-button>
+        <n-button :disabled="!isRunning" :loading="acting==='restart'" @click="doRestart">
+          重启
+        </n-button>
+        <n-button @click="() => { loadLogs(); loadStatus(); }">刷新</n-button>
+      </n-space>
+      <n-text depth="3" style="font-size:12px;display:block;margin-top:8px">
+        提示：首次安装可能需要较长时间，请在日志中查看 SteamCMD 下载进度。安装完成后再启动。
+      </n-text>
+    </n-card>
+
+    <!-- 日志 -->
+    <n-card title="日志" size="small">
+      <n-button size="tiny" @click="loadLogs" style="margin-bottom:8px">刷新日志</n-button>
       <pre class="logs">{{ logs || '暂无日志' }}</pre>
     </n-card>
   </n-space>
@@ -61,73 +91,108 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
-  NForm, NFormItem, NInput, NButton, useMessage } from 'naive-ui'
-import { gameApi, type GameServerStatus, type InstallConfig } from '@/api/gameserver'
+import {
+  NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
+  NForm, NFormItem, NInput, NButton, NGrid, NGi, NText, useMessage,
+} from 'naive-ui'
+import { gameApi, type GameServerStatus, type GameServerConfig } from '@/api/gameserver'
 
 const message = useMessage()
 const status = ref<GameServerStatus | null>(null)
 const logs = ref('')
-const acting = ref(false)
-
-const installForm = reactive<InstallConfig>({
-  admin_password: '',
-  server_name: 'My PalWorld Server',
+const acting = ref('')
+const cfg = reactive<GameServerConfig>({
+  steamcmd_path: '',
+  install_dir: '',
+  extra_args: '',
   game_port: '8211',
 })
 
-const dockerAvailable = computed(() => status.value?.available !== false)
-const installed = computed(() => !!status.value?.status?.installed)
-const running = computed(() => !!status.value?.status?.running)
-const state = computed(() => status.value?.status?.state)
+const isRunning = computed(() => !!status.value?.status?.running)
+const isInstalled = computed(() => !!status.value?.status?.installed)
+const canStart = computed(() => isInstalled.value && !isRunning.value)
+const isUpdating = computed(() => !!status.value?.status?.updating)
+
+const stateText = computed(() => {
+  if (isUpdating.value) return '更新中'
+  if (isRunning.value) return '运行中'
+  return '已停止'
+})
+const stateType = computed(() => {
+  if (isUpdating.value) return 'warning'
+  if (isRunning.value) return 'success'
+  return 'default'
+})
 
 async function loadStatus() {
   status.value = await gameApi.status()
+}
+async function loadConfig() {
+  try {
+    const c = await gameApi.getConfig()
+    Object.assign(cfg, c)
+  } catch { /* 首次无配置 */ }
+}
+async function saveConfig() {
+  await gameApi.saveConfig(cfg)
+  message.success('配置已保存')
 }
 async function loadLogs() {
   try {
     const r = await gameApi.logs()
     logs.value = r.logs || ''
-  } catch { /* 忽略 */ }
+  } catch { /* ignore */ }
 }
 
 async function doInstall() {
-  if (!installForm.admin_password) {
-    message.warning('请填写管理员密码')
+  if (!cfg.steamcmd_path || !cfg.install_dir) {
+    message.warning('请先填写 SteamCMD 路径和安装目录')
     return
   }
-  acting.value = true
+  await saveConfig()
+  acting.value = 'install'
   try {
-    const r = await gameApi.install(installForm)
-    message.success(r.message || '部署已开始，首次启动需下载服务端，请等待几分钟')
-    setTimeout(loadStatus, 5000)
-  } catch (e: any) {
-    message.error(e.message)
-  } finally {
-    acting.value = false
-  }
+    const r = await gameApi.install()
+    message.info(r.message || '已开始安装，请查看日志')
+    pollStatus()
+  } catch (e: any) { message.error(e.message) }
+  finally { acting.value = '' }
+}
+async function doStart() {
+  acting.value = 'start'
+  try { await gameApi.start(); message.success('已启动'); await loadStatus() }
+  catch (e: any) { message.error(e.message) }
+  finally { acting.value = '' }
+}
+async function doStop() {
+  acting.value = 'stop'
+  try { await gameApi.stop(); message.success('已停止'); await loadStatus() }
+  catch (e: any) { message.error(e.message) }
+  finally { acting.value = '' }
+}
+async function doRestart() {
+  acting.value = 'restart'
+  try { await gameApi.restart(); message.success('已重启'); await loadStatus() }
+  catch (e: any) { message.error(e.message) }
+  finally { acting.value = '' }
 }
 
-async function doAction(fn: () => Promise<any>, ok: string) {
-  acting.value = true
-  try {
-    await fn()
-    message.success(ok)
+// 更新期间轮询状态与日志
+function pollStatus() {
+  const t = setInterval(async () => {
     await loadStatus()
-  } catch (e: any) {
-    message.error(e.message)
-  } finally {
-    acting.value = false
-  }
+    await loadLogs()
+    if (!isUpdating.value) {
+      clearInterval(t)
+      await loadStatus()
+    }
+  }, 3000)
 }
-const doStart = () => doAction(gameApi.start, '已启动')
-const doStop = () => doAction(gameApi.stop, '已停止')
-const doRestart = () => doAction(gameApi.restart, '已重启')
-const doUpdate = () => doAction(() => gameApi.update({ admin_password: installForm.admin_password }), '已更新并重启')
 
 onMounted(async () => {
+  await loadConfig()
   await loadStatus()
-  if (installed.value) loadLogs()
+  await loadLogs()
 })
 </script>
 
@@ -138,8 +203,15 @@ onMounted(async () => {
   padding: 12px;
   border-radius: 6px;
   font-size: 12px;
-  max-height: 400px;
+  max-height: 420px;
   overflow: auto;
   white-space: pre-wrap;
+  word-break: break-all;
+}
+code {
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 12px;
 }
 </style>
