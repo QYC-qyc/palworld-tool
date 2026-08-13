@@ -37,6 +37,7 @@ jobs:
           pyinstaller --onefile --name sav_cli module/sav_cli.py
 
       - name: Build binaries
+        id: build
         run: |
           mkdir -p dist
           cp -r web/dist dist/web
@@ -52,10 +53,51 @@ jobs:
             go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
             -o dist/paladmin .
           tar -czf paladmin_linux_arm64.tar.gz -C dist paladmin web sav_cli paladmin.service
+          echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
 
-      - name: Upload Release Assets
+      - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             paladmin_linux_amd64.tar.gz
             paladmin_linux_arm64.tar.gz
+
+      # 同步附件到 Gitee Release（国内加速）
+      - name: Create Gitee Release
+        id: gitee_release
+        if: ${{ secrets.GITEE_TOKEN != '' }}
+        run: |
+          TAG="${{ steps.build.outputs.tag }}"
+          # 查询 release 是否存在
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${{ secrets.GITEE_TOKEN }}" \
+            "https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases/tags/${TAG}")
+          if [ "$STATUS" = "200" ]; then
+            REL_ID=$(curl -s \
+              -H "Authorization: token ${{ secrets.GITEE_TOKEN }}" \
+              "https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases/tags/${TAG}" \
+              | grep -oP '"id":\s*\K[0-9]+' | head -1)
+            echo "exists_id=$REL_ID" >> $GITHUB_OUTPUT
+          else
+            RESP=$(curl -s -X POST \
+              -H "Authorization: token ${{ secrets.GITEE_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d "{\"tag_name\":\"${TAG}\",\"name\":\"PalAdmin ${TAG}\",\"body\":\"自动构建版本\",\"target_commitish\":\"main\"}" \
+              "https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases")
+            REL_ID=$(echo "$RESP" | grep -oP '"id":\s*\K[0-9]+' | head -1)
+            echo "created_id=$REL_ID" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload assets to Gitee
+        if: ${{ secrets.GITEE_TOKEN != '' }}
+        run: |
+          REL_ID="${{ steps.gitee_release.outputs.exists_id }}${{ steps.gitee_release.outputs.created_id }}"
+          if [ -z "$REL_ID" ]; then echo "未获取到 Gitee Release ID"; exit 1; fi
+          for FILE in paladmin_linux_amd64.tar.gz paladmin_linux_arm64.tar.gz; do
+            echo "上传 $FILE ..."
+            curl -s -X POST \
+              -H "Authorization: token ${{ secrets.GITEE_TOKEN }}" \
+              -F "file=@${FILE}" \
+              "https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases/${REL_ID}/attach_files"
+          done
+          echo "Gitee 附件上传完成"
