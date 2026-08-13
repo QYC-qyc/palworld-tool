@@ -1,72 +1,9 @@
-name: Release
-
-on:
-  push:
-    tags:
-      - "v*"
-  workflow_dispatch:
-
-permissions:
-  contents: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.22"
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Build web
-        working-directory: web
-        run: |
-          npm install --no-audit --no-fund
-          npm run build
-
-      - name: Build sav_cli
-        run: |
-          pip3 install -r module/requirements.txt pyinstaller
-          pyinstaller --onefile --name sav_cli module/sav_cli.py
-
-      - name: Build binaries
-        id: build
-        run: |
-          mkdir -p dist
-          cp -r web/dist dist/web
-          cp dist/sav_cli dist/ 2>/dev/null || true
-          cp deploy/paladmin.service dist/
-          # amd64
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-            go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
-            -o dist/paladmin .
-          tar -czf paladmin_linux_amd64.tar.gz -C dist paladmin web sav_cli paladmin.service
-          # arm64
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
-            go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
-            -o dist/paladmin .
-          tar -czf paladmin_linux_arm64.tar.gz -C dist paladmin web sav_cli paladmin.service
-
-      - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            paladmin_linux_amd64.tar.gz
-            paladmin_linux_arm64.tar.gz
-
       # 同步附件到 Gitee Release（国内加速）
       - name: Sync release assets to Gitee
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
         run: |
-          set -e
+          set -x
           TAG="${GITHUB_REF_NAME}"
           if [ -z "$GITEE_TOKEN" ]; then
             echo "未配置 GITEE_TOKEN，跳过 Gitee 同步"
@@ -74,36 +11,43 @@ jobs:
           fi
 
           API="https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases"
-          # 查询 release 是否存在
-          STATUS=$(curl -s -o /tmp/gitee_rel.json -w "%{http_code}" \
-            "${API}/tags/${TAG}?access_token=${GITEE_TOKEN}")
+          echo "查询 Gitee Release（tag=$TAG）..."
+          # -w 输出状态码，-o 保存 body
+          STATUS=$(curl -sS -o /tmp/gitee_rel.json -w "%{http_code}" \
+            -H "Authorization: token ${GITEE_TOKEN}" \
+            "${API}/tags/${TAG}")
+          echo "查询状态码: $STATUS"
+          echo "返回内容:"
+          cat /tmp/gitee_rel.json; echo
 
           if [ "$STATUS" = "200" ]; then
-            echo "Gitee Release 已存在，使用现有版本"
-            REL_ID=$(jq -r '.id' /tmp/gitee_rel.json)
+            echo "Gitee Release 已存在"
+            REL_ID=$(jq -r '.id // empty' /tmp/gitee_rel.json)
           else
-            echo "创建 Gitee Release（HTTP $STATUS）..."
-            curl -s -X POST "${API}?access_token=${GITEE_TOKEN}" \
+            echo "创建 Gitee Release ..."
+            curl -sS -X POST -o /tmp/gitee_create.json -w "创建状态码: %{http_code}\n" \
+              -H "Authorization: token ${GITEE_TOKEN}" \
               -H "Content-Type: application/json" \
               -d "{\"tag_name\":\"${TAG}\",\"name\":\"PalAdmin ${TAG}\",\"body\":\"自动构建版本\",\"target_commitish\":\"main\",\"prerelease\":false}" \
-              -o /tmp/gitee_create.json
-            cat /tmp/gitee_create.json | head -c 800; echo
-            REL_ID=$(jq -r '.id' /tmp/gitee_create.json)
+              "${API}"
+            echo "创建返回:"
+            cat /tmp/gitee_create.json; echo
+            REL_ID=$(jq -r '.id // empty' /tmp/gitee_create.json)
           fi
 
-          if [ -z "$REL_ID" ] || [ "$REL_ID" = "null" ]; then
+          echo "解析出的 Release ID: [$REL_ID]"
+          if [ -z "$REL_ID" ]; then
             echo "::warning::未获取到 Gitee Release ID，跳过附件上传"
             exit 0
           fi
-          echo "Gitee Release ID: $REL_ID"
 
           for FILE in paladmin_linux_amd64.tar.gz paladmin_linux_arm64.tar.gz; do
             echo "上传 $FILE ..."
-            CODE=$(curl -s -o /tmp/gitee_up.json -w "%{http_code}" -X POST \
+            curl -sS -o /tmp/gitee_up.json -w "上传状态码: %{http_code}\n" -X POST \
               -H "Authorization: token ${GITEE_TOKEN}" \
               -F "file=@${FILE}" \
-              "${API}/${REL_ID}/attach_files?access_token=${GITEE_TOKEN}")
-            echo "HTTP $CODE"
-            head -c 400 /tmp/gitee_up.json; echo
+              "${API}/${REL_ID}/attach_files"
+            echo "上传返回:"
+            cat /tmp/gitee_up.json; echo
           done
           echo "Gitee 附件上传完成"
