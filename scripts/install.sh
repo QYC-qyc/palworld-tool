@@ -8,7 +8,6 @@ INSTALL_DIR="/opt/paladmin"
 DATA_DIR="/var/lib/paladmin"
 SERVICE="paladmin"
 REPO="QYC-qyc/palworld-tool"
-BASE="https://github.com/${REPO}/releases/latest/download"
 
 echo "==> 创建用户与目录"
 id -u paladmin &>/dev/null || useradd -r -s /usr/sbin/nologin paladmin
@@ -22,9 +21,41 @@ case "$ARCH" in
   *) echo "不支持的架构: $ARCH"; exit 1 ;;
 esac
 
-echo "==> 下载 $ASSET"
+# 公共 GitHub 加速镜像列表（按顺序尝试）
+MIRRORS=(
+  "https://ghproxy.net/https://github.com"
+  "https://gh-proxy.com/https://github.com"
+  "https://ghfast.top/https://github.com"
+  "https://mirror.ghproxy.com/https://github.com"
+  "https://github.com"
+)
+
+echo "==> 下载 $ASSET（多镜像自动重试）"
 TMP="$(mktemp -d)"
-curl -fL --retry 3 -o "$TMP/$ASSET" "$BASE/$ASSET"
+DOWNLOADED=0
+for BASE in "${MIRRORS[@]}"; do
+  URL="$BASE/$REPO/releases/latest/download/$ASSET"
+  echo "  尝试: $BASE"
+  if command -v aria2c >/dev/null 2>&1; then
+    echo "  使用 aria2 多线程下载..."
+    if aria2c -x16 -s16 -k1M --summary-interval=0 -d "$TMP" -o "$ASSET" "$URL"; then
+      DOWNLOADED=1; break
+    fi
+  else
+    if curl -fL --retry 2 --connect-timeout 10 --max-time 300 -o "$TMP/$ASSET" "$URL"; then
+      DOWNLOADED=1; break
+    fi
+  fi
+  echo "  失败，尝试下一个镜像..."
+done
+
+if [ "$DOWNLOADED" != "1" ]; then
+  echo "==> 所有镜像均下载失败"
+  echo "    可手动下载后放到 $TMP/$ASSET 重新运行，或配置代理后重试："
+  echo "    export https_proxy=http://你的代理IP:端口"
+  exit 1
+fi
+echo "  下载完成"
 
 echo "==> 解压安装"
 tar -xzf "$TMP/$ASSET" -C "$TMP"
