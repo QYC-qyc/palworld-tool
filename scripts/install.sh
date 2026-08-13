@@ -60,9 +60,10 @@ echo "  下载完成"
 echo "==> 解压安装"
 tar -xzf "$TMP/$ASSET" -C "$TMP"
 cp "$TMP/paladmin" "$INSTALL_DIR/"
-# sav_cli 与 web 资源（若包含）
+# sav_cli、web 前端、data 游戏数据（若包含）
 [ -f "$TMP/sav_cli" ] && cp "$TMP/sav_cli" "$INSTALL_DIR/"
 [ -d "$TMP/web" ] && cp -r "$TMP/web" "$INSTALL_DIR/"
+[ -d "$TMP/data" ] && cp -r "$TMP/data" "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/paladmin"
 [ -f "$INSTALL_DIR/sav_cli" ] && chmod +x "$INSTALL_DIR/sav_cli"
 
