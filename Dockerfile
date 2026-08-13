@@ -26,8 +26,10 @@ RUN pyinstaller --onefile --name sav_cli sav_cli.py
 
 # ---- 运行时 ----
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# 安装 ca-certificates、tini，以及运行 SteamCMD(32位) 所需的库
+RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates tini \
+        lib32gcc-s1 lib32stdc++6 libstdc++6:i386 libc6:i386 \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 

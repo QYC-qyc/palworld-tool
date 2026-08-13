@@ -39,90 +39,48 @@
 
 - Linux 服务器（推荐 Ubuntu 22.04）
 - 已安装 Docker 与 Docker Compose
-- 服务器开放端口：面板 `8190/tcp`、游戏 `8211/udp`
+- 服务器开放端口：面板 `8190/tcp`、游戏 `8211/udp`、REST `8212/tcp`、RCON `25575/tcp`（后两者建议仅内网）
 
-### 第一步：准备目录并启动面板
+### 第一步：安装 SteamCMD（在宿主机）
+
+游戏服由你自行用 SteamCMD 安装。以 Ubuntu 为例：
+
+```bash
+# 安装依赖
+sudo add-apt-repository multiverse -y
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install -y steamcmd
+
+# 创建目录
+sudo mkdir -p /home/steam/steamcmd /home/steam/PalServer
+```
+
+> CentOS/RHEL 等其他发行版请参考 SteamCMD 官方文档安装。Windows 服务器下载 SteamCMD 压缩包解压即可。
+
+### 第二步：启动面板
 
 ```bash
 sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
-```
-
-下载 `docker-compose.yml`（两种方式任选其一）：
-
-**方式一：从 Gitee 下载**
-
-```bash
 sudo curl -o docker-compose.yml \
   https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.yml
-```
-
-**方式二：自行创建**
-
-```bash
-sudo nano docker-compose.yml
-```
-
-填入以下内容并保存：
-
-```yaml
-services:
-  paladmin:
-    image: ghcr.io/qyc-qyc/palworld-tool:latest
-    container_name: paladmin
-    restart: unless-stopped
-    ports:
-      - "8190:8190"
-    volumes:
-      - pst-data:/app/data
-      - /www/palworld-tool/backups:/app/backups
-      - /www/palworld-tool/evidence:/app/evidence
-      - /www/palworld-tool/logs:/app/logs
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /www/palworld-tool/game:/game/Saved
-    environment:
-      TZ: "Asia/Shanghai"
-      STORAGE__PATH: "/app/data/pst.db"
-      SAVE__DECODE_PATH: "/app/sav_cli"
-      SAVE__PATH: "/game/Saved/SaveGames/0"
-      ANTICHEAT__ENABLED: "true"
-      ANTICHEAT__MODE: "external"
-      PROCESS__MODE: "docker"
-      PROCESS__CONTAINER: "palworld"
-    networks:
-      - palnet
-
-volumes:
-  pst-data:
-
-networks:
-  palnet:
-    driver: bridge
-```
-
-启动面板：
-
-```bash
 sudo docker compose up -d
-sudo docker compose logs -f paladmin
 ```
 
-### 第二步：初始化面板
+`docker-compose.yml` 默认把宿主机的 SteamCMD（`/home/steam/steamcmd`）和游戏目录（`/home/steam/PalServer`）挂载进面板容器。如果你的路径不同，编辑该文件修改挂载路径。
 
-浏览器访问 `http://你的服务器IP:8190`，首次进入会自动跳转到初始化向导：
+### 第三步：初始化与配置游戏服
 
-1. 设置**面板登录密码**
-2. 游戏连接信息可稍后在「系统设置」配置
+1. 浏览器访问 `http://你的服务器IP:8190`，首次进入设置**面板登录密码**
+2. 进入左侧「**游戏服**」菜单，确认或修改：
+   - **SteamCMD 路径**：容器内为 `/opt/steamcmd/steamcmd.sh`
+   - **游戏安装目录**：容器内为 `/opt/palserver`
+3. 点击「**安装 / 更新游戏服**」
+   - 面板执行 `steamcmd +app_update 2394010 validate` 下载服务端
+   - 实时进度显示在日志区，首次约需几分钟
+4. 安装完成后点击「**启动**」运行游戏服
 
-### 第三步：部署游戏服
-
-1. 进入左侧「**游戏服**」菜单
-2. 填写游戏管理员密码（AdminPassword）、服务器名称、端口
-3. 点击「**部署并启动**」
-   - 面板自动拉取幻兽帕鲁服务端镜像、创建容器、启动服务
-   - 首次启动需要下载服务端文件，请等待几分钟
-4. 部署完成后可在同一页面**启动 / 停止 / 重启 / 更新**游戏服，并查看实时日志
-
-游戏数据保存在 `/www/palworld-tool/game`，更新或重建容器不会丢失存档。
+游戏服进程由面板管理，数据保存在宿主机 `/home/steam/PalServer`。
 
 ### 防火墙
 
@@ -148,7 +106,7 @@ sudo docker compose up -d
 | 功能 | 说明 |
 |---|---|
 | 仪表盘 | 在线人数、服务器 FPS、快捷操作、反作弊统计 |
-| 游戏服 | 一键部署/启动/停止/重启/更新游戏服，查看日志 |
+| 游戏服 | 配置 SteamCMD 路径，安装/更新服务端，启动/停止/重启，查看实时日志 |
 | 玩家 | 在线/存档玩家列表，查看背包、帕鲁，执行踢封禁 |
 | 公会 | 公会信息与成员 |
 | 封禁列表 | 管理玩家与 IP 封禁 |
