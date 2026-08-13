@@ -90,6 +90,8 @@ async function submit() {
   background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
 }
 .setup-card {
-  width: 460px;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 12px;
 }
 </style>

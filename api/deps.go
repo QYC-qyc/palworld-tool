@@ -7,10 +7,11 @@ import (
 )
 
 var (
-	db     *bbolt.DB
-	engine *anticheat.Engine
-	cfg    *config.Config
-	gameAPI *gameServerAPI
+	db               *bbolt.DB
+	engine           *anticheat.Engine
+	cfg              *config.Config
+	gameAPI          *gameServerAPI
+	gameSettings = &gameSettingsAPI{}
 )
 
 // SetDeps 注入数据库、反作弊引擎与配置

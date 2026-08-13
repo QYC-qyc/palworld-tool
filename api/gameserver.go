@@ -63,11 +63,16 @@ func (g *gameServerAPI) stop(c *gin.Context) {
 }
 
 func (g *gameServerAPI) restart(c *gin.Context) {
-	if err := g.mgr.Restart(); err != nil {
+	if err := g.restartImpl(); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
+}
+
+// restartImpl 供其他模块（配置保存）调用
+func (g *gameServerAPI) restartImpl() error {
+	return g.mgr.Restart()
 }
 
 func (g *gameServerAPI) update(c *gin.Context) {

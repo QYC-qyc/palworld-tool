@@ -13,6 +13,7 @@ const router = createRouter({
       children: [
         { path: 'dashboard', name: 'dashboard', component: () => import('@/views/Dashboard.vue') },
         { path: 'gameserver', name: 'gameserver', component: () => import('@/views/GameServer.vue') },
+        { path: 'gamesettings', name: 'gamesettings', component: () => import('@/views/GameSettings.vue') },
         { path: 'players', name: 'players', component: () => import('@/views/Players.vue') },
         { path: 'guilds', name: 'guilds', component: () => import('@/views/Guilds.vue') },
         { path: 'whitelist', name: 'whitelist', component: () => import('@/views/Whitelist.vue') },

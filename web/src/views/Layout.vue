@@ -1,6 +1,17 @@
 <template>
   <n-layout has-sider style="height: 100vh">
-    <n-layout-sider bordered :collapsed="collapsed" :width="220" :collapsed-width="64">
+    <!-- 桌面端固定侧边栏 -->
+    <n-layout-sider
+      v-if="!isMobile"
+      bordered
+      :collapsed="collapsed"
+      :width="220"
+      :collapsed-width="64"
+      show-trigger
+      collapse-mode="width"
+      @collapse="collapsed = true"
+      @expand="collapsed = false"
+    >
       <div class="logo">{{ collapsed ? 'PA' : 'PalAdmin' }}</div>
       <n-menu
         :collapsed="collapsed"
@@ -8,48 +19,57 @@
         :collapsed-icon-size="22"
         :options="menuOptions"
         :value="activeKey"
-        @update:value="(v: string) => router.push(v)"
+        @update:value="navigate"
       />
     </n-layout-sider>
+
+    <!-- 手机端抽屉菜单 -->
+    <n-drawer v-if="isMobile" v-model:show="showDrawer" :width="260" placement="left">
+      <n-drawer-content>
+        <div class="logo">PalAdmin</div>
+        <n-menu
+          :options="menuOptions"
+          :value="activeKey"
+          @update:value="navigate"
+        />
+      </n-drawer-content>
+    </n-drawer>
+
     <n-layout>
       <n-layout-header bordered class="header">
-        <n-button text @click="collapsed = !collapsed">
-          <template #icon><span>☰</span></template>
+        <n-button text @click="toggleMenu" aria-label="菜单">
+          <span style="font-size:18px;line-height:1">☰</span>
         </n-button>
-        <n-space align="center" :size="12">
+        <n-space align="center" :size="isMobile ? 6 : 12" :wrap="false">
           <n-tag :type="serverOk ? 'success' : 'error'" size="small" round>
-            {{ serverOk ? '服务器在线' : '服务器未连接' }}
+            {{ isMobile ? (serverOk ? '在线' : '离线') : (serverOk ? '服务器在线' : '服务器未连接') }}
           </n-tag>
           <n-dropdown :options="userMenu" @select="onUserMenu">
-            <n-button quaternary>管理员</n-button>
+            <n-button quaternary :size="isMobile ? 'small' : 'medium'">管理员</n-button>
           </n-dropdown>
         </n-space>
       </n-layout-header>
-      <n-layout-content class="content" content-style="padding: 16px;">
-        <router-view />
+      <n-layout-content class="content" content-style="padding: 12px;">
+        <div class="content-inner">
+          <router-view />
+        </div>
       </n-layout-content>
     </n-layout>
   </n-layout>
 </template>
 
 <script setup lang="ts">
-import { computed, h, onMounted, ref } from 'vue'
+import { computed, h, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  NLayout,
-  NLayoutSider,
-  NLayoutHeader,
-  NLayoutContent,
-  NMenu,
-  NButton,
-  NSpace,
-  NTag,
-  NDropdown,
-  useMessage,
+  NLayout, NLayoutSider, NLayoutHeader, NLayoutContent, NMenu, NButton,
+  NSpace, NTag, NDropdown, NDrawer, NDrawerContent, useMessage,
 } from 'naive-ui'
 import { api } from '@/api'
 
 const collapsed = ref(false)
+const showDrawer = ref(false)
+const isMobile = ref(false)
 const router = useRouter()
 const route = useRoute()
 const message = useMessage()
@@ -60,21 +80,36 @@ const activeKey = computed(() => route.path)
 const menuOptions = [
   { label: '仪表盘', key: '/dashboard' },
   { label: '游戏服', key: '/gameserver' },
-  { label: '玩家管理', key: '/players' },
+  { label: '游戏配置', key: '/gamesettings' },
+  { label: '玩家', key: '/players' },
   { label: '公会', key: '/guilds' },
   { label: '白名单', key: '/whitelist' },
-  { label: '封禁列表', key: '/banlist' },
-  { label: 'RCON 控制台', key: '/rcon' },
-  { label: '备份管理', key: '/backups' },
-  { label: '系统设置', key: '/settings' },
-  { label: '反作弊告警', key: '/anticheat' },
-  { label: '反作弊规则', key: '/anticheat/rules' },
-  { label: '审计日志', key: '/anticheat/audit' },
+  { label: '封禁', key: '/banlist' },
+  { label: 'RCON', key: '/rcon' },
+  { label: '备份', key: '/backups' },
+  { label: '反作弊', key: '/anticheat' },
+  { label: '审计', key: '/anticheat/audit' },
+  { label: '设置', key: '/settings' },
 ]
 
-const userMenu = [
-  { label: '退出登录', key: 'logout' },
-]
+const userMenu = [{ label: '退出登录', key: 'logout' }]
+
+function checkMobile() {
+  isMobile.value = window.innerWidth < 768
+}
+
+function toggleMenu() {
+  if (isMobile.value) {
+    showDrawer.value = true
+  } else {
+    collapsed.value = !collapsed.value
+  }
+}
+
+function navigate(v: string) {
+  router.push(v)
+  showDrawer.value = false
+}
 
 function onUserMenu(key: string) {
   if (key === 'logout') {
@@ -83,14 +118,13 @@ function onUserMenu(key: string) {
   }
 }
 
-onMounted(async () => {
-  try {
-    const s = await api.getServer()
-    serverOk.value = !!s.version
-  } catch {
-    serverOk.value = false
-  }
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+  api.getServer().then((s: any) => (serverOk.value = !!s.version)).catch(() => (serverOk.value = false))
 })
+
+onUnmounted(() => window.removeEventListener('resize', checkMobile))
 </script>
 
 <style scoped>
@@ -107,10 +141,14 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 12px;
 }
 .content {
   height: calc(100vh - 56px);
   overflow-y: auto;
+}
+.content-inner {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 </style>

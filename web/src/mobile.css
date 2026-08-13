@@ -1,0 +1,55 @@
+/* 全局响应式适配 */
+
+:root {
+  --content-padding: 12px;
+}
+
+/* 让 Naive UI 数据表格在小屏可横向滚动 */
+.n-data-table-wrapper,
+.n-data-table-base-table {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 卡片在手机端撑满、减少内边距 */
+@media (max-width: 768px) {
+  .n-card {
+    --n-padding-mult: 0.6;
+  }
+  .n-card-header {
+    padding: 10px 12px !important;
+  }
+  .n-card__content {
+    padding: 10px 12px !important;
+  }
+
+  /* 表单项占满宽度 */
+  .n-form-item {
+    width: 100%;
+  }
+
+  /* 按钮组换行 */
+  .n-space {
+    flex-wrap: wrap;
+  }
+
+  /* 描述列表在手机端两列变一列 */
+  .n-descriptions-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  /* 日志等 <pre> 自动换行 */
+  pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+}
+
+/* 手机端网格自适应 */
+@media (max-width: 768px) {
+  .n-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

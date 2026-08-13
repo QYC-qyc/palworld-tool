@@ -51,6 +51,8 @@ async function login() {
   background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
 }
 .login-card {
-  width: 360px;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 12px;
 }
 </style>

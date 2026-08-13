@@ -89,6 +89,12 @@ func RegisterRouter(r *gin.Engine) {
 			authGroup.GET("/gameserver/logs", gameAPI.logs)
 		}
 
+		// 游戏服 .ini 配置
+		authGroup.GET("/gamesettings/schema", gameSettings.schema)
+		authGroup.GET("/gamesettings", gameSettings.get)
+		authGroup.PUT("/gamesettings", gameSettings.save)
+		authGroup.GET("/gamesettings/raw", gameSettings.raw)
+
 		// 面板动态设置
 		authGroup.GET("/settings", getSettings)
 		authGroup.PUT("/settings", saveSettings)
