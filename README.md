@@ -62,20 +62,21 @@ CentOS / RHEL 等请参考 SteamCMD 官方文档。Windows 下载 SteamCMD 压�
 
 #### 方式一：二进制 + systemd（推荐）
 
-一键脚本（自动下载对应架构二进制、创建用户、注册 systemd 服务）：
+一键脚本（自动从 GitHub Release 下载对应架构二进制、创建用户、注册 systemd 服务）：
 
 ```bash
-curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
 ```
 
 脚本会：
-- 从 Release 下载对应架构的二进制（Gitee 优先，失败回退 GitHub）
+- 从 GitHub Release 下载对应架构的二进制
 - 安装到 `/opt/paladmin/`（含 paladmin、sav_cli、前端资源）
 - 数据存放在 `/var/lib/paladmin/`
 - 注册并启动 `paladmin` 系统服务
 - 自动选择 amd64 / arm64 架构
 
-> 二进制由 GitHub Release 自动构建。每个正式版本（tag，如 `v0.1.0`）都会附带 `paladmin_linux_amd64.tar.gz` 与 `paladmin_linux_arm64.tar.gz`。
+> 若服务器访问 GitHub 较慢，可先配置代理（见下方"下载加速"），或手动下载 tar 包后传到服务器。
+> 二进制由 GitHub Actions 自动构建。每个正式版本（tag，如 `v0.1.8`）都会附带 `paladmin_linux_amd64.tar.gz` 与 `paladmin_linux_arm64.tar.gz`。
 
 常用命令：
 
@@ -92,7 +93,7 @@ journalctl -u paladmin -f           # 日志
 ```bash
 sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
 sudo curl -o docker-compose.yml \
-  https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.yml
+  https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
 sudo docker compose up -d
 ```
 
@@ -129,8 +130,34 @@ sudo systemctl status paladmin      # 状态
 sudo systemctl restart paladmin     # 重启
 journalctl -u paladmin -f           # 日志
 # 更新 PalAdmin：重新运行安装脚本
-curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
 ```
+
+### 下载加速（国内服务器）
+
+安装脚本从 GitHub 下载二进制。若服务器访问 GitHub 较慢，可临时配置代理：
+
+```bash
+export https_proxy="http://127.0.0.1:7890"   # 替换为你的 HTTP 代理地址
+export http_proxy="http://127.0.0.1:7890"
+curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
+unset http_proxy https_proxy
+```
+
+让面板服务永久走代理（用于检查更新、Webhook）：
+
+```bash
+sudo mkdir -p /etc/systemd/system/paladmin.service.d
+sudo tee /etc/systemd/system/paladmin.service.d/proxy.conf <<'EOF'
+[Service]
+Environment="HTTP_PROXY=http://127.0.0.1:7890"
+Environment="HTTPS_PROXY=http://127.0.0.1:7890"
+Environment="NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+EOF
+sudo systemctl daemon-reload && sudo systemctl restart paladmin
+```
+
+> 把 `127.0.0.1:7890` 换成你实际的代理地址；如果代理在同一台服务器，确保它允许局域网连接。
 
 **Docker 方式：**
 
