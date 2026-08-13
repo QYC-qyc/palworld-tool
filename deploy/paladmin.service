@@ -1,0 +1,16 @@
+[Unit]
+Description=PalAdmin - Palworld Server Management Panel
+After=network.target
+
+[Service]
+Type=simple
+User=paladmin
+Group=paladmin
+WorkingDirectory=/opt/paladmin
+ExecStart=/opt/paladmin/paladmin --config /opt/paladmin/config.yaml
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

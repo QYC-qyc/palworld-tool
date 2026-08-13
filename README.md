@@ -35,52 +35,52 @@
 
 ## 部署
 
+PalAdmin 以二进制方式直接安装到宿主机（非 Docker），由 systemd 托管，可直接调用宿主机上的 SteamCMD 与游戏进程。
+
 ### 前置条件
 
-- Linux 服务器（推荐 Ubuntu 22.04）
-- 已安装 Docker 与 Docker Compose
+- Linux 服务器（推荐 Ubuntu 22.04 / Debian 12）
 - 服务器开放端口：面板 `8190/tcp`、游戏 `8211/udp`、REST `8212/tcp`、RCON `25575/tcp`（后两者建议仅内网）
 
-### 第一步：安装 SteamCMD（在宿主机）
+### 第一步：安装 SteamCMD
 
-游戏服由你自行用 SteamCMD 安装。以 Ubuntu 为例：
+Ubuntu / Debian：
 
 ```bash
-# 安装依赖
 sudo add-apt-repository multiverse -y
 sudo dpkg --add-architecture i386
 sudo apt update
-sudo apt install -y steamcmd
-
-# 创建目录
-sudo mkdir -p /home/steam/steamcmd /home/steam/PalServer
+sudo apt install -y steamcmd lib32gcc-s1
+mkdir -p ~/steamcmd ~/PalServer
 ```
 
-> CentOS/RHEL 等其他发行版请参考 SteamCMD 官方文档安装。Windows 服务器下载 SteamCMD 压缩包解压即可。
+CentOS / RHEL 等请参考 SteamCMD 官方文档。Windows 下载 SteamCMD 压缩包解压即可。
 
-### 第二步：启动面板
+### 第二步：安装 PalAdmin
+
+一键脚本（自动下载对应架构二进制、创建用户、注册 systemd 服务）：
 
 ```bash
-sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
-sudo curl -o docker-compose.yml \
-  https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.yml
-sudo docker compose up -d
+curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
 ```
 
-`docker-compose.yml` 默认把宿主机的 SteamCMD（`/home/steam/steamcmd`）和游戏目录（`/home/steam/PalServer`）挂载进面板容器。如果你的路径不同，编辑该文件修改挂载路径。
+脚本会：
+- 安装到 `/opt/paladmin/`（含 paladmin、sav_cli、前端资源）
+- 数据存放在 `/var/lib/paladmin/`
+- 注册并启动 `paladmin` 系统服务
+- 自动选择 amd64 / arm64 架构
 
 ### 第三步：初始化与配置游戏服
 
 1. 浏览器访问 `http://你的服务器IP:8190`，首次进入设置**面板登录密码**
-2. 进入左侧「**游戏服**」菜单，确认或修改：
-   - **SteamCMD 路径**：容器内为 `/opt/steamcmd/steamcmd.sh`
-   - **游戏安装目录**：容器内为 `/opt/palserver`
+2. 进入左侧「**游戏服**」菜单，填写：
+   - **SteamCMD 路径**：如 `/usr/games/steamcmd`（Ubuntu）或 `/home/steam/steamcmd/steamcmd.sh`
+   - **游戏安装目录**：如 `/home/steam/PalServer`
+   - 可选：启动额外参数
 3. 点击「**安装 / 更新游戏服**」
-   - 面板执行 `steamcmd +app_update 2394010 validate` 下载服务端
-   - 实时进度显示在日志区，首次约需几分钟
+   - 面板执行 `steamcmd +login anonymous +app_update 2394010 validate +quit`
+   - 实时进度显示在日志区，首次约几分钟
 4. 安装完成后点击「**启动**」运行游戏服
-
-游戏服进程由面板管理，数据保存在宿主机 `/home/steam/PalServer`。
 
 ### 防火墙
 
@@ -89,17 +89,24 @@ sudo ufw allow 8190/tcp
 sudo ufw allow 8211/udp
 ```
 
-云服务器还需在安全组放行相同端口。游戏服的 REST（8212）和 RCON（25575）仅供面板内部使用，**不要对公网开放**。
+云服务器还需在安全组放行相同端口。
 
-### 更新面板
+### 常用运维命令
 
 ```bash
-cd /www/palworld-tool
-sudo docker compose pull
-sudo docker compose up -d
-```
+# 服务管理
+sudo systemctl status paladmin
+sudo systemctl restart paladmin
+sudo systemctl stop paladmin
 
-游戏服更新在面板「游戏服」页面点击「更新」即可。
+# 查看日志
+journalctl -u paladmin -f
+
+# 更新 PalAdmin（重新运行安装脚本即可）
+curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
+
+# 更新游戏服：在面板「游戏服」页点击「安装/更新」
+```
 
 ## 使用说明
 
