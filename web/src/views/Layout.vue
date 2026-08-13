@@ -59,6 +59,7 @@ const activeKey = computed(() => route.path)
 
 const menuOptions = [
   { label: '仪表盘', key: '/dashboard' },
+  { label: '游戏服', key: '/gameserver' },
   { label: '玩家管理', key: '/players' },
   { label: '公会', key: '/guilds' },
   { label: '白名单', key: '/whitelist' },

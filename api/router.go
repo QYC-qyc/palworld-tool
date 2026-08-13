@@ -8,7 +8,8 @@ import (
 )
 
 type SuccessResponse struct {
-	Success bool `json:"success"`
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
 }
 
 type MessageResponse struct {
@@ -76,6 +77,17 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.GET("/banlist", listBans)
 		authGroup.POST("/banip", banIP)
 		authGroup.POST("/unbanip", unbanIP)
+
+		// 游戏服管理（通过 Docker 部署/启动/停止/更新）
+		if gameAPI != nil {
+			authGroup.GET("/gameserver", gameAPI.status)
+			authGroup.POST("/gameserver/install", gameAPI.install)
+			authGroup.POST("/gameserver/start", gameAPI.start)
+			authGroup.POST("/gameserver/stop", gameAPI.stop)
+			authGroup.POST("/gameserver/restart", gameAPI.restart)
+			authGroup.POST("/gameserver/update", gameAPI.update)
+			authGroup.GET("/gameserver/logs", gameAPI.logs)
+		}
 
 		// 面板动态设置
 		authGroup.GET("/settings", getSettings)

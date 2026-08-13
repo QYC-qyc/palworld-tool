@@ -58,7 +58,7 @@ git push origin main
 
 ### 二、服务器拉取并启动
 
-`docker-compose.yml` 同时包含 `palworld`（原生 Linux 游戏服）和 `paladmin`（面板），所有数据统一放在 `/www/palworld-tool/`。
+`docker-compose.yml` **只运行 PalAdmin 面板**。游戏服不在 compose 里，而是通过面板内「游戏服」菜单一键部署（面板挂载了 `/var/run/docker.sock` 来管理宿主机 Docker）。
 
 ```bash
 # 1. 创建目录
@@ -68,15 +68,19 @@ sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
 sudo curl -o docker-compose.yml \
   https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
 
-# 3. 配置游戏服管理员密码（面板密码在网页向导设置，无需写在这里）
-cat > .env <<'EOF'
-GAME_ADMIN_PASSWORD=你想设置的游戏AdminPassword
-EOF
-
-# 4. 启动（首次会拉取游戏服镜像并自动安装游戏）
+# 3. 启动面板
 sudo docker compose up -d
 sudo docker compose logs -f
 ```
+
+浏览器访问 `http://服务器IP:8190`，首次进入设置面板密码。然后：
+
+1. 进入左侧「**游戏服**」菜单
+2. 填写游戏管理员密码（AdminPassword）、服务器名称、端口
+3. 点击「**部署并启动**」——面板会自动拉取官方游戏服镜像、创建容器、启动服务
+4. 之后可在同一页面**启动/停止/重启/更新**游戏服，并查看实时日志
+
+游戏数据存放在 `/www/palworld-tool/game/`，更新或重建容器不会丢失存档。
 
 数据目录结构（全部位于 `/www/palworld-tool/`）：
 
@@ -93,33 +97,25 @@ compose 关键配置：
 
 ```yaml
 services:
-  palworld:
-    image: thijsvanloef/palworld-server-docker:latest
-    volumes:
-      - /www/palworld-tool/game:/palworld
   paladmin:
     image: ghcr.io/qyc-qyc/palworld-tool:latest
     ports:
       - "8190:8190"
     volumes:
-      - pst-data:/app/data                  # 数据库（named volume）
-      - /www/palworld-tool/game/Pal/Saved:/game/Saved
+      - pst-data:/app/data                       # 数据库（named volume）
+      - /var/run/docker.sock:/var/run/docker.sock # 让面板能管理游戏服容器
+      - /www/palworld-tool/game:/game/Saved      # 共享游戏存档
     environment:
-      REST__ADDRESS: "http://palworld:8212"
-      REST__PASSWORD: "${GAME_ADMIN_PASSWORD}"
-      RCON__ADDRESS: "palworld:25575"
-      RCON__PASSWORD: "${GAME_ADMIN_PASSWORD}"
       SAVE__PATH: "/game/Saved/SaveGames/0"
       PROCESS__MODE: "docker"
       PROCESS__CONTAINER: "palworld"
 ```
 
-> 面板密码不通过 `.env` 或配置文件设置，而是在首次访问网页时通过初始化向导设置，并保存在数据库中。
+面板通过 `/var/run/docker.sock` 在宿主机上创建游戏服容器（镜像 `thijsvanloef/palworld-server-docker`），数据写入 `/www/palworld-tool/game`。面板与游戏服通过容器网络通信。
 
-启动后浏览器访问 `http://服务器IP:8190`，**首次进入会自动跳转到初始化向导**，设置面板登录密码（可同时填写游戏 REST/RCON 连接信息，也可稍后在「系统设置」配置）。完成后用该密码登录。
+启动后浏览器访问 `http://服务器IP:8190`，**首次进入会自动跳转到初始化向导**设置面板登录密码。然后到「游戏服」页填写管理员密码并一键部署。
 
-> 不再需要手动挂载 config.yaml 或预先设置密码；所有配置保存在数据库中，面板可改。
-> 若游戏服已单独部署，在向导或系统设置里把 REST/RCON 地址改成实际地址（如 `http://172.17.0.1:8212`）。
+> 也支持已有的游戏服：在「系统设置」把 REST/RCON 地址改成实际地址（如 `http://172.17.0.1:8212`），不通过面板部署也能使用监控和反作弊。
 
 ---
 
