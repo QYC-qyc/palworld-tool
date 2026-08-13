@@ -162,32 +162,6 @@ journalctl -u paladmin -f           # 日志
 curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
 ```
 
-### 下载加速（国内服务器）
-
-安装脚本从 GitHub 下载二进制。若服务器访问 GitHub 较慢，可临时配置代理：
-
-```bash
-export https_proxy="http://127.0.0.1:7890"   # 替换为你的 HTTP 代理地址
-export http_proxy="http://127.0.0.1:7890"
-curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
-unset http_proxy https_proxy
-```
-
-让面板服务永久走代理（用于检查更新、Webhook）：
-
-```bash
-sudo mkdir -p /etc/systemd/system/paladmin.service.d
-sudo tee /etc/systemd/system/paladmin.service.d/proxy.conf <<'EOF'
-[Service]
-Environment="HTTP_PROXY=http://127.0.0.1:7890"
-Environment="HTTPS_PROXY=http://127.0.0.1:7890"
-Environment="NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
-EOF
-sudo systemctl daemon-reload && sudo systemctl restart paladmin
-```
-
-> 把 `127.0.0.1:7890` 换成你实际的代理地址；如果代理在同一台服务器，确保它允许局域网连接。
-
 **Docker 方式：**
 
 ```bash
