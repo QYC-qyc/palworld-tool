@@ -21,7 +21,7 @@ case "$ARCH" in
   *) echo "不支持的架构: $ARCH"; exit 1 ;;
 esac
 
-# 公共 GitHub 加速镜像列表（按顺序尝试）
+# 公共 GitHub 加速镜像（按顺序尝试，最后直连兜底）
 MIRRORS=(
   "https://ghproxy.net/https://github.com"
   "https://gh-proxy.com/https://github.com"
