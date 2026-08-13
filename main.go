@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/gin-gonic/gin"
@@ -62,12 +63,28 @@ func main() {
 	api.SetDeps(db, engine, &conf)
 	api.RegisterRouter(router)
 
-	// 静态前端（若存在 web/dist）
-	if _, err := os.Stat("web/dist"); err == nil {
-		router.StaticFS("/assets", http.Dir("web/dist/assets"))
-		router.GET("/", func(c *gin.Context) {
-			c.File("web/dist/index.html")
+	// 静态前端：自动查找 web/dist 或 web 目录
+	webDir := ""
+	for _, d := range []string{"web/dist", "web"} {
+		if _, err := os.Stat(filepath.Join(d, "index.html")); err == nil {
+			webDir = d
+			break
+		}
+	}
+	if webDir != "" {
+		router.StaticFS("/assets", http.Dir(filepath.Join(webDir, "assets")))
+		// SPA 入口与前端路由 fallback
+		router.NoRoute(func(c *gin.Context) {
+			// API 路径不返回 index.html
+			if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+				c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+				return
+			}
+			c.File(filepath.Join(webDir, "index.html"))
 		})
+		logger.Infof("前端目录: %s", webDir)
+	} else {
+		logger.Warn("未找到前端资源（web/dist 或 web），仅提供 API")
 	}
 
 	task.Init(db, engine)
