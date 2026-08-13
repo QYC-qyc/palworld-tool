@@ -1,11 +1,10 @@
 name: Build and Push Docker Image
 
-# 触发条件：推送到 main 分支，或手动发布 Release
+# 推送到 main 后自动构建，并推送到 GHCR 和 Gitee 容器仓库
 on:
   push:
     branches:
       - main
-    # 仅在这些路径变更时才构建
     paths:
       - "**/*.go"
       - "web/**"
@@ -17,18 +16,19 @@ on:
       - ".github/workflows/docker.yml"
   release:
     types: [published]
-  workflow_dispatch: {} # 支持手动触发
+  workflow_dispatch: {}
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  GHCR_REGISTRY: ghcr.io
+  GITEE_REGISTRY: gitee.com
+  IMAGE_NAME: qyc-qyc/paladmin
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write   # 推送镜像到 GHCR 所需权限
+      packages: write
 
     steps:
       - name: Checkout
@@ -40,23 +40,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # 登录 GHCR（用内置 token）
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      # 登录 Gitee 容器仓库（需在 GitHub 仓库 Settings→Secrets 配置）
+      - name: Log in to Gitee
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GITEE_REGISTRY }}
+          username: ${{ secrets.GITEE_USERNAME }}
+          password: ${{ secrets.GITEE_TOKEN }}
+
+      - name: Extract metadata (GHCR)
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.GHCR_REGISTRY }}/${{ github.repository }}
+            ${{ env.GITEE_REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
             type=sha,format=short
 
       - name: Build and push

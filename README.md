@@ -67,7 +67,7 @@ sudo nano docker-compose.yml
 ```yaml
 services:
   paladmin:
-    image: ghcr.io/qyc-qyc/palworld-tool:latest
+    image: gitee.com/qyc-qyc/paladmin:latest
     container_name: paladmin
     restart: unless-stopped
     ports:
