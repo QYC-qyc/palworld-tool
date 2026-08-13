@@ -104,8 +104,15 @@ systemctl enable "$SERVICE"
 systemctl restart "$SERVICE"
 
 rm -rf "$TMP"
+
+# 获取公网 IP（优先），失败则用本机内网 IP
+PANEL_PORT=8190
+SERVER_IP=$(curl -s --max-time 5 https://api.ipify.org 2>/dev/null || true)
+[ -z "$SERVER_IP" ] && SERVER_IP=$(curl -s --max-time 5 https://ifconfig.me 2>/dev/null || true)
+[ -z "$SERVER_IP" ] && SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+
 echo ""
 echo "==> 安装完成！"
-echo "    面板地址: http://$(hostname -I | awk '{print $1}'):8190"
+echo "    面板地址: http://${SERVER_IP}:${PANEL_PORT}"
 echo "    配置文件: ${INSTALL_DIR}/config.yaml"
 echo "    查看日志: journalctl -u paladmin -f"
