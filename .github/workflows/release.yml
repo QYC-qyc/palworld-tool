@@ -67,41 +67,48 @@ jobs:
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
         run: |
+          set -x
           TAG="${GITHUB_REF_NAME}"
           if [ -z "$GITEE_TOKEN" ]; then
             echo "未配置 GITEE_TOKEN，跳过 Gitee 同步"
             exit 0
           fi
 
-          # 查询 release 是否存在
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: token $GITEE_TOKEN" \
-            "https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases/tags/${TAG}")
+          API="https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases"
+          AUTH=(-H "Authorization: token $GITEE_TOKEN")
+
+          # 查询 release 是否存在（用 access_token 参数更兼容）
+          STATUS=$(curl -s -o /tmp/gitee_rel.json -w "%{http_code}" \
+            "${API}/tags/${TAG}?access_token=${GITEE_TOKEN}")
 
           if [ "$STATUS" = "200" ]; then
-            REL_ID=$(curl -s \
-              -H "Authorization: token $GITEE_TOKEN" \
-              "https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases/tags/${TAG}" \
-              | grep -oP '"id":\s*\K[0-9]+' | head -1)
+            echo "Release 已存在"
+            cat /tmp/gitee_rel.json | head -c 500; echo
+            REL_ID=$(grep -oP '"id":\s*\K[0-9]+' /tmp/gitee_rel.json | head -1)
           else
-            RESP=$(curl -s -X POST \
-              -H "Authorization: token $GITEE_TOKEN" \
+            echo "创建 Release（HTTP $STATUS）..."
+            curl -s -X POST "${API}?access_token=${GITEE_TOKEN}" \
               -H "Content-Type: application/json" \
-              -d "{\"tag_name\":\"${TAG}\",\"name\":\"PalAdmin ${TAG}\",\"body\":\"自动构建版本\",\"target_commitish\":\"main\"}" \
-              "https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases")
-            REL_ID=$(echo "$RESP" | grep -oP '"id":\s*\K[0-9]+' | head -1)
+              -d "{\"tag_name\":\"${TAG}\",\"name\":\"PalAdmin ${TAG}\",\"body\":\"自动构建版本\",\"target_commitish\":\"main\",\"prerelease\":false}" \
+              -o /tmp/gitee_create.json
+            cat /tmp/gitee_create.json | head -c 800; echo
+            # Gitee release id 在 "id" 字段（首个数字 id）
+            REL_ID=$(grep -oP '"id":\s*\K[0-9]+' /tmp/gitee_create.json | head -1)
           fi
 
           if [ -z "$REL_ID" ]; then
-            echo "::warning::未获取到 Gitee Release ID，跳过附件上传"
+            echo "::warning::未获取到 Gitee Release ID，跳过附件上传（请检查 token 权限）"
             exit 0
           fi
+          echo "Release ID: $REL_ID"
 
           for FILE in paladmin_linux_amd64.tar.gz paladmin_linux_arm64.tar.gz; do
             echo "上传 $FILE ..."
             curl -s -X POST \
               -H "Authorization: token $GITEE_TOKEN" \
               -F "file=@${FILE}" \
-              "https://gitee.com/api/v5/repos/QYC-qyc/palworld-tool/releases/${REL_ID}/attach_files"
+              "${API}/${REL_ID}/attach_files?access_token=${GITEE_TOKEN}" \
+              -o /tmp/gitee_up.json -w "HTTP %{http_code}\n"
+            head -c 300 /tmp/gitee_up.json; echo
           done
           echo "Gitee 附件上传完成"
