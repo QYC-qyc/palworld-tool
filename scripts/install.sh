@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 # PalAdmin 一键安装脚本（二进制 + systemd，直接安装到宿主机）
 # 用法:
-#   curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
 set -e
 
 INSTALL_DIR="/opt/paladmin"
 DATA_DIR="/var/lib/paladmin"
 SERVICE="paladmin"
 REPO="QYC-qyc/palworld-tool"
-# 优先从 Gitee 下载，失败则用 GitHub
-BASE_GITEE="https://gitee.com/${REPO}/releases/latest/download"
-BASE_GH="https://github.com/${REPO}/releases/latest/download"
+BASE="https://github.com/${REPO}/releases/latest/download"
 
 echo "==> 创建用户与目录"
 id -u paladmin &>/dev/null || useradd -r -s /usr/sbin/nologin paladmin
@@ -26,10 +24,7 @@ esac
 
 echo "==> 下载 $ASSET"
 TMP="$(mktemp -d)"
-if ! curl -fsSL -o "$TMP/$ASSET" "$BASE_GITEE/$ASSET"; then
-  echo "Gitee 下载失败，尝试 GitHub..."
-  curl -fsSL -o "$TMP/$ASSET" "$BASE_GH/$ASSET"
-fi
+curl -fL --retry 3 -o "$TMP/$ASSET" "$BASE/$ASSET"
 
 echo "==> 解压安装"
 tar -xzf "$TMP/$ASSET" -C "$TMP"
