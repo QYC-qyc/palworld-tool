@@ -69,21 +69,43 @@ curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/
 ```
 
 脚本会：
+- 依次尝试多个公共 GitHub 镜像，自动选择可用的下载源（支持 aria2 多线程）
 - 从 GitHub Release 下载对应架构的二进制
-- 安装到 `/opt/paladmin/`（含 paladmin、sav_cli、前端资源）
-- 数据存放在 `/var/lib/paladmin/`
+- 安装到 `/opt/paladmin/`，目录结构：
+  ```
+  /opt/paladmin/
+  ├── paladmin          # 主程序
+  ├── sav_cli           # 存档解析工具
+  ├── web/              # 前端资源（index.html、assets/）
+  ├── data/gamedata/    # 游戏数据（pal/item/passive ids 等）
+  ├── paladmin.service
+  └── config.yaml
+  ```
+- 数据（数据库、备份、证据、日志）存放在 `/var/lib/paladmin/`
 - 注册并启动 `paladmin` 系统服务
 - 自动选择 amd64 / arm64 架构
 
-> 若服务器访问 GitHub 较慢，可先配置代理（见下方"下载加速"），或手动下载 tar 包后传到服务器。
-> 二进制由 GitHub Actions 自动构建。每个正式版本（tag，如 `v0.1.8`）都会附带 `paladmin_linux_amd64.tar.gz` 与 `paladmin_linux_arm64.tar.gz`。
+> 若所有公共镜像均不可用，可配置 HTTP 代理（见下方"下载加速"），或手动下载 tar 包后传到服务器。
+> 二进制由 GitHub Actions 自动构建。每个正式版本（tag，如 `v0.2.4`）都会附带 `paladmin_linux_amd64.tar.gz` 与 `paladmin_linux_arm64.tar.gz`。
 
-常用命令：
+**启动验证：**
 
 ```bash
-sudo systemctl status paladmin      # 状态
-sudo systemctl restart paladmin     # 重启
-journalctl -u paladmin -f           # 日志
+sudo systemctl status paladmin      # 状态应为 active (running)
+journalctl -u paladmin -f           # 查看日志，应出现：
+                                    #   前端目录: web
+                                    #   游戏数据加载完成: N 帕鲁, M 物品...
+                                    #   监听: http://0.0.0.0:8190
+```
+
+访问 `http://服务器IP:8190`，应显示登录页。
+
+**更新到新版本：**
+
+```bash
+# 重新运行安装脚本即可（配置和数据保留）
+curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
+sudo systemctl restart paladmin
 ```
 
 #### 方式二：Docker 部署
@@ -106,11 +128,18 @@ sudo docker compose up -d
 2. 进入左侧「**游戏服**」菜单，填写：
    - **SteamCMD 路径**：如 `/usr/games/steamcmd`（Ubuntu）或 `/home/steam/steamcmd/steamcmd.sh`
    - **游戏安装目录**：如 `/home/steam/PalServer`
-   - 可选：启动额外参数
+   - 可选：启动额外参数、游戏端口
+   - 点击「保存配置」
 3. 点击「**安装 / 更新游戏服**」
-   - 面板执行 `steamcmd +login anonymous +app_update 2394010 validate +quit`
+   - 面板执行 `steamcmd +force_install_dir <目录> +login anonymous +app_update 2394010 validate +quit`
    - 实时进度显示在日志区，首次约几分钟
 4. 安装完成后点击「**启动**」运行游戏服
+5. 进入「**游戏配置**」（`.ini`），确认游戏服开启了 REST API：
+   - `RESTAPIEnabled=true`、`RESTAPIPort=8212`、`AdminPassword=...`
+   - 配置保存后重启游戏服生效
+6. 进入「**系统设置**」，填写游戏服 REST 地址（如 `http://127.0.0.1:8212`）和 AdminPassword，面板即可同步在线玩家、执行 RCON 等
+
+> 首次启动时日志可能出现"备份失败"、"同步在线玩家失败"，这是因为游戏服尚未安装/配置，完成上述步骤后会消失。
 
 ### 防火墙
 
