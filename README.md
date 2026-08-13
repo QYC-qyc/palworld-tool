@@ -125,29 +125,42 @@ sudo docker compose up -d
 ### 第三步：初始化与配置游戏服
 
 1. 浏览器访问 `http://你的服务器IP:8190`，首次进入设置**面板登录密码**
-2. 进入左侧「**游戏服**」菜单，填写：
-   - **SteamCMD 路径**：如 `/usr/games/steamcmd`（Ubuntu）或 `/home/steam/steamcmd/steamcmd.sh`
-   - **游戏安装目录**：如 `/home/steam/PalServer`
-   - 可选：启动额外参数、游戏端口
-   - 点击「保存配置」
-3. **配置目录权限**：PalAdmin 服务以 `paladmin` 用户运行，需要对你自定义的游戏安装目录（以及 SteamCMD 目录，如有必要）有读写权限，否则点击安装时会报 `permission denied`：
+2. 进入左侧「**游戏服**」菜单，填写路径。
+
+   **推荐做法（无权限问题）：** 把 SteamCMD 和游戏都放在 `paladmin` 用户自己的目录下，PalAdmin 天然有读写权限：
+
+   - **SteamCMD 路径**：`/home/paladmin/steamcmd/steamcmd.sh`
+   - **游戏安装目录**：`/home/paladmin/PalServer`
+
+   先在服务器安装 SteamCMD 到该目录（Ubuntu/Debian）：
 
    ```bash
-   # 将 <游戏安装目录> 替换为你在面板填写的实际路径，例如 /www/Game/PalWorld
-   sudo mkdir -p <游戏安装目录>
-   sudo chown -R paladmin:paladmin <游戏安装目录>
+   sudo mkdir -p /home/paladmin/steamcmd
+   cd /home/paladmin/steamcmd
+   # 从 Steam 官方下载 steamcmd 并解压（需 32 位库：sudo apt install lib32gcc-s1）
+   sudo curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | sudo tar -zxvf -
+   sudo chown -R paladmin:paladmin /home/paladmin
    ```
 
-   也可以直接把游戏装在 paladmin 用户自己的目录下（如 `/home/paladmin/PalServer`），无需额外授权。
+   **自定义目录做法：** 若你想放到其他路径（如 `/www/Game/PalWorld`），需确保 `paladmin` 用户有读写权限，否则安装时会报 `Missing file permissions` / `permission denied`：
 
-4. 点击「**安装 / 更新游戏服**」
-   - 面板执行 `steamcmd +force_install_dir <目录> +login anonymous +app_update 2394010 validate +quit`
+   ```bash
+   sudo mkdir -p <你自定义的游戏安装目录>
+   sudo chown -R paladmin:paladmin <你自定义的游戏安装目录>
+   # SteamCMD 目录同理（如不在 paladmin 目录下）
+   sudo chown -R paladmin:paladmin <SteamCMD 目录>
+   ```
+
+   填完后点击「保存配置」。
+
+3. 点击「**安装 / 更新游戏服**」
+   - 面板执行 `steamcmd +force_install_dir <目录> +login anonymous +app_update 2394010 validate +quit`（App ID `2394010` 为帕鲁专用服务器）
    - 实时进度显示在日志区，首次约几分钟
-5. 安装完成后点击「**启动**」运行游戏服
-6. 进入「**游戏配置**」（`.ini`），确认游戏服开启了 REST API：
+4. 安装完成后点击「**启动**」运行游戏服
+5. 进入「**游戏配置**」（`.ini`），确认游戏服开启了 REST API：
    - `RESTAPIEnabled=true`、`RESTAPIPort=8212`、`AdminPassword=...`
    - 配置保存后重启游戏服生效
-7. 进入「**系统设置**」，填写游戏服 REST 地址（如 `http://127.0.0.1:8212`）和 AdminPassword，面板即可同步在线玩家、执行 RCON 等
+6. 进入「**系统设置**」，填写游戏服 REST 地址（如 `http://127.0.0.1:8212`）和 AdminPassword，面板即可同步在线玩家、执行 RCON 等
 
 > 首次启动时日志可能出现"备份失败"、"同步在线玩家失败"，这是因为游戏服尚未安装/配置，完成上述步骤后会消失。
 
