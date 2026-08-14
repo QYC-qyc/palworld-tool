@@ -132,23 +132,16 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 
 	onProgress(Progress{Stage: "download", Message: "正在下载并安装最新版本...", Percent: 30, Version: rel.TagName})
 
-	// 执行安装脚本
-	cmd := exec.Command("bash", tmpScript)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = os.Environ()
+	// 用 nohup + setsid 让脚本完全脱离当前进程独立运行。
+	// 脚本内部会 systemctl stop paladmin → 替换文件 → systemctl start paladmin。
+	// 当前进程不能自杀，否则脚本还没下载完二进制就被 systemd 重启为旧版本。
+	cmd := exec.Command("setsid", "bash", "-c",
+		fmt.Sprintf("nohup bash %s > /tmp/paladmin-update.log 2>&1 &", tmpScript))
+	cmd.SysProcAttr = newSysProcAttr()
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("启动安装脚本失败: %w", err)
 	}
 
-	// 脚本会停止服务、替换文件、重启服务，当前进程也会被重启
-	onProgress(Progress{Stage: "restart", Message: "安装脚本已启动，服务即将重启...", Percent: 90, Version: rel.TagName})
-
-	// 给脚本一点时间执行，然后当前进程会被 systemctl restart 终止
-	go func() {
-		time.Sleep(3 * time.Second)
-		os.Exit(0)
-	}()
-
+	onProgress(Progress{Stage: "restart", Message: "更新已在后台启动，服务将在下载完成后重启...", Percent: 90, Version: rel.TagName})
 	return nil
 }

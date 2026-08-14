@@ -271,27 +271,35 @@ async function checkUpdate() {
 }
 
 function waitForRestart() {
-  updateProgress.message = '服务正在重启，请稍候...'
+  updateProgress.message = '正在下载并安装更新，请耐心等待（可能需要 1-3 分钟）...'
   let elapsed = 0
+  let wasDown = false
   const timer = setInterval(async () => {
     elapsed += 2
     try {
       const resp = await fetch('/health')
       if (resp.ok) {
-        clearInterval(timer)
-        updateProgress.percent = 100
-        updateProgress.message = '更新完成，即将刷新...'
-        message.success('面板更新完成')
-        setTimeout(() => location.reload(), 1500)
+        // 必须先经历过服务断开才确认是重启完成
+        if (wasDown) {
+          clearInterval(timer)
+          updateProgress.percent = 100
+          updateProgress.message = '更新完成，即将刷新...'
+          message.success('面板更新完成')
+          setTimeout(() => location.reload(), 2000)
+        } else {
+          updateProgress.message = `正在下载更新...（${elapsed}秒）`
+        }
       }
     } catch {
-      if (elapsed > 60) {
+      wasDown = true
+      updateProgress.message = '服务正在重启...'
+      if (elapsed > 240) {
         clearInterval(timer)
         updating.value = false
-        message.error('服务重启超时，请手动刷新页面')
+        message.error('更新超时，请检查服务器日志或手动刷新页面')
       }
     }
-  }, 2000)
+  }, 3000)
 }
 
 async function doUpdate() {
