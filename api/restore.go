@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
+	"paladmin/internal/tool"
 	"paladmin/service"
 )
 
@@ -26,7 +26,7 @@ func restoreBackup(c *gin.Context) {
 		c.JSON(http.StatusNotFound, ErrorResponse{Error: "备份不存在"})
 		return
 	}
-	saveDir := viper.GetString("save.path")
+	saveDir := tool.EffectiveSavePath()
 	// 异步执行回档（停服需要时间）
 	go func() {
 		if err := service.RestoreBackup(db, saveDir, backupPath); err != nil {

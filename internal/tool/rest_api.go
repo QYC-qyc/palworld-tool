@@ -22,7 +22,11 @@ func callAPI(method, api string, param []byte) ([]byte, error) {
 	username := viper.GetString("rest.username")
 	password := viper.GetString("rest.password")
 	timeout := viper.GetInt("rest.timeout")
+	return callAPIWith(method, api, param, addr, username, password, timeout)
+}
 
+// callAPIWith 用显式传入的连接参数发起 REST 请求（供测试连接使用）
+func callAPIWith(method, api string, param []byte, addr, username, password string, timeout int) ([]byte, error) {
 	fullURL, err := url.JoinPath(addr, api)
 	if err != nil {
 		return nil, err
@@ -34,6 +38,9 @@ func callAPI(method, api string, param []byte) ([]byte, error) {
 	}
 	req.SetBasicAuth(username, password)
 
+	if timeout <= 0 {
+		timeout = 5
+	}
 	httpClient.Timeout = time.Duration(timeout) * time.Second
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -46,9 +53,22 @@ func callAPI(method, api string, param []byte) ([]byte, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("rest: %d %s", resp.StatusCode, string(b))
+		return nil, fmt.Errorf("REST 返回 %d: %s", resp.StatusCode, strings.TrimSpace(string(b)))
 	}
 	return b, nil
+}
+
+// TestRest 用给定的地址和密码测试 REST API 连通性，返回服务器版本
+func TestRest(addr, password string) (string, error) {
+	resp, err := callAPIWith("GET", "/v1/api/info", nil, addr, "admin", password, 5)
+	if err != nil {
+		return "", err
+	}
+	var data ResponseInfo
+	if err := json.Unmarshal(resp, &data); err != nil {
+		return "", err
+	}
+	return data.Version, nil
 }
 
 type ResponseInfo struct {

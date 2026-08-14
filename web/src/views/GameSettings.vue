@@ -30,7 +30,7 @@
                   <!-- 枚举下拉 -->
                   <n-select v-else-if="f.type === 'enum'"
                     :value="form[f.key]"
-                    :options="f.options!.map((o: string) => ({ label: o, value: o }))"
+                    :options="f.options || []"
                     @update:value="(v: string) => (form[f.key] = v)" />
                   <!-- 数字 -->
                   <n-input-number v-else-if="f.type === 'int'"

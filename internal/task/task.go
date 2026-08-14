@@ -58,7 +58,7 @@ func SyncPlayersOnce() {
 
 // SyncSavOnce 执行一次存档同步
 func SyncSavOnce() error {
-	return tool.Decode(viper.GetString("save.path"))
+	return tool.Decode(tool.EffectiveSavePath())
 }
 
 func backupTask() {

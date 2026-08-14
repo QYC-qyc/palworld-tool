@@ -35,28 +35,48 @@
           <n-gi>
             <n-form-item label="SteamCMD 目录">
               <n-input v-model:value="cfg.steamcmd_path"
-                placeholder="文件夹，如 /root/steamcmd" />
+                placeholder="文件夹，如 /root/steamcmd">
+                <template #suffix>
+                  <n-button size="tiny" quaternary :loading="verifying === 'steam'" @click="verifyPath('steam')">
+                    验证
+                  </n-button>
+                </template>
+              </n-input>
             </n-form-item>
           </n-gi>
           <n-gi>
             <n-form-item label="游戏安装目录">
               <n-input v-model:value="cfg.install_dir"
-                placeholder="文件夹，如 /root/PalServer" />
+                placeholder="文件夹，如 /root/PalServer">
+                <template #suffix>
+                  <n-button size="tiny" quaternary :loading="verifying === 'server'" @click="verifyPath('server')">
+                    验证
+                  </n-button>
+                </template>
+              </n-input>
             </n-form-item>
           </n-gi>
           <n-gi style="grid-column: 1 / -1">
             <n-form-item label="启动额外参数（可选）">
-              <n-input v-model:value="cfg.extra_args"
-                placeholder="如 -publiclobby -useperfthreads -NoAsyncLoadingThread" />
-              <n-text depth="3" style="font-size:12px">
-                端口、REST/RCON 等网络参数请到「游戏配置」页修改，无需在此填写 -port。
+              <n-input v-model:value="cfg.extra_args" type="textarea" :autosize="{ minRows: 2 }"
+                placeholder="如 -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS" />
+              <n-text depth="3" style="font-size:12px;line-height:1.6">
+                端口、REST/RCON 等网络参数请到「游戏配置」页修改，无需在此填写 -port。常用参数：<br/>
+                <code>-publiclobby</code> 设为社区服务器（公开列表）；
+                <code>-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS</code> 多线程性能优化；
+                <code>-NumberOfWorkerThreadsServer=X</code> 指定工作线程数；
+                <code>-logformat=text</code> 日志格式（text/json）
               </n-text>
             </n-form-item>
           </n-gi>
         </n-grid>
         <n-button type="primary" @click="saveConfig">保存配置</n-button>
+        <n-button @click="verifyPath('all')" :loading="verifying === 'all'" style="margin-left:8px">
+          全部验证
+        </n-button>
         <n-text depth="3" style="font-size:12px;margin-left:12px">
-          已识别：SteamCMD {{ status?.status?.steam_exe || '-' }} ｜ 服务端 {{ status?.status?.server_exe || '-' }}
+          已识别：SteamCMD {{ verifyResult.steamExe || status?.status?.steam_exe || '-' }}
+          ｜ 服务端 {{ verifyResult.serverExe || status?.status?.server_exe || '-' }}
         </n-text>
       </n-form>
     </n-card>
@@ -103,6 +123,8 @@ const message = useMessage()
 const status = ref<GameServerStatus | null>(null)
 const logs = ref('')
 const acting = ref('')
+const verifying = ref('')
+const verifyResult = reactive<{ steamExe: string; serverExe: string }>({ steamExe: '', serverExe: '' })
 const cfg = reactive<GameServerConfig>({
   steamcmd_path: '',
   install_dir: '',
@@ -137,6 +159,36 @@ async function loadConfig() {
 async function saveConfig() {
   await gameApi.saveConfig(cfg)
   message.success('配置已保存')
+  verifyResult.steamExe = ''
+  verifyResult.serverExe = ''
+  await loadStatus()
+}
+
+async function verifyPath(target: 'steam' | 'server' | 'all') {
+  if (!cfg.steamcmd_path && !cfg.install_dir) {
+    message.warning('请先填写路径')
+    return
+  }
+  verifying.value = target
+  try {
+    const res = await gameApi.verify(cfg)
+    verifyResult.steamExe = res.steam_exe || ''
+    verifyResult.serverExe = res.server_exe || ''
+    const checkSteam = target === 'steam' || target === 'all'
+    const checkServer = target === 'server' || target === 'all'
+    if (checkSteam) {
+      if (res.steam_ok) message.success(`SteamCMD 已找到：${res.steam_exe}`)
+      else message.error(`未在目录中找到 steamcmd.sh/steamcmd.exe`)
+    }
+    if (checkServer) {
+      if (res.server_ok) message.success(`游戏服务端已找到：${res.server_exe}`)
+      else message.warning('未找到游戏服务端（未安装是正常的，安装后即可识别）')
+    }
+  } catch (e: any) {
+    message.error(e.message)
+  } finally {
+    verifying.value = ''
+  }
 }
 async function loadLogs() {
   try {

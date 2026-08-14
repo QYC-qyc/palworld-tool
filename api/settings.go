@@ -2,13 +2,57 @@ package api
 
 import (
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"paladmin/internal/config"
+	"paladmin/internal/tool"
 	"paladmin/service"
 	"paladmin/service/anticheat"
 )
+
+// testConnection 测试 REST / RCON 连通性
+func testConnection(c *gin.Context) {
+	var req struct {
+		Type      string `json:"type"` // rest / rcon
+		Address   string `json:"address"`
+		Password  string `json:"password"`
+		UseBase64 bool   `json:"use_base64"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+	// 未输入密码时使用已保存的密码
+	if req.Password == "" {
+		switch req.Type {
+		case "rest":
+			req.Password = viper.GetString("rest.password")
+		case "rcon":
+			req.Password = viper.GetString("rcon.password")
+		}
+	}
+	switch req.Type {
+	case "rest":
+		version, err := tool.TestRest(req.Address, req.Password)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": "REST 连接成功", "version": version})
+	case "rcon":
+		err := tool.TestRcon(req.Address, req.Password, req.UseBase64)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": "RCON 连接成功"})
+	default:
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "type 必须是 rest 或 rcon"})
+	}
+}
 
 // getSettings 返回全部动态配置（密码做脱敏：仅返回是否已设置）
 func getSettings(c *gin.Context) {
@@ -34,6 +78,10 @@ func getSettings(c *gin.Context) {
 	}
 	// 同时返回服务端口（静态，只读）
 	safe["web.port"] = webPort()
+	// 返回自动推导的存档目录（当 save.path 为空时，从游戏安装目录推导）
+	if eff := tool.EffectiveSavePath(); eff != "" {
+		safe["save.path_effective"] = filepath.Clean(eff)
+	}
 	c.JSON(http.StatusOK, safe)
 }
 

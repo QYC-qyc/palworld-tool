@@ -53,3 +53,18 @@ func CustomCommand(command string) (string, error) {
 	}
 	return response, nil
 }
+
+// TestRcon 用给定的地址和密码测试 RCON 连通性
+func TestRcon(address, password string, useBase64 bool) error {
+	exec, err := executor.NewExecutor(address, password, 5, true)
+	if err != nil {
+		return err
+	}
+	defer exec.Close()
+	cmd := "Info"
+	if useBase64 {
+		cmd = base64.StdEncoding.EncodeToString([]byte(cmd))
+	}
+	_, err = exec.Execute(cmd)
+	return err
+}

@@ -29,6 +29,11 @@ export const gameApi = {
       method: 'PUT',
       body: JSON.stringify(cfg),
     }),
+  verify: (cfg: GameServerConfig) =>
+    request<{ steam_ok: boolean; steam_exe: string; server_ok: boolean; server_exe: string }>(
+      '/api/gameserver/verify',
+      { method: 'POST', body: JSON.stringify(cfg) },
+    ),
   install: () =>
     request<{ success: boolean; message?: string }>('/api/gameserver/install', { method: 'POST' }),
   start: () => request<{ success: boolean; message?: string }>('/api/gameserver/start', { method: 'POST' }),

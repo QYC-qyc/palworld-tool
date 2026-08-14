@@ -1,12 +1,17 @@
 import { request } from './index'
 
+export interface ConfigFieldOption {
+  label: string
+  value: string
+}
+
 export interface ConfigField {
   key: string
   label: string
   type: string
   default: string
   description?: string
-  options?: string[]
+  options?: ConfigFieldOption[]
   group: string
   requires_restart: boolean
 }

@@ -2,33 +2,34 @@
   <n-space vertical :size="16">
     <n-card title="服务器连接" size="small">
       <n-alert type="info" :show-icon="false" style="margin-bottom:12px">
-        面板本地启停游戏服时，REST/RCON 地址与管理员密码会在「游戏配置」保存网络项时自动同步为本机地址；
-        仅当游戏服部署在其他机器时才需手动修改此处。
+        面板本地启停游戏服时，地址与管理员密码会在「游戏配置」保存网络项时自动同步；
+        仅当游戏服部署在其他机器时才需手动修改。REST 与 RCON 使用同一个管理员密码（AdminPassword）。
       </n-alert>
       <n-form label-placement="left" label-width="140">
         <n-form-item label="REST 地址">
-          <n-input v-model:value="form['rest.address']" placeholder="http://palworld:8212" />
-        </n-form-item>
-        <n-form-item label="REST 用户名">
-          <n-input v-model:value="form['rest.username']" placeholder="admin" />
-        </n-form-item>
-        <n-form-item label="Admin 密码">
-          <n-input
-            v-model:value="restPwd"
-            type="password"
-            show-password-on="click"
-            :placeholder="form['rest.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置'"
-          />
+          <n-input v-model:value="form['rest.address']" placeholder="http://127.0.0.1:8212">
+            <template #suffix>
+              <n-button size="tiny" quaternary :loading="testing === 'rest'" @click="testConn('rest')">
+                测试
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
         <n-form-item label="RCON 地址">
-          <n-input v-model:value="form['rcon.address']" placeholder="palworld:25575" />
+          <n-input v-model:value="form['rcon.address']" placeholder="127.0.0.1:25575">
+            <template #suffix>
+              <n-button size="tiny" quaternary :loading="testing === 'rcon'" @click="testConn('rcon')">
+                测试
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
-        <n-form-item label="RCON 密码">
+        <n-form-item label="管理员密码">
           <n-input
-            v-model:value="rconPwd"
+            v-model:value="adminPwd"
             type="password"
             show-password-on="click"
-            :placeholder="form['rcon.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置'"
+            :placeholder="form['rest.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置，需与游戏配置 AdminPassword 一致'"
           />
         </n-form-item>
         <n-form-item label="RCON Base64">
@@ -42,7 +43,10 @@
       <n-form label-placement="left" label-width="140">
         <n-form-item label="存档 Saved 目录">
           <n-input v-model:value="form['save.path']"
-            placeholder="/game/Saved/SaveGames/0/<GUID>" />
+            :placeholder="form['save.path_effective'] ? `留空自动使用：${form['save.path_effective']}` : '留空则从游戏安装目录自动查找'" />
+          <n-text depth="3" style="font-size:12px">
+            通常无需手动填写，留空时自动使用游戏安装目录下的 Pal/Saved
+          </n-text>
         </n-form-item>
         <n-grid cols="1 s:3" :x-gap="12">
           <n-gi>
@@ -108,8 +112,8 @@ import { api } from '@/api'
 const message = useMessage()
 const form = reactive<Record<string, any>>({})
 const saving = ref(false)
-const restPwd = ref('')
-const rconPwd = ref('')
+const testing = ref<string>('')
+const adminPwd = ref('')
 const webPwd = ref('')
 
 const processModes = [
@@ -126,20 +130,58 @@ async function load() {
   Object.keys(s).forEach((k) => (form[k] = s[k]))
 }
 
+async function testConn(type: 'rest' | 'rcon') {
+  testing.value = type
+  try {
+    const address = type === 'rest' ? form['rest.address'] : form['rcon.address']
+    if (!address) {
+      message.warning('请先填写地址')
+      return
+    }
+    // 优先使用刚输入的密码，否则空密码（已保存的密码后端自动使用）
+    const password = adminPwd.value || ''
+    const res = await fetch('/api/settings/test-connection', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('paladmin_token')}`,
+      },
+      body: JSON.stringify({
+        type,
+        address,
+        password,
+        use_base64: form['rcon.use_base64'] === 'true',
+      }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      message.success(data.message + (data.version ? `（版本 ${data.version}）` : ''))
+    } else {
+      message.error(data.error || '连接失败')
+    }
+  } catch (e: any) {
+    message.error(e.message || '连接失败')
+  } finally {
+    testing.value = ''
+  }
+}
+
 async function save() {
   saving.value = true
   try {
     const payload: Record<string, any> = {}
     Object.keys(form).forEach((k) => {
-      if (!k.endsWith('__set')) payload[k] = form[k]
+      if (!k.endsWith('__set') && !k.endsWith('_effective')) payload[k] = form[k]
     })
-    if (restPwd.value) payload['rest.password'] = restPwd.value
-    if (rconPwd.value) payload['rcon.password'] = rconPwd.value
+    // REST 与 RCON 共用管理员密码，同时写入
+    if (adminPwd.value) {
+      payload['rest.password'] = adminPwd.value
+      payload['rcon.password'] = adminPwd.value
+    }
     if (webPwd.value) payload['web.password'] = webPwd.value
     await api.saveSettings(payload)
     message.success('设置已保存')
-    restPwd.value = ''
-    rconPwd.value = ''
+    adminPwd.value = ''
     webPwd.value = ''
     load()
   } catch (e: any) {

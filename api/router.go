@@ -83,6 +83,7 @@ func RegisterRouter(r *gin.Engine) {
 			authGroup.GET("/gameserver", gameAPI.status)
 			authGroup.GET("/gameserver/config", gameAPI.getConfig)
 			authGroup.PUT("/gameserver/config", gameAPI.saveConfig)
+			authGroup.POST("/gameserver/verify", gameAPI.verify)
 			authGroup.POST("/gameserver/install", gameAPI.install)
 			authGroup.POST("/gameserver/start", gameAPI.start)
 			authGroup.POST("/gameserver/stop", gameAPI.stop)
@@ -99,6 +100,7 @@ func RegisterRouter(r *gin.Engine) {
 		// 面板动态设置
 		authGroup.GET("/settings", getSettings)
 		authGroup.PUT("/settings", saveSettings)
+		authGroup.POST("/settings/test-connection", testConnection)
 
 		// 反作弊
 		authGroup.GET("/anticheat/alert", listAlerts)

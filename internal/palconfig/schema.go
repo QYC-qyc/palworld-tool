@@ -22,18 +22,30 @@ const (
 	TypeFloat  FieldType = "float"
 	TypeBool   FieldType = "bool"
 	TypeEnum   FieldType = "enum"
+	TypeRaw    FieldType = "raw" // 裸值，不加引号（如括号列表表达式）
 )
+
+// opt 构造枚举选项（带中文标签）
+func opt(value, label string) FieldOption {
+	return FieldOption{Label: label, Value: value}
+}
+
+// FieldOption 枚举选项
+type FieldOption struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
+}
 
 // Field 描述一个可配置项
 type Field struct {
-	Key             string    `json:"key"`
-	Label           string    `json:"label"`
-	Type            FieldType `json:"type"`
-	Default         string    `json:"default"`
-	Description     string    `json:"description"`
-	Options         []string  `json:"options,omitempty"`
-	Group           string    `json:"group"`
-	RequiresRestart bool      `json:"requires_restart"`
+	Key             string        `json:"key"`
+	Label           string        `json:"label"`
+	Type            FieldType     `json:"type"`
+	Default         string        `json:"default"`
+	Description     string        `json:"description"`
+	Options         []FieldOption `json:"options,omitempty"`
+	Group           string        `json:"group"`
+	RequiresRestart bool          `json:"requires_restart"`
 }
 
 // Schema 全部配置项定义（按官方 DefaultPalWorldSettings.ini 整理）
@@ -44,8 +56,9 @@ func Schema() []Field {
 			Description: "公开显示的服务器名称，会出现在服务器列表中", Group: "基础"},
 		{Key: "ServerDescription", Label: "服务器描述", Type: TypeString, Default: "",
 			Description: "社区服务器列表中显示的简介", Group: "基础"},
-		{Key: "Difficulty", Label: "难度", Type: TypeString, Default: "None",
-			Description: "游戏难度预设，None 表示使用下方各项自定义倍率", Group: "基础"},
+		{Key: "Difficulty", Label: "难度", Type: TypeEnum, Default: "None",
+			Options: []FieldOption{opt("None", "自定义（使用下方倍率）"), opt("Easy", "简单"), opt("Normal", "普通"), opt("Hard", "困难")},
+			Description: "游戏难度预设，选择「自定义」则使用下方各项倍率", Group: "基础"},
 		{Key: "ServerPassword", Label: "进服密码", Type: TypeString, Default: "",
 			Description: "玩家进入服务器需要的密码，留空则无密码", Group: "基础"},
 		{Key: "AdminPassword", Label: "管理员密码", Type: TypeString, Default: "",
@@ -58,8 +71,9 @@ func Schema() []Field {
 			Description: "单个公会最多可容纳的玩家数量", Group: "基础"},
 		{Key: "ChatPostLimitPerMinute", Label: "每分钟聊天条数上限", Type: TypeInt, Default: "0",
 			Description: "单个玩家每分钟可发送的聊天条数，0 表示不限制", Group: "基础"},
-		{Key: "Region", Label: "地区", Type: TypeString, Default: "",
-			Description: "服务器地区标识，留空自动", Group: "基础"},
+		{Key: "Region", Label: "地区", Type: TypeEnum, Default: "",
+			Options: []FieldOption{opt("", "自动"), opt("Asia", "亚洲"), opt("Europe", "欧洲"), opt("NAmerica", "北美洲"), opt("SAmerica", "南美洲"), opt("Oceania", "大洋洲")},
+			Description: "服务器地区，影响社区服务器列表分区", Group: "基础"},
 
 		// ---- 网络 ----
 		{Key: "Port", Label: "游戏端口", Type: TypeInt, Default: "8211",
@@ -80,8 +94,8 @@ func Schema() []Field {
 			Description: "开启后服务器会显示在官方社区服务器列表中", Group: "网络"},
 		{Key: "EnableConnectToSteamDedicatedServer", Label: "启用 EOS 跨平台网络", Type: TypeBool, Default: "False",
 			Description: "启用后允许 Xbox/PS5 等 Epic 账号玩家跨平台加入（EOS 网络）", Group: "网络", RequiresRestart: true},
-		{Key: "CrossplayPlatforms", Label: "允许跨玩平台", Type: TypeString, Default: "(Steam,Xbox,PS5,Mac)",
-			Description: "跨平台列表，格式：(Steam,Xbox,PS5,Mac)", Group: "网络", RequiresRestart: true},
+		{Key: "CrossplayPlatforms", Label: "允许跨玩平台", Type: TypeRaw, Default: "(Steam,Xbox,PS5,Mac)",
+			Description: "跨平台列表，格式如 (Steam,Xbox,PS5,Mac)，无需加引号", Group: "网络", RequiresRestart: true},
 
 		// ---- 游戏平衡 ----
 		{Key: "DayTimeSpeedRate", Label: "白天流逝速度", Type: TypeFloat, Default: "1.0",
@@ -187,8 +201,8 @@ func Schema() []Field {
 
 		// ---- 死亡/惩罚 ----
 		{Key: "DeathPenalty", Label: "死亡惩罚", Type: TypeEnum, Default: "All",
-			Options: []string{"None", "Item", "ItemAndEquipment", "All"},
-			Description: "None:无掉落 Item:仅掉落物品 ItemAndEquipment:物品+装备 All:物品、装备、帕鲁全部掉落", Group: "死亡惩罚", RequiresRestart: true},
+			Options: []FieldOption{opt("None", "无掉落"), opt("Item", "仅掉落物品"), opt("ItemAndEquipment", "物品+装备"), opt("All", "全部掉落")},
+			Description: "死亡时掉落的内容范围", Group: "死亡惩罚", RequiresRestart: true},
 		{Key: "bEnableNonLoginPenalty", Label: "启用离线惩罚", Type: TypeBool, Default: "True",
 			Description: "玩家长期不登录时施加惩罚（如公会据点相关）", Group: "死亡惩罚"},
 
@@ -211,12 +225,13 @@ func Schema() []Field {
 			Default: "https://api.palworldgame.com/api/banlist.txt",
 			Description: "全局封禁名单的下载地址", Group: "其他"},
 		{Key: "LogFormatType", Label: "日志格式", Type: TypeEnum, Default: "Text",
-			Options: []string{"Text", "Json"},
-			Description: "服务器日志输出格式：Text 文本或 Json 结构化", Group: "其他"},
+			Options: []FieldOption{opt("Text", "文本"), opt("Json", "JSON 结构化")},
+			Description: "服务器日志输出格式", Group: "其他"},
 	}
 }
 
 // Parse 从 ini 文件内容解析出 OptionSettings 键值对。
+// 字符串值会去掉外层双引号，便于前端直接编辑和展示。
 func Parse(content string) map[string]string {
 	result := map[string]string{}
 	scanner := bufio.NewScanner(strings.NewReader(content))
@@ -228,7 +243,6 @@ func Parse(content string) map[string]string {
 		}
 		body := strings.TrimPrefix(line, "OptionSettings=")
 		body = strings.TrimSuffix(strings.TrimPrefix(body, "("), ")")
-		// 按逗号分割，但字符串值内可能含逗号——Palworld 配置中字符串用双引号
 		for _, pair := range splitOptions(body) {
 			kv := strings.SplitN(pair, "=", 2)
 			if len(kv) != 2 {
@@ -236,24 +250,36 @@ func Parse(content string) map[string]string {
 			}
 			k := strings.TrimSpace(kv[0])
 			v := strings.TrimSpace(kv[1])
-			result[k] = v
+			result[k] = unquoteValue(v)
 		}
 	}
 	return result
 }
 
-// splitOptions 按逗号分割选项，尊重引号内的逗号
+// splitOptions 按逗号分割选项，尊重双引号和括号内的逗号
+// （CrossplayPlatforms=(Steam,Xbox,PS5,Mac) 不含引号，但括号内逗号不能分割）
 func splitOptions(body string) []string {
 	var parts []string
 	var cur strings.Builder
 	inQuote := false
+	depth := 0
 	for _, r := range body {
 		switch r {
 		case '"':
 			inQuote = !inQuote
 			cur.WriteRune(r)
+		case '(':
+			if !inQuote {
+				depth++
+			}
+			cur.WriteRune(r)
+		case ')':
+			if !inQuote && depth > 0 {
+				depth--
+			}
+			cur.WriteRune(r)
 		case ',':
-			if inQuote {
+			if inQuote || depth > 0 {
 				cur.WriteRune(r)
 			} else {
 				parts = append(parts, cur.String())
@@ -269,6 +295,14 @@ func splitOptions(body string) []string {
 	return parts
 }
 
+// unquoteValue 去掉字符串值外层的双引号
+func unquoteValue(v string) string {
+	if len(v) >= 2 && strings.HasPrefix(v, `"`) && strings.HasSuffix(v, `"`) {
+		return v[1 : len(v)-1]
+	}
+	return v
+}
+
 // Serialize 将键值对写回 ini 文件内容。会保留段头格式。
 func Serialize(settings map[string]string) string {
 	var pairs []string
@@ -279,28 +313,61 @@ func Serialize(settings map[string]string) string {
 		}
 		pairs = append(pairs, fmt.Sprintf("%s=%s", f.Key, formatValue(f, v)))
 	}
-	// 保留未知的自定义键
+	// 保留未知的自定义键，按启发式决定是否加引号
 	known := map[string]bool{}
 	for _, f := range Schema() {
 		known[f.Key] = true
 	}
 	for k, v := range settings {
 		if !known[k] {
-			pairs = append(pairs, fmt.Sprintf("%s=%s", k, v))
+			pairs = append(pairs, fmt.Sprintf("%s=%s", k, formatUnknown(v)))
 		}
 	}
 
 	return fmt.Sprintf("[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(%s)\n", strings.Join(pairs, ","))
 }
 
-// formatValue 按类型格式化值（字符串加引号，布尔/数字直接写）
+// formatUnknown 对未知键值做启发式格式化：
+// 括号表达式/数字/布尔不加引号，其余加引号。
+func formatUnknown(v string) string {
+	if v == "" {
+		return `""`
+	}
+	// 括号列表/结构体
+	if strings.HasPrefix(v, "(") && strings.HasSuffix(v, ")") {
+		return v
+	}
+	// 布尔
+	switch strings.ToLower(v) {
+	case "true", "false":
+		return capitalizeBool(v)
+	}
+	// 纯数字
+	if isNumeric(v) {
+		return v
+	}
+	// 已带引号
+	if strings.HasPrefix(v, `"`) && strings.HasSuffix(v, `"`) {
+		return v
+	}
+	return `"` + v + `"`
+}
+
+func isNumeric(v string) bool {
+	for _, r := range v {
+		if (r < '0' || r > '9') && r != '.' && r != '-' {
+			return false
+		}
+	}
+	return len(v) > 0
+}
+
+// formatValue 按类型格式化值：
+// TypeString 加双引号；TypeBool 规范化为 True/False；
+// TypeEnum/TypeRaw/数字类型直接输出裸值。
 func formatValue(f Field, v string) string {
 	switch f.Type {
 	case TypeString:
-		// 已经有引号就不再加
-		if strings.HasPrefix(v, `"`) && strings.HasSuffix(v, `"`) {
-			return v
-		}
 		return `"` + v + `"`
 	case TypeBool:
 		return capitalizeBool(v)
@@ -348,11 +415,15 @@ func ValidateValue(f Field, v string) error {
 		}
 	case TypeEnum:
 		for _, opt := range f.Options {
-			if v == opt {
+			if v == opt.Value {
 				return nil
 			}
 		}
-		return fmt.Errorf("%s 必须是 %v 之一", f.Label, f.Options)
+		opts := make([]string, 0, len(f.Options))
+		for _, o := range f.Options {
+			opts = append(opts, o.Label)
+		}
+		return fmt.Errorf("%s 必须是 %v 之一", f.Label, opts)
 	case TypeBool:
 		switch strings.ToLower(v) {
 		case "true", "false", "1", "0":

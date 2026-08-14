@@ -47,6 +47,29 @@ func (g *gameServerAPI) getConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, cfg)
 }
 
+// verify 验证路径配置（临时检查，不保存）：检查 SteamCMD 与服务端可执行文件是否能找到
+func (g *gameServerAPI) verify(c *gin.Context) {
+	var cfg gamesrv.Config
+	if err := c.ShouldBindJSON(&cfg); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+	// 临时使用传入配置检查，但不覆盖已保存的运行配置
+	tmp := gamesrv.NewManager()
+	tmp.SetConfig(cfg)
+	st, err := tmp.GetStatus()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"steam_ok":   st.SteamReady,
+		"steam_exe":  st.SteamExe,
+		"server_ok":  st.Installed,
+		"server_exe": st.ServerExe,
+	})
+}
+
 // install 用 SteamCMD 安装/更新游戏服
 func (g *gameServerAPI) install(c *gin.Context) {
 	if err := g.mgr.Install(); err != nil {

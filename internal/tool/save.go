@@ -82,9 +82,22 @@ func Decode(path string) error {
 	return cmd.Wait()
 }
 
+// EffectiveSavePath 返回实际使用的存档目录：
+// 优先使用用户配置的 save.path；为空时从游戏安装目录自动推导
+// （<install_dir>/Pal/Saved）。
+func EffectiveSavePath() string {
+	if p := viper.GetString("save.path"); p != "" {
+		return p
+	}
+	if installDir := viper.GetString("gamesrv.install_dir"); installDir != "" {
+		return filepath.Join(installDir, "Pal", "Saved")
+	}
+	return ""
+}
+
 // Backup 备份存档为 zip，返回文件名
 func Backup() (string, error) {
-	sourcePath := viper.GetString("save.path")
+	sourcePath := EffectiveSavePath()
 	levelFile, err := getFromSource(sourcePath, "backup")
 	if err != nil {
 		return "", err
