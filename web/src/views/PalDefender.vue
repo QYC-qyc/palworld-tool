@@ -52,11 +52,14 @@
             type="primary"
             @click="install"
             :loading="installing"
-            :disabled="!status.wine_present || !status.win64_path"
+            :disabled="!status.wine_present"
           >
             {{ status.d3d9_exists && status.pd_exists ? '重新安装 / 更新' : '下载并安装 PalDefender' }}
           </n-button>
         </n-space>
+        <n-alert v-if="!status.win64_path" type="info" :show-icon="false" style="font-size:12px">
+          未找到 Win64 目录，安装时会自动在游戏目录下创建 <code>Pal/Binaries/Win64/</code>
+        </n-alert>
 
         <n-alert v-if="!status.win64_path" type="warning" :show-icon="false">
           未找到 <code>Pal/Binaries/Win64</code> 目录。请先在「游戏服」页面正确填写游戏安装目录并完成安装。
