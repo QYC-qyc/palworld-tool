@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"paladmin/internal/database"
 	"paladmin/service"
-	"paladmin/service/anticheat"
+	"paladmin/service/audit"
 )
 
 func listBans(c *gin.Context) {
@@ -36,7 +36,7 @@ func banIP(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	_ = anticheat.AddAudit(db, "web", "banip", req.IP, "手动IP封禁", "success")
+	_ = audit.Add(db, "web", "banip", req.IP, "手动IP封禁", "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }
 
@@ -50,6 +50,6 @@ func unbanIP(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	_ = anticheat.AddAudit(db, "web", "unbanip", req.IP, "手动解封IP", "success")
+	_ = audit.Add(db, "web", "unbanip", req.IP, "手动解封IP", "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }

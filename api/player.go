@@ -7,7 +7,7 @@ import (
 	"paladmin/internal/database"
 	"paladmin/internal/tool"
 	"paladmin/service"
-	"paladmin/service/anticheat"
+	"paladmin/service/audit"
 )
 
 func listPlayers(c *gin.Context) {
@@ -49,10 +49,6 @@ func putPlayers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	// 触发存档反作弊扫描
-	if engine != nil {
-		go engine.ScanSave(players)
-	}
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }
 
@@ -67,7 +63,7 @@ func kickPlayer(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	_ = anticheat.AddAudit(db, "web", "kick", p.SteamId, "手动踢出", "success")
+	_ = audit.Add(db, "web", "kick", p.SteamId, "手动踢出", "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }
 
@@ -86,7 +82,7 @@ func banPlayer(c *gin.Context) {
 		Type: database.BanUser, Identifier: "steam_" + p.SteamId,
 		Reason: "管理员手动封禁", Issuer: "web",
 	})
-	_ = anticheat.AddAudit(db, "web", "ban", p.SteamId, "手动封禁", "success")
+	_ = audit.Add(db, "web", "ban", p.SteamId, "手动封禁", "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }
 
@@ -102,7 +98,7 @@ func unbanPlayer(c *gin.Context) {
 		return
 	}
 	_ = service.RemoveBan(db, database.BanUser, "steam_"+p.SteamId)
-	_ = anticheat.AddAudit(db, "web", "unban", p.SteamId, "手动解封", "success")
+	_ = audit.Add(db, "web", "unban", p.SteamId, "手动解封", "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }
 
@@ -118,7 +114,7 @@ func ipBanPlayer(c *gin.Context) {
 		Reason: "管理员 IP 封禁", Issuer: "web",
 	})
 	_ = tool.BanPlayer(p.SteamId)
-	_ = anticheat.AddAudit(db, "web", "ipban", p.Ip, "手动IP封禁", "success")
+	_ = audit.Add(db, "web", "ipban", p.Ip, "手动IP封禁", "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }
 

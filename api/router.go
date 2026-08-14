@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"paladmin/internal/auth"
+	"paladmin/service/audit"
 )
 
 type SuccessResponse struct {
@@ -78,7 +79,7 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.POST("/banip", banIP)
 		authGroup.POST("/unbanip", unbanIP)
 
-		// 游戏服管理（SteamCMD 安装/更新 + 进程启停）
+		// 游戏服管理
 		if gameAPI != nil {
 			authGroup.GET("/gameserver", gameAPI.status)
 			authGroup.GET("/gameserver/config", gameAPI.getConfig)
@@ -97,6 +98,12 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.PUT("/gamesettings", gameSettings.save)
 		authGroup.GET("/gamesettings/raw", gameSettings.raw)
 
+		// PalDefender 集成管理
+		pdAPI := &palDefenderAPI{}
+		authGroup.GET("/paldefender/status", pdAPI.status)
+		authGroup.POST("/paldefender/install", pdAPI.install)
+		authGroup.POST("/paldefender/verify", pdAPI.verify)
+
 		// 面板动态设置
 		authGroup.GET("/settings", getSettings)
 		authGroup.PUT("/settings", saveSettings)
@@ -107,16 +114,16 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.GET("/updater/check", updaterAPI.check)
 		authGroup.POST("/updater/do", updaterAPI.do)
 
-		// 反作弊
-		authGroup.GET("/anticheat/alert", listAlerts)
-		authGroup.GET("/anticheat/alert/:id", getAlert)
-		authGroup.POST("/anticheat/alert/:id/action", alertAction)
-		authGroup.GET("/anticheat/rule", listRules)
-		authGroup.PUT("/anticheat/rule/:id", updateRule)
-		authGroup.POST("/anticheat/scan", runScan)
-		authGroup.GET("/anticheat/stats", acStats)
-		authGroup.GET("/anticheat/audit", listAudit)
-		authGroup.POST("/anticheat/reload", reloadAC)
+		// 审计日志
+		authGroup.GET("/audit", func(c *gin.Context) {
+			limit := 100
+			records, err := audit.List(db, limit)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, records)
+		})
 	}
 
 	// 健康检查

@@ -25,7 +25,6 @@
       <n-space>
         <n-button @click="openBroadcast">全服广播</n-button>
         <n-button @click="doSync" :loading="syncing">立即同步</n-button>
-        <n-button @click="runScan" :loading="scanning">反作弊扫描</n-button>
         <n-popconfirm @positive-click="doShutdown" positive-text="确定" negative-text="取消">
           <template #trigger>
             <n-button type="error" ghost>关闭服务器</n-button>
@@ -42,26 +41,18 @@
       </n-space>
     </n-card>
 
-    <n-grid cols="1 s:2 m:3" responsive="screen" :x-gap="12" :y-gap="12">
-      <n-gi>
-        <n-card title="反作弊统计" size="small">
-          <n-statistic label="告警总数" :value="stats.total_alerts || 0"/>
-          <n-statistic label="活跃封禁" :value="stats.active_bans || 0"/>
-        </n-card>
-      </n-gi>
-      <n-gi>
-        <n-card title="告警严重度" size="small">
-          <n-space vertical>
-            <n-tag v-for="(v, k) in stats.by_severity" :key="k" :type="severityType(k)">
-              {{ k }}: {{ v }}
-            </n-tag>
-          </n-space>
-        </n-card>
-      </n-gi>
+    <n-grid cols="1 s:2" responsive="screen" :x-gap="12" :y-gap="12">
       <n-gi>
         <n-card title="运行时长" size="small">
           <n-statistic :value="Math.round((metrics.uptime || 0) / 3600)">
             <template #suffix>小时</template>
+          </n-statistic>
+        </n-card>
+      </n-gi>
+      <n-gi>
+        <n-card title="服务器帧时间" size="small">
+          <n-statistic :value="metrics.server_frame_time || 0">
+            <template #suffix>ms</template>
           </n-statistic>
         </n-card>
       </n-gi>
@@ -79,7 +70,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import {
-  NSpace, NCard, NGrid, NGi, NStatistic, NButton, NInput, NTag, NModal,
+  NSpace, NCard, NGrid, NGi, NStatistic, NButton, NInput, NModal,
   NPopconfirm, useMessage,
 } from 'naive-ui'
 import { api } from '@/api'
@@ -87,17 +78,14 @@ import { api } from '@/api'
 const message = useMessage()
 const server = ref<any>({})
 const metrics = ref<any>({})
-const stats = ref<any>({})
 const broadcastMsg = ref('')
 const showBroadcast = ref(false)
 const sending = ref(false)
 const syncing = ref(false)
-const scanning = ref(false)
 
 async function loadAll() {
   try { server.value = await api.getServer() } catch {}
   try { metrics.value = await api.getMetrics() } catch {}
-  try { stats.value = await api.getStats() } catch {}
 }
 
 function openBroadcast() { showBroadcast.value = true }
@@ -129,18 +117,6 @@ async function doSync() {
   }
 }
 
-async function runScan() {
-  scanning.value = true
-  try {
-    await api.runScan()
-    message.success('扫描已触发')
-  } catch (e: any) {
-    message.error(e.message)
-  } finally {
-    setTimeout(() => { scanning.value = false; loadAll() }, 3000)
-  }
-}
-
 async function doShutdown() {
   try {
     await api.shutdown(60, '服务器将在 60 秒后关闭')
@@ -148,12 +124,6 @@ async function doShutdown() {
   } catch (e: any) {
     message.error(e.message)
   }
-}
-
-function severityType(k: string) {
-  if (k === 'critical') return 'error'
-  if (k === 'warn') return 'warning'
-  return 'info'
 }
 
 onMounted(loadAll)

@@ -164,32 +164,3 @@ type BanRecord struct {
 	CreatedAt  time.Time `json:"created_at"`
 	Active     bool      `json:"active"`
 }
-
-// Alert 反作弊告警
-type Alert struct {
-	ID           uint64    `json:"id"`
-	RuleID       string    `json:"rule_id"`
-	Severity     string    `json:"severity"` // info/warn/critical
-	PlayerUID    string    `json:"player_uid"`
-	SteamID      string    `json:"steam_id"`
-	Nickname     string    `json:"nickname"`
-	PalInstID    string    `json:"pal_instance_id"`
-	Title        string    `json:"title"`
-	Detail       string    `json:"detail"`
-	EvidencePath string    `json:"evidence_path"`
-	Status       string    `json:"status"` // open/confirmed/ignored/actioned
-	ActionTaken  string    `json:"action_taken"`
-	Source       string    `json:"source"` // internal/paldefender
-	CreatedAt    time.Time `json:"created_at"`
-}
-
-// Audit 审计日志
-type Audit struct {
-	ID        uint64    `json:"id"`
-	Actor     string    `json:"actor"` // web/system/anticheat/paldefender
-	Action    string    `json:"action"`
-	Target    string    `json:"target"`
-	Detail    string    `json:"detail"`
-	Result    string    `json:"result"`
-	CreatedAt time.Time `json:"created_at"`
-}

@@ -85,21 +85,6 @@ export const api = {
   unbanIP: (ip: string) =>
     request('/api/unbanip', { method: 'POST', body: JSON.stringify({ ip }) }),
 
-  getAlerts: (params = '') => request<any>(`/api/anticheat/alert?${params}`),
-  getAlert: (id: number) => request<any>(`/api/anticheat/alert/${id}`),
-  alertAction: (id: number, status: string, note = '') =>
-    request(`/api/anticheat/alert/${id}/action`, {
-      method: 'POST',
-      body: JSON.stringify({ status, note }),
-    }),
-  getRules: () => request<any[]>('/api/anticheat/rule'),
-  updateRule: (id: string, body: any) =>
-    request(`/api/anticheat/rule/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-  runScan: () => request('/api/anticheat/scan', { method: 'POST' }),
-  getStats: () => request<any>('/api/anticheat/stats'),
-  getAudit: () => request<any[]>('/api/anticheat/audit'),
-  reloadAC: () => request('/api/anticheat/reload', { method: 'POST' }),
-
   sync: (from = 'all') => request(`/api/sync?from=${from}`, { method: 'POST' }),
 
   // 面板动态设置

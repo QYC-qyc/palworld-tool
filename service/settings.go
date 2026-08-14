@@ -18,10 +18,6 @@ const (
 	SettingProcessMode      = "process.mode"
 	SettingProcessService   = "process.service"
 	SettingProcessContainer = "process.container"
-	SettingAnticheatMode    = "anticheat.mode"
-	SettingAnticheatEnabled = "anticheat.enabled"
-	SettingPaldefenderAddr  = "paldefender.address"
-	SettingPaldefenderToken = "paldefender.token"
 )
 
 // DefaultSettings 返回需要在数据库中初始化的默认键（首次启动时从 viper 同步）
@@ -38,10 +34,6 @@ func DefaultSettings() map[string]string {
 		SettingProcessMode:      "noop",
 		SettingProcessService:   "palworld",
 		SettingProcessContainer: "palworld",
-		SettingAnticheatMode:    "external",
-		SettingAnticheatEnabled: "true",
-		SettingPaldefenderAddr:  "",
-		SettingPaldefenderToken: "",
 	}
 }
 
@@ -125,8 +117,4 @@ func SetSettings(db *bbolt.DB, updates map[string]string) error {
 	})
 }
 
-// 供 tool 层读取配置：解析 JSON 布尔
-func asBool(s string) bool {
-	return s == "true" || s == "1" || s == "yes"
-}
 

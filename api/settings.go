@@ -11,7 +11,7 @@ import (
 	"paladmin/internal/config"
 	"paladmin/internal/tool"
 	"paladmin/service"
-	"paladmin/service/anticheat"
+	"paladmin/service/audit"
 )
 
 // testConnection 测试 REST / RCON 连通性
@@ -118,7 +118,7 @@ func saveSettings(c *gin.Context) {
 	all, _ := service.GetAllSettings(db)
 	config.ApplyToViper(all)
 
-	_ = anticheat.AddAudit(db, "web", "settings_update", "", "更新面板动态配置", "success")
+	_ = audit.Add(db, "web", "settings_update", "", "更新面板动态配置", "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }
 
@@ -154,8 +154,7 @@ func isEditableKey(k string) bool {
 	case service.SettingWebPassword, service.SettingRestAddress, service.SettingRestUsername,
 		service.SettingRestPassword, service.SettingRconAddress, service.SettingRconPassword,
 		service.SettingRconUseBase64, service.SettingSavePath, service.SettingProcessMode,
-		service.SettingProcessService, service.SettingProcessContainer, service.SettingAnticheatMode,
-		service.SettingAnticheatEnabled, service.SettingPaldefenderAddr, service.SettingPaldefenderToken:
+		service.SettingProcessService, service.SettingProcessContainer:
 		return true
 	}
 	return false

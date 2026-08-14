@@ -20,42 +20,24 @@ const router = createRouter({
         { path: 'banlist', name: 'banlist', component: () => import('@/views/Banlist.vue') },
         { path: 'rcon', name: 'rcon', component: () => import('@/views/Rcon.vue') },
         { path: 'backups', name: 'backups', component: () => import('@/views/Backups.vue') },
+        { path: 'paldefender', name: 'paldefender', component: () => import('@/views/PalDefender.vue') },
+        { path: 'audit', name: 'audit', component: () => import('@/views/Audit.vue') },
         { path: 'settings', name: 'settings', component: () => import('@/views/Settings.vue') },
-        {
-          path: 'anticheat',
-          name: 'anticheat',
-          component: () => import('@/views/anticheat/Alerts.vue'),
-        },
-        {
-          path: 'anticheat/rules',
-          name: 'ac-rules',
-          component: () => import('@/views/anticheat/Rules.vue'),
-        },
-        {
-          path: 'anticheat/audit',
-          name: 'ac-audit',
-          component: () => import('@/views/anticheat/Audit.vue'),
-        },
       ],
     },
   ],
 })
 
 router.beforeEach(async (to, _from, next) => {
-  // 公开页面直接放行
   if (to.meta.public) return next()
 
-  // 检查是否已初始化
   try {
     const status = await api.setupStatus()
-    if (!status.initialized) {
-      return next({ name: 'setup' })
-    }
+    if (!status.initialized) return next({ name: 'setup' })
   } catch {
-    // 接口异常不阻塞，继续走登录校验
+    // 接口异常不阻塞
   }
 
-  // 登录校验
   const token = localStorage.getItem('paladmin_token')
   if (!token) return next({ name: 'login' })
   next()

@@ -15,31 +15,20 @@ var (
 
 // Bucket 名称
 const (
-	BucketPlayers    = "players"
-	BucketGuilds     = "guilds"
-	BucketWhitelist  = "whitelist"
-	BucketRcons      = "rcons"
-	BucketBackups    = "backups"
-	BucketSettings   = "settings"
-	BucketBanlist    = "banlist"
-
-	// 反作弊
-	BucketAlerts        = "ac_alerts"
-	BucketAlertsPlayer  = "ac_alerts_player"
-	BucketAlertsStatus  = "ac_alerts_status"
-	BucketAudit         = "ac_audit"
-	BucketRules         = "ac_rules"
-	BucketPlayerSnap    = "player_snapshots"
-	BucketPalSnap       = "pal_snapshots"
-	BucketCounters      = "ac_counters"
+	BucketPlayers   = "players"
+	BucketGuilds    = "guilds"
+	BucketWhitelist = "whitelist"
+	BucketRcons     = "rcons"
+	BucketBackups   = "backups"
+	BucketSettings  = "settings"
+	BucketBanlist   = "banlist"
+	BucketAudit     = "audit"
 )
 
 func allBuckets() []string {
 	return []string{
-		BucketPlayers, BucketGuilds, BucketRcons, BucketBackups, BucketSettings, BucketWhitelist,
-		BucketBanlist,
-		BucketAlerts, BucketAlertsPlayer, BucketAlertsStatus, BucketAudit, BucketRules,
-		BucketPlayerSnap, BucketPalSnap, BucketCounters,
+		BucketPlayers, BucketGuilds, BucketRcons, BucketBackups, BucketSettings,
+		BucketWhitelist, BucketBanlist, BucketAudit,
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"paladmin/internal/database"
 	"paladmin/internal/tool"
 	"paladmin/service"
-	"paladmin/service/anticheat"
+	"paladmin/service/audit"
 )
 
 func listRconCommand(c *gin.Context) {
@@ -53,7 +53,7 @@ func sendRconCommand(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	_ = anticheat.AddAudit(db, "web", "rcon", full, "自定义RCON命令", "success")
+	_ = audit.Add(db, "web", "rcon", full, "自定义RCON命令", "success")
 	c.JSON(http.StatusOK, gin.H{"response": resp})
 }
 

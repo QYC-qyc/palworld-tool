@@ -12,22 +12,19 @@ import (
 	"paladmin/internal/logger"
 	"paladmin/internal/tool"
 	"paladmin/service"
-	"paladmin/service/anticheat"
 )
 
 var (
 	scheduler gocron.Scheduler
 	dbRef     *bbolt.DB
-	engineRef *anticheat.Engine
 
 	playerCache = map[string]string{}
 	firstPoll   = true
 )
 
 // Init 设置依赖
-func Init(db *bbolt.DB, e *anticheat.Engine) {
+func Init(db *bbolt.DB) {
 	dbRef = db
-	engineRef = e
 }
 
 // SyncPlayersOnce 执行一次在线玩家同步
@@ -49,10 +46,6 @@ func SyncPlayersOnce() {
 	}
 	if viper.GetBool("manage.kick_non_whitelist") {
 		checkAndKickPlayers(online)
-	}
-	if engineRef != nil {
-		wl, _ := service.ListWhitelist(dbRef)
-		engineRef.ScanLive(online, wl)
 	}
 }
 

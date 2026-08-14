@@ -87,8 +87,8 @@ const menuOptions = [
   { label: '封禁', key: '/banlist' },
   { label: 'RCON', key: '/rcon' },
   { label: '备份', key: '/backups' },
-  { label: '反作弊', key: '/anticheat' },
-  { label: '审计', key: '/anticheat/audit' },
+  { label: 'PalDefender', key: '/paldefender' },
+  { label: '审计', key: '/audit' },
   { label: '设置', key: '/settings' },
 ]
 

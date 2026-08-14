@@ -20,7 +20,6 @@ import (
 	"paladmin/internal/task"
 	"paladmin/internal/updater"
 	"paladmin/service"
-	"paladmin/service/anticheat"
 
 	"go.etcd.io/bbolt"
 )
@@ -60,8 +59,7 @@ func main() {
 		c.Next()
 	})
 
-	engine := anticheat.New(db, &conf.Anticheat)
-	api.SetDeps(db, engine, &conf)
+	api.SetDeps(db, &conf)
 	api.RegisterRouter(router)
 
 	// 静态前端：自动查找 web/dist 或 web 目录
@@ -74,9 +72,7 @@ func main() {
 	}
 	if webDir != "" {
 		router.StaticFS("/assets", http.Dir(filepath.Join(webDir, "assets")))
-		// SPA 入口与前端路由 fallback
 		router.NoRoute(func(c *gin.Context) {
-			// API 路径不返回 index.html
 			if strings.HasPrefix(c.Request.URL.Path, "/api/") {
 				c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 				return
@@ -88,7 +84,7 @@ func main() {
 		logger.Warn("未找到前端资源（web/dist 或 web），仅提供 API")
 	}
 
-	task.Init(db, engine)
+	task.Init(db)
 
 	localIP, _ := system.GetLocalIP()
 	port := viper.GetInt("web.port")
@@ -123,12 +119,8 @@ func main() {
 	logger.Info("已优雅停止")
 }
 
-// initRuntimeSettings 首次把 config.yaml 的值同步进数据库 settings，
-// 并将数据库中的值应用到 viper，使后续读取以面板设置为准。
 func initRuntimeSettings(db *bbolt.DB) {
 	defaults := service.DefaultSettings()
-	// 用 config.yaml/env 中的连接配置作为首次写入的默认值，
-	// 但 web.password 除外——它必须由首次访问面板的初始化向导设置。
 	for k := range defaults {
 		if k == service.SettingWebPassword {
 			continue
@@ -139,7 +131,6 @@ func initRuntimeSettings(db *bbolt.DB) {
 	}
 	_ = service.InitSettings(db, defaults)
 
-	// 首次启动时写入内置 RCON 命令
 	if err := service.EnsureDefaultRconCommands(db); err != nil {
 		logger.Warnf("初始化 RCON 命令失败: %v", err)
 	}
