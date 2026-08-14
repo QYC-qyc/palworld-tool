@@ -38,9 +38,10 @@ func (e *ActionExecutor) Execute(f Finding) error {
 			}
 		case ActionKick:
 			if e.cfg.Punish.Kick {
-				err = tool.KickPlayer(f.UserID)
+				targetID := f.effectiveSteamID()
+				err = tool.KickPlayer(targetID)
 				logger.Warnf("踢出 %s (%s): %v", f.Nickname, f.Rule.Reason, err)
-				_ = AddAudit(e.db, "anticheat", "kick", f.UserID, f.Title, resultStr(err))
+				_ = AddAudit(e.db, "anticheat", "kick", targetID, f.Title, resultStr(err))
 			}
 		case ActionBan:
 			if e.cfg.Punish.Ban {
@@ -49,31 +50,41 @@ func (e *ActionExecutor) Execute(f Finding) error {
 						logger.Errorf("封禁前备份失败: %v", berr)
 					}
 				}
-				err = tool.BanPlayer(f.UserID)
+				targetID := f.effectiveSteamID()
+				err = tool.BanPlayer(targetID)
 				_ = service.AddBan(e.db, database.BanRecord{
-					Type: database.BanUser, Identifier: f.UserID,
+					Type: database.BanUser, Identifier: targetID,
 					Reason: f.Rule.Reason, Issuer: "anticheat",
 				})
 				logger.Warnf("封禁 %s (%s): %v", f.Nickname, f.Rule.Reason, err)
-				_ = AddAudit(e.db, "anticheat", "ban", f.UserID, f.Title, resultStr(err))
+				_ = AddAudit(e.db, "anticheat", "ban", targetID, f.Title, resultStr(err))
 				if e.cfg.Punish.Announce {
 					_ = tool.Broadcast(fmt.Sprintf("[反作弊] 玩家 %s 因 %s 被封禁", f.Nickname, f.Rule.Reason))
 				}
 			}
 		case ActionIPBan:
 			if e.cfg.Punish.IPBan {
+				targetID := f.effectiveSteamID()
 				if p, perr := service.GetPlayer(e.db, f.PlayerUID); perr == nil && p.Ip != "" {
 					_ = service.AddBan(e.db, database.BanRecord{
 						Type: database.BanIP, Identifier: p.Ip,
 						Reason: f.Rule.Reason, Issuer: "anticheat",
 					})
-					_ = tool.BanPlayer(f.UserID)
+					_ = tool.BanPlayer(targetID)
 				}
-				_ = AddAudit(e.db, "anticheat", "ipban", f.UserID, f.Title, "attempted")
+				_ = AddAudit(e.db, "anticheat", "ipban", targetID, f.Title, "attempted")
 			}
 		}
 	}
 	return err
+}
+
+// effectiveSteamID 返回用于处置的 SteamID（优先 SteamID 字段，兼容 UserID）
+func (f Finding) effectiveSteamID() string {
+	if f.SteamID != "" {
+		return f.SteamID
+	}
+	return f.UserID
 }
 
 func resultStr(err error) string {

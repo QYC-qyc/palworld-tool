@@ -174,6 +174,7 @@ func Init(cfgFile string, conf *Config) {
 	viper.SetDefault("storage.retention_days", 90)
 	viper.SetDefault("anticheat.enabled", true)
 	viper.SetDefault("anticheat.mode", "external")
+	viper.SetDefault("anticheat.scan_live", true)
 	viper.SetDefault("anticheat.cooldown", 600)
 	viper.SetDefault("anticheat.evidence", true)
 	viper.SetDefault("anticheat.evidence_dir", "./evidence")

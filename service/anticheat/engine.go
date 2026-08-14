@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/spf13/viper"
 	"go.etcd.io/bbolt"
 	"paladmin/internal/config"
 	"paladmin/internal/database"
@@ -125,7 +126,7 @@ func (e *Engine) UpdateRule(id string, enabled *bool, severity string, actions [
 
 // ScanSave 执行存档扫描并处置
 func (e *Engine) ScanSave(players []database.Player) int {
-	if !e.cfg.Enabled {
+	if !e.enabled() {
 		return 0
 	}
 	findings := e.saveScan.Scan(players)
@@ -134,11 +135,16 @@ func (e *Engine) ScanSave(players []database.Player) int {
 
 // ScanLive 执行在线行为扫描
 func (e *Engine) ScanLive(players []database.OnlinePlayer, whitelist []database.PlayerW) int {
-	if !e.cfg.Enabled || !e.cfg.ScanLive {
+	if !e.enabled() || !viper.GetBool("anticheat.scan_live") {
 		return 0
 	}
 	findings := e.liveScan.Scan(players, whitelist)
 	return e.process(findings)
+}
+
+// enabled 从 viper 实时读取反作弊开关（数据库设置已同步到 viper）
+func (e *Engine) enabled() bool {
+	return viper.GetBool("anticheat.enabled")
 }
 
 func (e *Engine) process(findings []Finding) int {
