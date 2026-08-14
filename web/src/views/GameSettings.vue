@@ -5,13 +5,24 @@
       保存时可勾选"保存并重启"。
     </n-alert>
 
-    <n-tabs type="line" animated>
+    <n-tabs type="line" animated default-value="基础">
       <n-tab-pane v-for="g in groups" :key="g" :tab="g" :name="g">
         <n-card size="small">
           <n-form label-placement="top" v-if="fields[g]">
             <n-grid cols="1 s:2 m:2" responsive="screen" :x-gap="16">
               <n-gi v-for="f in fields[g]" :key="f.key">
-                <n-form-item :label="fieldLabel(f)">
+                <n-form-item>
+                  <template #label>
+                    <span class="field-label">
+                      {{ fieldLabel(f) }}
+                      <n-tooltip v-if="f.description" trigger="hover">
+                        <template #trigger>
+                          <n-icon class="help-icon" :component="HelpCircleOutline" />
+                        </template>
+                        <span class="help-text">{{ f.description }}</span>
+                      </n-tooltip>
+                    </span>
+                  </template>
                   <!-- 布尔开关 -->
                   <n-switch v-if="f.type === 'bool'"
                     :value="form[f.key] === 'True'"
@@ -62,8 +73,10 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import {
   NSpace, NAlert, NTabs, NTabPane, NCard, NForm, NFormItem, NGrid, NGi,
-  NSwitch, NSelect, NInputNumber, NInput, NButton, NText, useMessage,
+  NSwitch, NSelect, NInputNumber, NInput, NButton, NText, NTooltip, NIcon,
+  useMessage,
 } from 'naive-ui'
+import { HelpCircleOutline } from '@vicons/ionicons5'
 import { gameSettingsApi, type ConfigField, type GameSettingsData } from '@/api/gamesettings'
 
 const message = useMessage()
@@ -122,3 +135,21 @@ async function save(restart: boolean) {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.help-icon {
+  font-size: 15px;
+  color: var(--n-text-color-3, #999);
+  cursor: help;
+}
+.help-text {
+  display: block;
+  max-width: 260px;
+  line-height: 1.5;
+}
+</style>

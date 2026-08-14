@@ -9,8 +9,14 @@ DATA_DIR="/var/lib/paladmin"
 SERVICE="paladmin"
 REPO="QYC-qyc/palworld-tool"
 
-echo "==> 创建用户与目录"
-id -u paladmin &>/dev/null || useradd -r -s /usr/sbin/nologin paladmin
+# 面板以 root 运行，以便通过 SteamCMD 向任意用户指定目录安装/更新游戏服，
+# 避免因目录属主不是面板用户而需要手动 chown 赋权。
+if [ "$(id -u)" -ne 0 ]; then
+  echo "请使用 root 运行本脚本（sudo bash install.sh）"
+  exit 1
+fi
+
+echo "==> 创建目录"
 mkdir -p "$INSTALL_DIR" "$DATA_DIR/backups" "$DATA_DIR/evidence" "$DATA_DIR/logs"
 
 echo "==> 检测架构"
@@ -82,8 +88,6 @@ anticheat:
 EOF
 fi
 
-chown -R paladmin:paladmin "$INSTALL_DIR" "$DATA_DIR"
-
 echo "==> 安装 systemd 服务"
 cp "$TMP/paladmin.service" /etc/systemd/system/ 2>/dev/null || cat > /etc/systemd/system/paladmin.service <<EOF
 [Unit]
@@ -91,7 +95,6 @@ Description=PalAdmin Panel
 After=network.target
 [Service]
 Type=simple
-User=paladmin
 WorkingDirectory=${INSTALL_DIR}
 ExecStart=${INSTALL_DIR}/paladmin --config ${INSTALL_DIR}/config.yaml
 Restart=always

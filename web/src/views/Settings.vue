@@ -1,6 +1,10 @@
 <template>
   <n-space vertical :size="16">
     <n-card title="服务器连接" size="small">
+      <n-alert type="info" :show-icon="false" style="margin-bottom:12px">
+        面板本地启停游戏服时，REST/RCON 地址与管理员密码会在「游戏配置」保存网络项时自动同步为本机地址；
+        仅当游戏服部署在其他机器时才需手动修改此处。
+      </n-alert>
       <n-form label-placement="left" label-width="140">
         <n-form-item label="REST 地址">
           <n-input v-model:value="form['rest.address']" placeholder="http://palworld:8212" />
@@ -103,7 +107,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NForm, NFormItem, NInput, NSwitch, NGrid, NGi,
-  NSelect, NButton, NTag, NText, useMessage,
+  NSelect, NButton, NTag, NText, NAlert, useMessage,
 } from 'naive-ui'
 import { api } from '@/api'
 

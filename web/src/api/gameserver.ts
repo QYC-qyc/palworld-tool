@@ -9,8 +9,8 @@ export interface GameServerStatus {
     updating: boolean
     pid?: number
     server_exe: string
+    steam_exe: string
     install_dir: string
-    game_port: string
     state?: string
   }
 }
@@ -19,7 +19,6 @@ export interface GameServerConfig {
   steamcmd_path: string
   install_dir: string
   extra_args?: string
-  game_port?: string
 }
 
 export const gameApi = {

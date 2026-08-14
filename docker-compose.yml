@@ -30,8 +30,8 @@ services:
       TZ: "Asia/Shanghai"
       STORAGE__PATH: "/app/data/pst.db"
       SAVE__DECODE_PATH: "/app/sav_cli"
-      # 容器内对应的路径（与上面挂载一致）
-      GAMESRV__STEAMCMD_PATH: "/opt/steamcmd/steamcmd.sh"
+      # 容器内对应的路径（与上面挂载一致，填写目录即可）
+      GAMESRV__STEAMCMD_PATH: "/opt/steamcmd"
       GAMESRV__INSTALL_DIR: "/opt/palserver"
       ANTICHEAT__ENABLED: "true"
       ANTICHEAT__MODE: "external"

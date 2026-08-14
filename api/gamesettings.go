@@ -4,19 +4,52 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"paladmin/internal/palconfig"
+	"paladmin/service"
 )
 
-// 宿主机游戏配置文件路径（游戏服容器把数据写到 ./game）
+// iniFallbackPath 当未配置安装目录时使用的兜底路径
+const iniFallbackPath = "/www/palworld-tool/game/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini"
+
+// iniPath 解析 PalWorldSettings.ini 的完整路径：
+//  1. 环境变量 PALWORLD_INI_PATH 显式指定时优先；
+//  2. 否则在用户配置的游戏安装目录下查找 Pal/Saved/Config/<平台>/PalWorldSettings.ini；
+//  3. 都没有时使用兜底默认路径。
 func iniPath() string {
-	// 默认位置，可通过环境变量覆盖
 	if p := os.Getenv("PALWORLD_INI_PATH"); p != "" {
 		return p
 	}
-	return "/www/palworld-tool/game/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini"
+
+	installDir := ""
+	if gameAPI != nil {
+		installDir = gameAPI.mgr.ConfigValue().InstallDir
+	}
+	if installDir == "" {
+		installDir = os.Getenv("GAMESRV__INSTALL_DIR")
+	}
+	if installDir == "" {
+		return iniFallbackPath
+	}
+
+	// 优先 LinuxServer，其次 WindowsServer
+	candidates := []string{
+		filepath.Join(installDir, "Pal", "Saved", "Config", "LinuxServer", "PalWorldSettings.ini"),
+		filepath.Join(installDir, "Pal", "Saved", "Config", "WindowsServer", "PalWorldSettings.ini"),
+	}
+	for _, p := range candidates {
+		if fileExists(p) {
+			return p
+		}
+	}
+	// 文件尚未生成（游戏服未首次启动）时返回默认候选路径，保存时会自动创建
+	if runtime.GOOS == "windows" {
+		return candidates[1]
+	}
+	return candidates[0]
 }
 
 type gameSettingsAPI struct{}
@@ -91,6 +124,9 @@ func (g *gameSettingsAPI) save(c *gin.Context) {
 		return
 	}
 
+	// 网络相关项（端口、AdminPassword）同步到面板连接设置，避免两处配置不一致
+	syncConnectionSettings(req.Settings)
+
 	// 可选：重启游戏服使配置生效
 	if req.Restart && gameAPI != nil {
 		if err := gameAPI.restartImpl(); err != nil {
@@ -142,4 +178,43 @@ func maskPasswords(s string) string {
 func fileExists(p string) bool {
 	_, err := os.Stat(p)
 	return err == nil
+}
+
+// syncConnectionSettings 将游戏配置中的网络项同步到面板连接设置，
+// 避免「游戏配置」与「系统设置」两处的端口/密码不一致导致面板连不上游戏服。
+//   - AdminPassword 同步到 rest.password 与 rcon.password
+//   - RESTAPIPort/RCONPort：当面板连接地址为空或指向本机时，用 127.0.0.1 + 端口补齐/更新；
+//     用户手动填写的远程地址不会被覆盖
+func syncConnectionSettings(s map[string]string) {
+	if db == nil {
+		return
+	}
+	updates := map[string]string{}
+	existing, _ := service.GetAllSettings(db)
+
+	hostIsLocal := func(addr string) bool {
+		return addr == "" ||
+			strings.Contains(addr, "127.0.0.1") ||
+			strings.Contains(addr, "localhost") ||
+			strings.Contains(addr, "palworld:")
+	}
+
+	if adminPwd, ok := s["AdminPassword"]; ok && adminPwd != "" {
+		updates[service.SettingRestPassword] = adminPwd
+		updates[service.SettingRconPassword] = adminPwd
+	}
+	if port, ok := s["RESTAPIPort"]; ok && port != "" {
+		if hostIsLocal(existing[service.SettingRestAddress]) {
+			updates[service.SettingRestAddress] = "http://127.0.0.1:" + port
+		}
+	}
+	if port, ok := s["RCONPort"]; ok && port != "" {
+		if hostIsLocal(existing[service.SettingRconAddress]) {
+			updates[service.SettingRconAddress] = "127.0.0.1:" + port
+		}
+	}
+
+	if len(updates) > 0 {
+		_ = service.SetSettings(db, updates)
+	}
 }

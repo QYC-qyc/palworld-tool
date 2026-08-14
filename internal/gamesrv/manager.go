@@ -18,23 +18,17 @@ import (
 // Palworld Steam APP ID
 const steamAppID = "2394010"
 
-const (
-	DefaultGamePort = "8211"
-	DefaultRCONPort = "25575"
-	DefaultRESTPort = "8212"
-)
-
 // Config 游戏服与 SteamCMD 配置（用户在面板填写）
 type Config struct {
-	// SteamCmdPath SteamCMD 可执行文件路径
-	// Linux: /home/steam/steamcmd/steamcmd.sh
-	// Windows: C:\steamcmd\steamcmd.exe
+	// SteamCmdPath SteamCMD 所在目录（也兼容直接填写可执行文件路径）
+	// Linux: /root/steamcmd
+	// Windows: C:\steamcmd
 	SteamCmdPath string `json:"steamcmd_path"`
 	// InstallDir 游戏安装目录（SteamCMD 的 force_install_dir）
 	InstallDir string `json:"install_dir"`
-	// ExtraArgs 服务端额外启动参数
+	// ExtraArgs 服务端额外启动参数（如 -publiclobby -useperfthreads）。
+	// 端口等网络参数统一在「游戏配置」中修改，无需在此传入 -port。
 	ExtraArgs string `json:"extra_args"`
-	GamePort  string `json:"game_port"`
 }
 
 // Status 游戏服状态
@@ -44,9 +38,9 @@ type Status struct {
 	Running    bool   `json:"running"`     // 服务端进程在运行
 	Updating   bool   `json:"updating"`    // 正在安装/更新
 	PID        int    `json:"pid,omitempty"`
-	ServerExe  string `json:"server_exe"`  // 服务端可执行文件路径
+	ServerExe  string `json:"server_exe"` // 服务端可执行文件路径
+	SteamExe   string `json:"steam_exe"`  // steamcmd 可执行文件路径
 	InstallDir string `json:"install_dir"`
-	GamePort   string `json:"game_port"`
 	State      string `json:"state,omitempty"`
 }
 
@@ -63,13 +57,28 @@ func NewManager() *Manager {
 }
 
 func (m *Manager) SetConfig(cfg Config) {
-	if cfg.GamePort == "" {
-		cfg.GamePort = DefaultGamePort
-	}
 	m.cfg = cfg
 }
 func (m *Manager) ConfigValue() Config { return m.cfg }
 func (m *Manager) Available() bool    { return true }
+
+// steamCmdExe 返回 SteamCMD 可执行文件路径：
+// 若配置的是目录，则在目录下查找 steamcmd.sh/steamcmd.exe；
+// 若直接配置的是可执行文件，则原样返回（兼容旧配置）。
+func (m *Manager) steamCmdExe() string {
+	p := m.cfg.SteamCmdPath
+	if p == "" {
+		return ""
+	}
+	if info, err := os.Stat(p); err == nil && info.IsDir() {
+		name := "steamcmd.sh"
+		if runtime.GOOS == "windows" {
+			name = "steamcmd.exe"
+		}
+		return filepath.Join(p, name)
+	}
+	return p
+}
 
 // serverExePath 返回服务端可执行文件完整路径
 func (m *Manager) serverExePath() string {
@@ -87,16 +96,13 @@ func (m *Manager) serverExePath() string {
 func (m *Manager) GetStatus() (*Status, error) {
 	st := &Status{
 		InstallDir: m.cfg.InstallDir,
-		GamePort:   m.cfg.GamePort,
-	}
-	if st.GamePort == "" {
-		st.GamePort = DefaultGamePort
 	}
 	st.ServerExe = m.serverExePath()
+	st.SteamExe = m.steamCmdExe()
 
 	// steamcmd 是否存在
-	if m.cfg.SteamCmdPath != "" {
-		if info, err := os.Stat(m.cfg.SteamCmdPath); err == nil && !info.IsDir() {
+	if st.SteamExe != "" {
+		if info, err := os.Stat(st.SteamExe); err == nil && !info.IsDir() {
 			st.SteamReady = true
 		}
 	}
@@ -125,14 +131,15 @@ func (m *Manager) GetStatus() (*Status, error) {
 
 // Install 用 SteamCMD 安装/更新游戏服（阻塞直到完成，实时输出日志）
 func (m *Manager) Install() error {
-	if m.cfg.SteamCmdPath == "" {
+	steamExe := m.steamCmdExe()
+	if steamExe == "" {
 		return errors.New("未配置 SteamCMD 路径")
 	}
 	if m.cfg.InstallDir == "" {
 		return errors.New("未配置游戏安装目录")
 	}
-	if info, err := os.Stat(m.cfg.SteamCmdPath); err != nil || info.IsDir() {
-		return fmt.Errorf("SteamCMD 不存在: %s", m.cfg.SteamCmdPath)
+	if info, err := os.Stat(steamExe); err != nil || info.IsDir() {
+		return fmt.Errorf("SteamCMD 不存在: %s（请确认 SteamCMD 目录下含有 steamcmd.sh/steamcmd.exe）", steamExe)
 	}
 	if m.isUpdating() {
 		return errors.New("正在安装/更新中")
@@ -141,10 +148,12 @@ func (m *Manager) Install() error {
 		return fmt.Errorf("创建安装目录失败: %w", err)
 	}
 
+	steamDir := filepath.Dir(steamExe)
+
 	// 首次运行 SteamCMD 需要先完成自更新与配置初始化，否则 app_update 会报 Missing configuration
 	m.logBuf.WriteString("=== SteamCMD 初始化（自更新）===\n")
-	initCmd := exec.Command(m.cfg.SteamCmdPath, "+login", "anonymous", "+quit")
-	initCmd.Dir = filepath.Dir(m.cfg.SteamCmdPath)
+	initCmd := exec.Command(steamExe, "+login", "anonymous", "+quit")
+	initCmd.Dir = steamDir
 	initCmd.SysProcAttr = newSysProcAttr(true)
 	initOut, _ := initCmd.StdoutPipe()
 	initCmd.Stderr = initCmd.Stdout
@@ -163,8 +172,8 @@ func (m *Manager) Install() error {
 		"+app_update", steamAppID, "validate",
 		"+quit",
 	}
-	cmd := exec.Command(m.cfg.SteamCmdPath, args...)
-	cmd.Dir = filepath.Dir(m.cfg.SteamCmdPath)
+	cmd := exec.Command(steamExe, args...)
+	cmd.Dir = steamDir
 	cmd.SysProcAttr = newSysProcAttr(true)
 
 	stdout, _ := cmd.StdoutPipe()

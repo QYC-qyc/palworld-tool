@@ -1,8 +1,9 @@
 <template>
   <n-space vertical :size="16">
     <n-alert type="info" :show-icon="false">
-      游戏服由你自行用 SteamCMD 安装。请先在下方填写 SteamCMD 可执行文件路径与游戏安装目录，
-      点击「安装/更新」会执行：<code>steamcmd +force_install_dir &lt;dir&gt; +login anonymous +app_update 2394010 validate +quit</code>
+      游戏服由你自行用 SteamCMD 安装。只需填写<strong>所在文件夹</strong>，面板会自动在其中查找
+      <code>steamcmd.sh</code>（Linux）/ <code>steamcmd.exe</code>（Windows）与游戏可执行文件。
+      点击「安装/更新」会执行：<code>steamcmd +force_install_dir &lt;游戏目录&gt; +login anonymous +app_update 2394010 validate +quit</code>
     </n-alert>
 
     <!-- 状态 -->
@@ -32,30 +33,31 @@
       <n-form label-placement="top">
         <n-grid cols="1 s:2" :x-gap="16" responsive="screen">
           <n-gi>
-            <n-form-item label="SteamCMD 路径">
+            <n-form-item label="SteamCMD 目录">
               <n-input v-model:value="cfg.steamcmd_path"
-                placeholder="Linux: /home/steam/steamcmd/steamcmd.sh" />
+                placeholder="文件夹，如 /root/steamcmd" />
             </n-form-item>
           </n-gi>
           <n-gi>
             <n-form-item label="游戏安装目录">
               <n-input v-model:value="cfg.install_dir"
-                placeholder="如 /home/steam/PalServer" />
+                placeholder="文件夹，如 /root/PalServer" />
             </n-form-item>
           </n-gi>
-          <n-gi>
+          <n-gi style="grid-column: 1 / -1">
             <n-form-item label="启动额外参数（可选）">
               <n-input v-model:value="cfg.extra_args"
-                placeholder="如 -port=8211 -publiclobby -useperfthreads" />
-            </n-form-item>
-          </n-gi>
-          <n-gi>
-            <n-form-item label="游戏端口">
-              <n-input v-model:value="cfg.game_port" placeholder="8211" />
+                placeholder="如 -publiclobby -useperfthreads -NoAsyncLoadingThread" />
+              <n-text depth="3" style="font-size:12px">
+                端口、REST/RCON 等网络参数请到「游戏配置」页修改，无需在此填写 -port。
+              </n-text>
             </n-form-item>
           </n-gi>
         </n-grid>
         <n-button type="primary" @click="saveConfig">保存配置</n-button>
+        <n-text depth="3" style="font-size:12px;margin-left:12px">
+          已识别：SteamCMD {{ status?.status?.steam_exe || '-' }} ｜ 服务端 {{ status?.status?.server_exe || '-' }}
+        </n-text>
       </n-form>
     </n-card>
 
@@ -105,7 +107,6 @@ const cfg = reactive<GameServerConfig>({
   steamcmd_path: '',
   install_dir: '',
   extra_args: '',
-  game_port: '8211',
 })
 
 const isRunning = computed(() => !!status.value?.status?.running)

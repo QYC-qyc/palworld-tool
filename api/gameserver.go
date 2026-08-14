@@ -95,7 +95,6 @@ const (
 	settingSteamCmd  = "gamesrv.steamcmd_path"
 	settingInstall   = "gamesrv.install_dir"
 	settingExtraArgs = "gamesrv.extra_args"
-	settingGamePort  = "gamesrv.game_port"
 )
 
 func saveGameServerConfig(cfg gamesrv.Config) {
@@ -106,7 +105,6 @@ func saveGameServerConfig(cfg gamesrv.Config) {
 		settingSteamCmd:  cfg.SteamCmdPath,
 		settingInstall:   cfg.InstallDir,
 		settingExtraArgs: cfg.ExtraArgs,
-		settingGamePort:  cfg.GamePort,
 	})
 }
 
@@ -115,7 +113,6 @@ func loadGameServerConfig() gamesrv.Config {
 		SteamCmdPath: viper.GetString("gamesrv.steamcmd_path"),
 		InstallDir:   viper.GetString("gamesrv.install_dir"),
 		ExtraArgs:    viper.GetString("gamesrv.extra_args"),
-		GamePort:     viper.GetString("gamesrv.game_port"),
 	}
 	if db == nil {
 		return cfg
@@ -130,9 +127,6 @@ func loadGameServerConfig() gamesrv.Config {
 		}
 		if v, ok := all[settingExtraArgs]; ok {
 			cfg.ExtraArgs = v
-		}
-		if v, ok := all[settingGamePort]; ok && v != "" {
-			cfg.GamePort = v
 		}
 	}
 	return cfg
