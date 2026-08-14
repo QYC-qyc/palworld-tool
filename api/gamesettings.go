@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -182,9 +183,9 @@ func fileExists(p string) bool {
 
 // syncConnectionSettings 将游戏配置中的网络项同步到面板连接设置，
 // 避免「游戏配置」与「系统设置」两处的端口/密码不一致导致面板连不上游戏服。
+// 面板本地启停游戏服时，REST/RCON 必然在本机：
 //   - AdminPassword 同步到 rest.password 与 rcon.password
-//   - RESTAPIPort/RCONPort：当面板连接地址为空或指向本机时，用 127.0.0.1 + 端口补齐/更新；
-//     用户手动填写的远程地址不会被覆盖
+//   - RESTAPIPort/RCONPort 同步为 127.0.0.1 + 端口（地址为空、本机、或本机公网 IP 时）
 func syncConnectionSettings(s map[string]string) {
 	if db == nil {
 		return
@@ -192,11 +193,26 @@ func syncConnectionSettings(s map[string]string) {
 	updates := map[string]string{}
 	existing, _ := service.GetAllSettings(db)
 
+	// 判断地址是否指向本机：空、localhost/127.0.0.1、容器名、或本机公网/内网 IP
 	hostIsLocal := func(addr string) bool {
-		return addr == "" ||
-			strings.Contains(addr, "127.0.0.1") ||
-			strings.Contains(addr, "localhost") ||
-			strings.Contains(addr, "palworld:")
+		if addr == "" {
+			return true
+		}
+		low := strings.ToLower(addr)
+		if strings.Contains(low, "127.0.0.1") || strings.Contains(low, "localhost") || strings.Contains(low, "palworld:") {
+			return true
+		}
+		// 提取 host 部分
+		host := addr
+		if strings.HasPrefix(addr, "http://") {
+			host = addr[7:]
+		} else if strings.HasPrefix(addr, "https://") {
+			host = addr[8:]
+		}
+		if idx := strings.IndexAny(host, ":/"); idx >= 0 {
+			host = host[:idx]
+		}
+		return isLocalHost(host)
 	}
 
 	if adminPwd, ok := s["AdminPassword"]; ok && adminPwd != "" {
@@ -217,4 +233,25 @@ func syncConnectionSettings(s map[string]string) {
 	if len(updates) > 0 {
 		_ = service.SetSettings(db, updates)
 	}
+}
+
+// isLocalHost 判断 host 是否为本机 IP（遍历网卡）
+func isLocalHost(host string) bool {
+	if host == "" {
+		return false
+	}
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return false
+	}
+	for _, a := range addrs {
+		ipNet, ok := a.(*net.IPNet)
+		if !ok {
+			continue
+		}
+		if ipNet.IP.String() == host {
+			return true
+		}
+	}
+	return false
 }
