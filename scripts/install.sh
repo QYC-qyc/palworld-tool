@@ -68,6 +68,10 @@ echo "  下载完成"
 
 echo "==> 解压安装"
 tar -xzf "$TMP/$ASSET" -C "$TMP"
+# 停止服务，避免覆盖二进制时文件占用
+systemctl stop "$SERVICE" 2>/dev/null || true
+# 清理旧前端产物（带 hash 的旧分片不会自动删除，残留会导致半更新/新旧混杂）
+rm -rf "$INSTALL_DIR/web"
 cp "$TMP/paladmin" "$INSTALL_DIR/"
 # sav_cli、web 前端、data 游戏数据（若包含）
 [ -f "$TMP/sav_cli" ] && cp "$TMP/sav_cli" "$INSTALL_DIR/"
