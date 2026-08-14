@@ -76,17 +76,11 @@
       </n-form>
     </n-card>
 
-    <n-card title="面板与通知" size="small">
+    <n-card title="面板" size="small">
       <n-form label-placement="left" label-width="140">
         <n-form-item label="面板新密码">
           <n-input v-model:value="webPwd" type="password" show-password-on="click"
             :placeholder="form['web.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置'" />
-        </n-form-item>
-        <n-form-item label="Webhook 地址">
-          <n-input v-model:value="form['notify.webhook_url']" placeholder="钉钉/企业微信/Discord webhook" />
-        </n-form-item>
-        <n-form-item label="Webhook 类型">
-          <n-select v-model:value="form['notify.webhook_type']" :options="webhookTypes" />
         </n-form-item>
       </n-form>
     </n-card>
@@ -125,12 +119,6 @@ const processModes = [
 ]
 const acModes = [
   { label: '外置（存档扫描，纯 Linux 原生）', value: 'external' },
-]
-const webhookTypes = [
-  { label: '通用 JSON', value: 'generic' },
-  { label: '钉钉', value: 'dingtalk' },
-  { label: '企业微信', value: 'wechat' },
-  { label: 'Discord', value: 'discord' },
 ]
 
 async function load() {

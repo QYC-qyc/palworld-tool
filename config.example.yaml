@@ -101,12 +101,6 @@ paldefender:
   sync_banlist: true
   sync_import_rules: true
 
-notify:
-  webhook_url: ""
-  webhook_type: "generic"
-  broadcast_ingame: false
-  min_severity: "warn"
-
 log:
   level: "info"
   file: "./logs/pst.log"

@@ -22,8 +22,6 @@ const (
 	SettingAnticheatEnabled = "anticheat.enabled"
 	SettingPaldefenderAddr  = "paldefender.address"
 	SettingPaldefenderToken = "paldefender.token"
-	SettingNotifyWebhook    = "notify.webhook_url"
-	SettingNotifyType       = "notify.webhook_type"
 )
 
 // DefaultSettings 返回需要在数据库中初始化的默认键（首次启动时从 viper 同步）
@@ -44,8 +42,6 @@ func DefaultSettings() map[string]string {
 		SettingAnticheatEnabled: "true",
 		SettingPaldefenderAddr:  "",
 		SettingPaldefenderToken: "",
-		SettingNotifyWebhook:    "",
-		SettingNotifyType:       "generic",
 	}
 }
 

@@ -72,13 +72,6 @@ type Config struct {
 
 	PalDefender PalDefenderConfig `mapstructure:"paldefender"`
 
-	Notify struct {
-		WebhookUrl     string `mapstructure:"webhook_url"`
-		WebhookType    string `mapstructure:"webhook_type"`
-		BroadcastIngame bool  `mapstructure:"broadcast_ingame"`
-		MinSeverity    string `mapstructure:"min_severity"`
-	} `mapstructure:"notify"`
-
 	Log struct {
 		Level          string `mapstructure:"level"`
 		File           string `mapstructure:"file"`
@@ -198,7 +191,6 @@ func Init(cfgFile string, conf *Config) {
 	viper.SetDefault("anticheat.whitelist_message", "该服务器启用白名单，你不在名单中。")
 	viper.SetDefault("paldefender.address", "http://127.0.0.1:17993")
 	viper.SetDefault("paldefender.timeout", 5)
-	viper.SetDefault("notify.min_severity", "warn")
 	viper.SetDefault("log.level", "info")
 	viper.SetDefault("log.file", "./logs/pst.log")
 	viper.SetDefault("backup.keep_count", 48)

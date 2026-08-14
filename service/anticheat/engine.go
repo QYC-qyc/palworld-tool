@@ -2,18 +2,15 @@ package anticheat
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/spf13/viper"
 	"go.etcd.io/bbolt"
 	"paladmin/internal/config"
 	"paladmin/internal/database"
 	"paladmin/internal/logger"
-	"paladmin/internal/tool"
 )
 
 // Engine 反作弊引擎：持有规则、扫描器、处置器与冷却
@@ -184,9 +181,6 @@ func (e *Engine) process(findings []Finding) int {
 		}
 		logger.Warnf("[反作弊] %s 玩家=%s 规则=%s", f.Title, f.Nickname, f.Rule.ID)
 
-		// 告警通知（Webhook，按严重度过滤）
-		e.notify(f)
-
 		// 处置
 		if err := e.executor.Execute(f); err != nil {
 			logger.Errorf("处置失败: %v", err)
@@ -197,33 +191,3 @@ func (e *Engine) process(findings []Finding) int {
 	return count
 }
 
-// notify 按配置通过 Webhook 推送告警
-func (e *Engine) notify(f Finding) {
-	webhookURL := viper.GetString("notify.webhook_url")
-	if webhookURL == "" {
-		return
-	}
-	minSeverity := viper.GetString("notify.min_severity")
-	if !severityAtLeast(string(f.Rule.Severity), minSeverity) {
-		return
-	}
-	text := fmt.Sprintf("**规则**: %s\n**玩家**: %s (%s)\n**详情**: %s",
-		f.Rule.ID, f.Nickname, f.PlayerUID, f.Title)
-	payload := tool.WebhookPayload{
-		Title:    "[反作弊] " + f.Title,
-		Text:     text,
-		Severity: string(f.Rule.Severity),
-		Fields:   f.Detail,
-	}
-	go func() {
-		if err := tool.SendWebhook(viper.GetString("notify.webhook_type"), webhookURL, payload); err != nil {
-			logger.Warnf("Webhook 推送失败: %v", err)
-		}
-	}()
-}
-
-// severityAtLeast 判断 s 是否达到阈值
-func severityAtLeast(s, threshold string) bool {
-	order := map[string]int{"info": 1, "warn": 2, "critical": 3, "": 1}
-	return order[s] >= order[threshold]
-}

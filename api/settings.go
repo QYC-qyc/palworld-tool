@@ -81,8 +81,7 @@ func isEditableKey(k string) bool {
 		service.SettingRestPassword, service.SettingRconAddress, service.SettingRconPassword,
 		service.SettingRconUseBase64, service.SettingSavePath, service.SettingProcessMode,
 		service.SettingProcessService, service.SettingProcessContainer, service.SettingAnticheatMode,
-		service.SettingAnticheatEnabled, service.SettingPaldefenderAddr, service.SettingPaldefenderToken,
-		service.SettingNotifyWebhook, service.SettingNotifyType:
+		service.SettingAnticheatEnabled, service.SettingPaldefenderAddr, service.SettingPaldefenderToken:
 		return true
 	}
 	return false
