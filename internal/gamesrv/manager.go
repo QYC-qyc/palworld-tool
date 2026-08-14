@@ -116,10 +116,15 @@ func (m *Manager) GetStatus() (*Status, error) {
 	if m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid) {
 		st.Updating = true
 	}
-	// 服务端是否在运行
+	// 服务端是否在运行（优先检测面板启动的进程，兜底扫描系统进程）
 	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
 		st.Running = true
 		st.PID = m.serverCmd.Process.Pid
+	} else if pids := m.findRunningProcesses(); len(pids) > 0 {
+		st.Running = true
+		st.PID = pids[0]
+	}
+	if st.Running {
 		st.State = "running"
 	} else if st.Updating {
 		st.State = "updating"
@@ -213,8 +218,14 @@ func (m *Manager) Start() error {
 	if err != nil || info.IsDir() {
 		return errors.New("服务端未安装，请先在面板点击安装")
 	}
-	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
-		return errors.New("游戏服已在运行")
+
+	// 先确保没有其他游戏服实例在运行（可能是重启前面板启动的、或手动启动的）
+	if running := m.findRunningProcesses(); len(running) > 0 {
+		m.logBuf.WriteString(fmt.Sprintf("检测到 %d 个正在运行的游戏服进程，先停止...\n", len(running)))
+		if err := m.killAllPalServer(); err != nil {
+			m.logBuf.WriteString(fmt.Sprintf("停止旧进程失败: %v\n", err))
+		}
+		time.Sleep(3 * time.Second)
 	}
 
 	args := []string{}
@@ -324,23 +335,62 @@ func shellQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
 
-// Stop 停止游戏服
+// Stop 停止游戏服（停止所有 PalServer 进程，包括非面板启动的）
 func (m *Manager) Stop() error {
-	if m.serverCmd == nil || m.serverCmd.Process == nil || !m.isAlive(m.serverCmd.Process.Pid) {
-		return errors.New("游戏服未运行")
+	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
+		_ = gracefulStop(m.serverCmd, 10*time.Second)
 	}
-	return gracefulStop(m.serverCmd, 30*time.Second)
+	// 兜底：杀掉所有残留的 PalServer 进程
+	if err := m.killAllPalServer(); err != nil {
+		return fmt.Errorf("停止失败: %w", err)
+	}
+	m.serverCmd = nil
+	m.logBuf.WriteString("=== 游戏服已停止 ===\n")
+	return nil
 }
 
 // Restart 重启
 func (m *Manager) Restart() error {
-	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
-		if err := m.Stop(); err != nil {
-			return err
-		}
-		time.Sleep(2 * time.Second)
-	}
+	_ = m.Stop()
+	time.Sleep(2 * time.Second)
 	return m.Start()
+}
+
+// findRunningProcesses 查找正在运行的 PalServer 进程 PID
+func (m *Manager) findRunningProcesses() []int {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
+	out, err := exec.Command("pgrep", "-f", "PalServer-Linux-Shipping").Output()
+	if err != nil {
+		return nil
+	}
+	var pids []int
+	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		var pid int
+		if _, err := fmt.Sscanf(line, "%d", &pid); err == nil && pid > 0 {
+			pids = append(pids, pid)
+		}
+	}
+	return pids
+}
+
+// killAllPalServer 终止所有 PalServer 进程
+func (m *Manager) killAllPalServer() error {
+	if runtime.GOOS == "windows" {
+		if m.serverCmd != nil && m.serverCmd.Process != nil {
+			return m.serverCmd.Process.Kill()
+		}
+		return nil
+	}
+	// 先尝试 SIGTERM 优雅退出
+	_ = exec.Command("pkill", "-TERM", "-f", "PalServer-Linux-Shipping").Run()
+	time.Sleep(3 * time.Second)
+	// 仍在运行则 SIGKILL 强杀
+	_ = exec.Command("pkill", "-KILL", "-f", "PalServer-Linux-Shipping").Run()
+	// 同时停止包装脚本
+	_ = exec.Command("pkill", "-KILL", "-f", "PalServer.sh").Run()
+	return nil
 }
 
 // Logs 返回最近日志
