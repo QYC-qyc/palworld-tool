@@ -67,26 +67,37 @@ var mirrors = []string{
 	"https://github.com",
 }
 
-// Check 检查最新版本
+// Check 检查最新版本，依次尝试直连和镜像
 func Check() (*ReleaseInfo, bool, error) {
-	req, _ := http.NewRequest("GET", repoAPI, nil)
-	req.Header.Set("User-Agent", userAgent)
-	cli := &http.Client{Timeout: 15 * time.Second}
-	resp, err := cli.Do(req)
-	if err != nil {
-		return nil, false, fmt.Errorf("检查更新失败（网络不通）: %w", err)
+	cli := &http.Client{Timeout: 8 * time.Second}
+
+	// 尝试多个 GitHub API 镜像源
+	apiEndpoints := []string{
+		repoAPI,
+		"https://ghproxy.net/https://api.github.com/repos/QYC-qyc/palworld-tool/releases/latest",
+		"https://ghfast.top/https://api.github.com/repos/QYC-qyc/palworld-tool/releases/latest",
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, false, fmt.Errorf("检查更新失败: HTTP %d", resp.StatusCode)
+
+	for _, apiURL := range apiEndpoints {
+		req, _ := http.NewRequest("GET", apiURL, nil)
+		req.Header.Set("User-Agent", userAgent)
+		resp, err := cli.Do(req)
+		if err != nil || resp.StatusCode != http.StatusOK {
+			if resp != nil {
+				resp.Body.Close()
+			}
+			continue
+		}
+		var rel ReleaseInfo
+		err = json.NewDecoder(resp.Body).Decode(&rel)
+		resp.Body.Close()
+		if err == nil && rel.TagName != "" && len(rel.Assets) > 0 {
+			hasUpdate := normalizeVersion(rel.TagName) != normalizeVersion(currentVersion)
+			return &rel, hasUpdate, nil
+		}
 	}
-	var rel ReleaseInfo
-	if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
-		return nil, false, err
-	}
-	hasUpdate := normalizeVersion(rel.TagName) != normalizeVersion(currentVersion) &&
-		normalizeVersion(rel.TagName) != ""
-	return &rel, hasUpdate, nil
+
+	return nil, false, fmt.Errorf("无法连接更新服务器（GitHub 访问受限），可手动执行安装脚本更新")
 }
 
 func normalizeVersion(v string) string {
