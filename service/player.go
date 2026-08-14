@@ -62,6 +62,10 @@ func PutPlayersOnline(db *bbolt.DB, players []database.OnlinePlayer) error {
 	return db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(database.BucketPlayers))
 		for _, p := range players {
+			// PlayerUid 为空时无法作为 key，跳过
+			if p.PlayerUid == "" {
+				continue
+			}
 			var player database.Player
 			existing := b.Get([]byte(p.PlayerUid))
 			if existing == nil {

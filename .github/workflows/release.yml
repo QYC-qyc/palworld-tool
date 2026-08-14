@@ -14,7 +14,8 @@ jobs:
   build:
     # 仅在推送 tag 或手动触发时构建
     if: github.event_name != 'delete'
-    runs-on: ubuntu-latest
+    # 使用 22.04 而非 latest，确保 glibc 兼容 Ubuntu 22.04/Debian 12 等主流服务器
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
