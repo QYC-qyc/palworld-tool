@@ -18,6 +18,7 @@ import (
 	"paladmin/internal/logger"
 	"paladmin/internal/system"
 	"paladmin/internal/task"
+	"paladmin/internal/updater"
 	"paladmin/service"
 	"paladmin/service/anticheat"
 
@@ -91,6 +92,7 @@ func main() {
 
 	localIP, _ := system.GetLocalIP()
 	port := viper.GetInt("web.port")
+	updater.SetVersion(version)
 	logger.Info("PalAdmin 启动中...")
 	logger.Infof("版本: %s", version)
 	logger.Infof("监听: http://127.0.0.1:%d 或 http://%s:%d", port, localIP, port)

@@ -89,6 +89,35 @@
       </n-form>
     </n-card>
 
+    <n-card title="面板更新" size="small">
+      <n-space vertical :size="12">
+        <n-space align="center" :wrap="false">
+          <n-tag :bordered="false" :type="updateInfo.has_update ? 'warning' : 'success'">
+            当前版本：{{ updateInfo.current || '未知' }}
+          </n-tag>
+          <n-text v-if="updateInfo.has_update" strong>
+            发现新版本：{{ updateInfo.latest }}
+          </n-text>
+          <n-text v-else depth="3">已是最新版本</n-text>
+          <n-button size="small" :loading="checking" @click="checkUpdate">检查更新</n-button>
+          <n-button v-if="updateInfo.has_update" size="small" type="primary"
+            :loading="updating" @click="doUpdate">
+            立即更新
+          </n-button>
+        </n-space>
+        <n-alert v-if="updateInfo.has_update && updateInfo.body" type="info" :show-icon="false"
+          style="white-space:pre-wrap;max-height:200px;overflow:auto;font-size:12px">
+          {{ updateInfo.body }}
+        </n-alert>
+        <n-text v-if="updateInfo.error" depth="3" style="font-size:12px;color:#d03050">
+          {{ updateInfo.error }}
+        </n-text>
+        <n-text depth="3" style="font-size:12px">
+          更新会自动下载最新二进制与前端资源并重启服务，过程约 10–30 秒，期间面板短暂不可用。
+        </n-text>
+      </n-space>
+    </n-card>
+
     <n-card size="small">
       <n-space>
         <n-button type="primary" :loading="saving" @click="save">保存设置</n-button>
@@ -115,6 +144,16 @@ const saving = ref(false)
 const testing = ref<string>('')
 const adminPwd = ref('')
 const webPwd = ref('')
+const checking = ref(false)
+const updating = ref(false)
+const updateInfo = reactive<{
+  current: string
+  has_update: boolean
+  latest?: string
+  name?: string
+  body?: string
+  error?: string
+}>({ current: '', has_update: false })
 
 const processModes = [
   { label: '不控制（手动停服）', value: 'noop' },
@@ -191,5 +230,46 @@ async function save() {
   }
 }
 
-onMounted(load)
+onMounted(async () => {
+  await load()
+  checkUpdate()
+})
+
+async function checkUpdate() {
+  checking.value = true
+  try {
+    const info = await api.checkUpdate()
+    Object.assign(updateInfo, info)
+  } catch (e: any) {
+    updateInfo.error = e.message
+  } finally {
+    checking.value = false
+  }
+}
+
+async function doUpdate() {
+  updating.value = true
+  try {
+    const res = await api.doUpdate()
+    message.success(res.message || '开始更新')
+    // 服务重启后等待恢复
+    setTimeout(() => {
+      message.info('正在重新连接...')
+      const timer = setInterval(async () => {
+        try {
+          const resp = await fetch('/health')
+          if (resp.ok) {
+            clearInterval(timer)
+            message.success('更新完成，即将刷新')
+            setTimeout(() => location.reload(), 1000)
+          }
+        } catch { /* 仍在重启 */ }
+      }, 3000)
+    }, 8000)
+  } catch (e: any) {
+    message.error(e.message)
+  } finally {
+    updating.value = false
+  }
+}
 </script>

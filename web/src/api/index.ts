@@ -106,4 +106,18 @@ export const api = {
   getSettings: () => request<Record<string, any>>('/api/settings'),
   saveSettings: (settings: Record<string, any>) =>
     request('/api/settings', { method: 'PUT', body: JSON.stringify(settings) }),
+
+  // 面板在线更新
+  checkUpdate: () =>
+    request<{
+      current: string
+      has_update: boolean
+      latest?: string
+      name?: string
+      body?: string
+      published?: string
+      error?: string
+    }>('/api/updater/check'),
+  doUpdate: () =>
+    request<{ success: boolean; message: string }>('/api/updater/do', { method: 'POST' }),
 }

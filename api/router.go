@@ -102,6 +102,11 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.PUT("/settings", saveSettings)
 		authGroup.POST("/settings/test-connection", testConnection)
 
+		// 面板在线更新
+		updaterAPI := &updaterAPI{}
+		authGroup.GET("/updater/check", updaterAPI.check)
+		authGroup.POST("/updater/do", updaterAPI.do)
+
 		// 反作弊
 		authGroup.GET("/anticheat/alert", listAlerts)
 		authGroup.GET("/anticheat/alert/:id", getAlert)
