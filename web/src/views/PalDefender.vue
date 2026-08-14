@@ -61,10 +61,6 @@
           未找到 Win64 目录，安装时会自动在游戏目录下创建 <code>Pal/Binaries/Win64/</code>
         </n-alert>
 
-        <n-alert v-if="!status.win64_path" type="warning" :show-icon="false">
-          未找到 <code>Pal/Binaries/Win64</code> 目录。请先在「游戏服」页面正确填写游戏安装目录并完成安装。
-        </n-alert>
-
         <n-text depth="3" style="font-size:12px">
           安装后请通过 Wine 方式启动游戏服（而非原生 Linux 版 PalServer.sh），DLL 才会被加载。
           首次启动会自动生成 PalDefender 配置目录。
