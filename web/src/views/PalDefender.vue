@@ -127,26 +127,43 @@ async function install() {
 
 async function installWine() {
   wineInstalling.value = true
+  showWineProgress.value = true
+  wineLog.value = ''
+  let pollTimer: number | null = null
   try {
     const token = localStorage.getItem('paladmin_token') || ''
-    const resp = await fetch('/api/paldefender/install-wine', {
+    // 触发后台安装
+    await fetch('/api/paldefender/install-wine', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     })
-    const data = await resp.json()
-    if (resp.ok && data.success) {
-      message.success(data.message || 'Wine 安装成功')
-      await refreshStatus()
-    } else {
-      message.error(data.error || '安装失败，请手动执行安装命令')
-    }
+    // 轮询进度
+    pollTimer = window.setInterval(async () => {
+      try {
+        const resp = await fetch('/api/paldefender/wine-status', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const data = await resp.json()
+        wineLog.value = data.log || ''
+        if (data.done) {
+          if (pollTimer) clearInterval(pollTimer)
+          wineInstalling.value = false
+          if (data.success) {
+            message.success('Wine 安装成功')
+            await refreshStatus()
+            setTimeout(() => { showWineProgress.value = false }, 3000)
+          } else {
+            message.error(data.error || '安装失败')
+          }
+        }
+      } catch { /* ignore poll errors */ }
+    }, 2000)
   } catch (e: any) {
-    message.error(e.message || '安装失败')
-  } finally {
     wineInstalling.value = false
+    message.error(e.message || '安装失败')
   }
 }
 

@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -129,46 +130,114 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 	})
 }
 
-// installWine 通过 apt 安装 Wine
+// wineInstallState Wine 安装任务状态
+type wineInstallState struct {
+	running   bool
+	done      bool
+	success   bool
+	log       strings.Builder
+	errMsg    string
+	mu        sync.Mutex
+}
+
+var wineTask = &wineInstallState{}
+
+// installWine 后台执行 Wine 安装，立即返回
 func (p *palDefenderAPI) installWine(c *gin.Context) {
 	if runtime.GOOS != "linux" {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "仅支持 Linux"})
 		return
 	}
 
-	var output strings.Builder
-	commands := [][]string{
-		{"dpkg", "--add-architecture", "i386"},
-		{"apt-get", "update", "-y"},
-		{"apt-get", "install", "-y", "wine64"},
+	wineTask.mu.Lock()
+	if wineTask.running {
+		wineTask.mu.Unlock()
+		c.JSON(http.StatusOK, gin.H{"running": true, "message": "正在安装中..."})
+		return
 	}
+	wineTask.running = true
+	wineTask.done = false
+	wineTask.success = false
+	wineTask.errMsg = ""
+	wineTask.log.Reset()
+	wineTask.mu.Unlock()
 
-	for _, args := range commands {
-		cmd := exec.Command(args[0], args[1:]...)
-		setSysProcAttr(cmd)
-		out, err := cmd.CombinedOutput()
-		output.WriteString("$ " + strings.Join(args, " ") + "\n")
-		output.Write(out)
-		output.WriteString("\n")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Error: fmt.Sprintf("执行 %s 失败: %v\n%s", args[0], err, output.String()),
-			})
-			return
+	go func() {
+		defer func() {
+			wineTask.mu.Lock()
+			wineTask.running = false
+			wineTask.done = true
+			wineTask.mu.Unlock()
+		}()
+
+		commands := [][]string{
+			{"dpkg", "--add-architecture", "i386"},
+			{"apt-get", "update", "-y"},
+			{"apt-get", "install", "-y", "wine64"},
 		}
-	}
 
-	if out, err := exec.Command("wine64", "--version").Output(); err == nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"message": "Wine 安装成功: " + strings.TrimSpace(string(out)),
-		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"message": "Wine 安装完成，请刷新状态验证",
-		})
-	}
+		for _, args := range commands {
+			wineTask.mu.Lock()
+			wineTask.log.WriteString("$ " + strings.Join(args, " ") + "\n")
+			wineTask.mu.Unlock()
+
+			cmd := exec.Command(args[0], args[1:]...)
+			setSysProcAttr(cmd)
+			stdout, _ := cmd.StdoutPipe()
+			cmd.Stderr = cmd.Stdout
+			if err := cmd.Start(); err != nil {
+				wineTask.mu.Lock()
+				wineTask.errMsg = "启动失败: " + err.Error()
+				wineTask.mu.Unlock()
+				return
+			}
+			buf := make([]byte, 4096)
+			for {
+				n, err := stdout.Read(buf)
+				if n > 0 {
+					wineTask.mu.Lock()
+					wineTask.log.Write(buf[:n])
+					wineTask.mu.Unlock()
+				}
+				if err != nil {
+					break
+				}
+			}
+			if err := cmd.Wait(); err != nil {
+				wineTask.mu.Lock()
+				wineTask.errMsg = fmt.Sprintf("执行 %s 失败: %v", args[0], err)
+				wineTask.mu.Unlock()
+				return
+			}
+		}
+
+		if out, err := exec.Command("wine64", "--version").Output(); err == nil {
+			wineTask.mu.Lock()
+			wineTask.success = true
+			wineTask.log.WriteString("\n安装完成: " + strings.TrimSpace(string(out)) + "\n")
+			wineTask.mu.Unlock()
+		} else {
+			wineTask.mu.Lock()
+			wineTask.success = true
+			wineTask.log.WriteString("\nWine 安装完成，请刷新状态\n")
+			wineTask.mu.Unlock()
+		}
+	}()
+
+	c.JSON(http.StatusOK, gin.H{"running": true, "message": "开始安装 Wine..."})
+}
+
+// wineInstallStatus 返回 Wine 安装进度
+func (p *palDefenderAPI) wineInstallStatus(c *gin.Context) {
+	wineTask.mu.Lock()
+	defer wineTask.mu.Unlock()
+	c.JSON(http.StatusOK, gin.H{
+		"running": wineTask.running,
+		"done":    wineTask.done,
+		"success": wineTask.success,
+		"error":   wineTask.errMsg,
+		"log":     wineTask.log.String(),
+	})
 }
 
 func (p *palDefenderAPI) detect() pdStatus {
