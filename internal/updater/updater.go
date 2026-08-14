@@ -2,8 +2,6 @@
 package updater
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -45,7 +43,7 @@ type Progress struct {
 	Version  string  `json:"version"`  // 目标版本
 }
 
-var httpClient = &http.Client{Timeout: 0} // 不设总超时，由流式下载控制
+var httpClient = &http.Client{Timeout: 60 * time.Second}
 
 var currentVersion = "dev"
 
@@ -57,14 +55,6 @@ func SetVersion(v string) {
 
 func CurrentVersion() string {
 	return currentVersion
-}
-
-// 镜像列表（和 install.sh 保持一致），最后直连 GitHub
-var mirrors = []string{
-	"https://ghfast.top/https://github.com",
-	"https://gh-proxy.com/https://github.com",
-	"https://ghproxy.net/https://github.com",
-	"https://github.com",
 }
 
 // Check 检查最新版本，依次尝试直连和镜像
@@ -104,205 +94,61 @@ func normalizeVersion(v string) string {
 	return strings.TrimPrefix(v, "v")
 }
 
-func assetName() string {
-	switch runtime.GOARCH {
-	case "amd64":
-		return "paladmin_linux_amd64.tar.gz"
-	case "arm64":
-		return "paladmin_linux_arm64.tar.gz"
-	default:
-		return ""
-	}
-}
+const installScriptURL = "https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh"
 
-// DoUpdate 执行更新，通过 onProgress 实时回调进度
+// DoUpdate 直接执行官方安装脚本更新（和手动 curl|bash 效果一致）
 func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Progress)) error {
 	if onProgress == nil {
 		onProgress = func(Progress) {}
 	}
 
-	asset := assetName()
-	if asset == "" {
-		return fmt.Errorf("不支持的架构: %s", runtime.GOARCH)
+	if runtime.GOOS == "windows" {
+		return fmt.Errorf("在线更新仅支持 Linux")
 	}
 
-	var downloadURL string
-	for _, a := range rel.Assets {
-		if a.Name == asset {
-			downloadURL = a.BrowserDownloadURL
-			break
-		}
-	}
-	if downloadURL == "" {
-		return fmt.Errorf("最新版本未找到 %s", asset)
-	}
+	onProgress(Progress{Stage: "download", Message: "正在下载安装脚本...", Percent: 10, Version: rel.TagName})
 
-	onProgress(Progress{Stage: "download", Message: "准备下载 " + asset, Version: rel.TagName})
-
-	tmpTar := filepath.Join(os.TempDir(), asset)
-	defer os.Remove(tmpTar)
-
-	// 逐镜像尝试下载
-	var lastErr error
-	for i, base := range mirrors {
-		url := downloadURL
-		if base != "https://github.com" {
-			url = base + strings.TrimPrefix(downloadURL, "https://github.com")
-		}
-		onProgress(Progress{Stage: "download", Message: fmt.Sprintf("镜像 %d/%d: %s", i+1, len(mirrors), base), Percent: 0})
-		if err := downloadFileWithProgress(url, tmpTar, rel.SizeFor(asset), func(pct float64, speed string) {
-			onProgress(Progress{
-				Stage: "download", Message: fmt.Sprintf("下载中 %s", speed),
-				Percent: pct, Version: rel.TagName,
-			})
-		}); err != nil {
-			lastErr = err
-			onProgress(Progress{Stage: "download", Message: "该镜像失败: " + err.Error()})
-			continue
-		}
-		lastErr = nil
-		break
-	}
-	if lastErr != nil {
-		onProgress(Progress{Stage: "error", Message: "所有镜像下载失败"})
-		return fmt.Errorf("下载失败: %w", lastErr)
-	}
-
-	onProgress(Progress{Stage: "extract", Message: "解压并替换文件...", Percent: 100})
-	if err := extractTarGz(tmpTar, installDir); err != nil {
-		return fmt.Errorf("解压失败: %w", err)
-	}
-
-	_ = os.Chmod(filepath.Join(installDir, "paladmin"), 0755)
-	if sav := filepath.Join(installDir, "sav_cli"); fileExists(sav) {
-		_ = os.Chmod(sav, 0755)
-	}
-
-	onProgress(Progress{Stage: "restart", Message: "正在重启服务..."})
-	go func() {
-		time.Sleep(1500 * time.Millisecond)
-		cmd := exec.Command("systemctl", "restart", service)
-		cmd.SysProcAttr = newSysProcAttr()
-		out, err := cmd.CombinedOutput()
-		if err != nil {
-			// 非 systemd 环境（如 Docker），直接退出让容器重启
-			os.Exit(0)
-		}
-		_ = out
-	}()
-	return nil
-}
-
-func (r *ReleaseInfo) SizeFor(asset string) int64 {
-	for _, a := range r.Assets {
-		if a.Name == asset {
-			return a.Size
-		}
-	}
-	return 0
-}
-
-func downloadFileWithProgress(url, dst string, totalSize int64, onProgress func(float64, string)) error {
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", userAgent)
-	resp, err := httpClient.Do(req)
+	// 下载脚本到临时文件
+	tmpScript := filepath.Join(os.TempDir(), "paladmin-install.sh")
+	resp, err := httpClient.Get(installScriptURL)
 	if err != nil {
-		return err
+		return fmt.Errorf("下载脚本失败: %w", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HTTP %d", resp.StatusCode)
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("下载脚本失败: HTTP %d", resp.StatusCode)
 	}
-	if resp.ContentLength > 0 {
-		totalSize = resp.ContentLength
-	}
-
-	out, err := os.Create(dst)
+	f, err := os.Create(tmpScript)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
-
-	startTime := time.Now()
-	buf := make([]byte, 32*1024)
-	var downloaded int64
-	for {
-		n, err := resp.Body.Read(buf)
-		if n > 0 {
-			out.Write(buf[:n])
-			downloaded += int64(n)
-			if totalSize > 0 {
-				pct := float64(downloaded) / float64(totalSize) * 100
-				elapsed := time.Since(startTime).Seconds()
-				speed := ""
-				if elapsed > 0 {
-					bytesPerSec := float64(downloaded) / elapsed
-					speed = fmt.Sprintf("(%.1f MB/s)", bytesPerSec/1024/1024)
-				}
-				onProgress(pct, speed)
-			}
-		}
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
+	if _, err := io.Copy(f, resp.Body); err != nil {
+		f.Close()
+		return err
 	}
+	f.Close()
+	defer os.Remove(tmpScript)
+	_ = os.Chmod(tmpScript, 0755)
+
+	onProgress(Progress{Stage: "download", Message: "正在下载并安装最新版本...", Percent: 30, Version: rel.TagName})
+
+	// 执行安装脚本
+	cmd := exec.Command("bash", tmpScript)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("启动安装脚本失败: %w", err)
+	}
+
+	// 脚本会停止服务、替换文件、重启服务，当前进程也会被重启
+	onProgress(Progress{Stage: "restart", Message: "安装脚本已启动，服务即将重启...", Percent: 90, Version: rel.TagName})
+
+	// 给脚本一点时间执行，然后当前进程会被 systemctl restart 终止
+	go func() {
+		time.Sleep(3 * time.Second)
+		os.Exit(0)
+	}()
+
 	return nil
-}
-
-func extractTarGz(src, dst string) error {
-	f, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	gzr, err := gzip.NewReader(f)
-	if err != nil {
-		return err
-	}
-	defer gzr.Close()
-	tr := tar.NewReader(gzr)
-	cleaned := map[string]bool{}
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-		cleanName := filepath.Clean(hdr.Name)
-		if strings.HasPrefix(cleanName, "..") || filepath.IsAbs(cleanName) {
-			continue
-		}
-		target := filepath.Join(dst, cleanName)
-		switch hdr.Typeflag {
-		case tar.TypeDir:
-			_ = os.MkdirAll(target, os.FileMode(hdr.Mode))
-		case tar.TypeReg:
-			top := strings.SplitN(cleanName, string(os.PathSeparator), 2)[0]
-			if !cleaned[top] && (top == "web" || top == "data") {
-				_ = os.RemoveAll(filepath.Join(dst, top))
-				cleaned[top] = true
-			}
-			_ = os.MkdirAll(filepath.Dir(target), 0755)
-			out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(hdr.Mode))
-			if err != nil {
-				return err
-			}
-			if _, err := io.Copy(out, tr); err != nil {
-				out.Close()
-				return err
-			}
-			out.Close()
-		}
-	}
-	return nil
-}
-
-func fileExists(p string) bool {
-	_, err := os.Stat(p)
-	return err == nil
 }
