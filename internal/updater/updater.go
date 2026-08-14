@@ -2,8 +2,6 @@
 package updater
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -174,15 +172,17 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 	}
 
 	onProgress(Progress{Stage: "extract", Message: "解压文件...", Percent: 92})
-	// 先解压到临时目录，避免覆盖正在运行的二进制
+	// 先解压到临时目录
 	tmpDir := filepath.Join(os.TempDir(), "paladmin-update-"+time.Now().Format("20060102150405"))
 	if err := os.MkdirAll(tmpDir, 0755); err != nil {
 		return fmt.Errorf("创建临时目录失败: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
-	if err := extractTarGz(tmpTar, tmpDir); err != nil {
-		return fmt.Errorf("解压失败: %w", err)
+	// 用系统 tar 命令解压（比 Go archive/tar 兼容性更好）
+	cmd := exec.Command("tar", "-xzf", tmpTar, "-C", tmpDir)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("解压失败: %w: %s", err, string(out))
 	}
 
 	// 设置权限
@@ -192,12 +192,14 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 	}
 
 	onProgress(Progress{Stage: "restart", Message: "正在替换文件并重启...", Percent: 97})
-	// 用脚本完成原子替换+重启，脱离当前进程
+	// 用脚本完成替换+重启，脱离当前进程
 	replaceScript := fmt.Sprintf(`sleep 1
-cp -rf %s/* %s/
+cp -rf %s/* %s/ 2>/dev/null
+chmod +x %s/paladmin 2>/dev/null
+chmod +x %s/sav_cli 2>/dev/null
 systemctl restart %s
-`, tmpDir, installDir, service)
-	cmd := exec.Command("setsid", "bash", "-c", replaceScript)
+`, tmpDir, installDir, installDir, installDir, service)
+	cmd = exec.Command("setsid", "bash", "-c", replaceScript)
 	cmd.SysProcAttr = newSysProcAttr()
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("启动替换脚本失败: %w", err)
@@ -254,56 +256,6 @@ func downloadWithProgress(url, dst string, totalSize int64, onProgress func(floa
 		}
 		if err != nil {
 			return err
-		}
-	}
-	return nil
-}
-
-func extractTarGz(src, dst string) error {
-	f, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	gzr, err := gzip.NewReader(f)
-	if err != nil {
-		return err
-	}
-	defer gzr.Close()
-	tr := tar.NewReader(gzr)
-	cleaned := map[string]bool{}
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-		name := filepath.Clean(hdr.Name)
-		if strings.HasPrefix(name, "..") || filepath.IsAbs(name) {
-			continue
-		}
-		target := filepath.Join(dst, name)
-		switch hdr.Typeflag {
-		case tar.TypeDir:
-			_ = os.MkdirAll(target, os.FileMode(hdr.Mode))
-		case tar.TypeReg:
-			top := strings.SplitN(name, string(os.PathSeparator), 2)[0]
-			if !cleaned[top] && (top == "web" || top == "data") {
-				_ = os.RemoveAll(filepath.Join(dst, top))
-				cleaned[top] = true
-			}
-			_ = os.MkdirAll(filepath.Dir(target), 0755)
-			out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(hdr.Mode))
-			if err != nil {
-				return err
-			}
-			if _, err := io.Copy(out, tr); err != nil {
-				out.Close()
-				return err
-			}
-			out.Close()
 		}
 	}
 	return nil
