@@ -1,6 +1,9 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -11,7 +14,6 @@ import (
 
 type updaterAPI struct{}
 
-// checkUpdate 检查是否有新版本
 func (u *updaterAPI) check(c *gin.Context) {
 	rel, hasUpdate, err := updater.Check()
 	if err != nil {
@@ -28,7 +30,7 @@ func (u *updaterAPI) check(c *gin.Context) {
 	})
 }
 
-// doUpdate 执行更新
+// do 通过 SSE (Server-Sent Events) 推送更新进度
 func (u *updaterAPI) do(c *gin.Context) {
 	rel, hasUpdate, err := updater.Check()
 	if err != nil {
@@ -41,23 +43,31 @@ func (u *updaterAPI) do(c *gin.Context) {
 	}
 
 	installDir := resolveInstallDir()
-	service := "paladmin"
+	serviceName := "paladmin"
 
-	// 异步执行更新，先返回响应
-	go func() {
-		_ = updater.DoUpdate(rel, installDir, service, func(msg string) {
-			// 写入日志（简单打印到标准输出，journalctl 可见）
-			// 后续可改为写入面板日志缓冲
-		})
-	}()
+	// 设置 SSE 头
+	c.Writer.Header().Set("Content-Type", "text/event-stream")
+	c.Writer.Header().Set("Cache-Control", "no-cache")
+	c.Writer.Header().Set("Connection", "keep-alive")
+	c.Writer.Header().Set("X-Accel-Buffering", "no")
 
-	c.JSON(http.StatusOK, SuccessResponse{
-		Success: true,
-		Message: "开始更新到 " + rel.TagName + "，更新完成后服务将自动重启",
-	})
+	send := func(p updater.Progress) {
+		data, _ := json.Marshal(p)
+		fmt.Fprintf(c.Writer, "data: %s\n\n", data)
+		c.Writer.Flush()
+	}
+
+	send(updater.Progress{Stage: "start", Message: "开始更新到 " + rel.TagName, Version: rel.TagName})
+
+	if err := updater.DoUpdate(rel, installDir, serviceName, send); err != nil {
+		send(updater.Progress{Stage: "error", Message: err.Error()})
+		return
+	}
+
+	send(updater.Progress{Stage: "done", Message: "更新完成，服务重启中..."})
 }
 
-// resolveInstallDir 确定面板安装目录：优先可执行文件所在目录
+// resolveInstallDir 确定面板安装目录
 func resolveInstallDir() string {
 	exe, err := os.Executable()
 	if err == nil {
@@ -70,7 +80,4 @@ func resolveInstallDir() string {
 	return wd
 }
 
-// CurrentVersion 暴露当前版本
-func CurrentVersion() string {
-	return updater.CurrentVersion()
-}
+var _ = io.EOF

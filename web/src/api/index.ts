@@ -118,6 +118,5 @@ export const api = {
       published?: string
       error?: string
     }>('/api/updater/check'),
-  doUpdate: () =>
-    request<{ success: boolean; message: string }>('/api/updater/do', { method: 'POST' }),
+  doUpdateURL: () => '/api/updater/do',
 }

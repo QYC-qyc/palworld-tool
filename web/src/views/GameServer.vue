@@ -108,14 +108,30 @@
       <n-button size="tiny" @click="loadLogs" style="margin-bottom:8px">刷新日志</n-button>
       <pre class="logs">{{ logs || '暂无日志' }}</pre>
     </n-card>
+
+    <!-- 安装/更新进度弹窗 -->
+    <n-modal v-model:show="showInstallModal" preset="card" title="安装 / 更新游戏服"
+      style="max-width:680px" :mask-closable="false">
+      <n-space vertical :size="12">
+        <n-text>正在通过 SteamCMD 下载/更新游戏服，首次安装可能需要几分钟，请耐心等待。</n-text>
+        <pre class="logs logs-modal">{{ installLogs || '等待输出...' }}</pre>
+        <n-space>
+          <n-button size="small" @click="loadLogs">刷新日志</n-button>
+          <n-button size="small" type="primary" @click="doStart"
+            :disabled="!(status?.status?.installed)" :loading="acting==='start'">
+            安装完成，启动游戏服
+          </n-button>
+        </n-space>
+      </n-space>
+    </n-modal>
   </n-space>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
-  NForm, NFormItem, NInput, NButton, NGrid, NGi, NText, useMessage,
+  NForm, NFormItem, NInput, NButton, NGrid, NGi, NText, NModal, useMessage,
 } from 'naive-ui'
 import { gameApi, type GameServerStatus, type GameServerConfig } from '@/api/gameserver'
 
@@ -123,6 +139,9 @@ const message = useMessage()
 const status = ref<GameServerStatus | null>(null)
 const logs = ref('')
 const acting = ref('')
+const showInstallModal = ref(false)
+const installLogs = ref('')
+let installTimer: number | null = null
 const verifying = ref('')
 const verifyResult = reactive<{ steamExe: string; serverExe: string }>({ steamExe: '', serverExe: '' })
 const cfg = reactive<GameServerConfig>({
@@ -204,10 +223,30 @@ async function doInstall() {
   }
   await saveConfig()
   acting.value = 'install'
+  showInstallModal.value = true
+  installLogs.value = ''
   try {
     const r = await gameApi.install()
-    message.info(r.message || '已开始安装，请查看日志')
-    pollStatus()
+    message.info(r.message || '已开始安装')
+    // 开始轮询日志和状态
+    if (installTimer) clearInterval(installTimer)
+    const poll = async () => {
+      await loadLogs()
+      installLogs.value = logs.value
+      await loadStatus()
+      if (!status.value?.status?.updating) {
+        clearInterval(installTimer!)
+        installTimer = null
+        await loadStatus()
+        if (status.value?.status?.installed) {
+          message.success('游戏服安装/更新完成')
+        } else {
+          message.warning('安装过程已结束，查看日志确认是否成功')
+        }
+      }
+    }
+    poll()
+    installTimer = window.setInterval(poll, 2000)
   } catch (e: any) { message.error(e.message) }
   finally { acting.value = '' }
 }
@@ -247,6 +286,10 @@ onMounted(async () => {
   await loadStatus()
   await loadLogs()
 })
+
+onUnmounted(() => {
+  if (installTimer) clearInterval(installTimer)
+})
 </script>
 
 <style scoped>
@@ -260,6 +303,10 @@ onMounted(async () => {
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-all;
+}
+.logs-modal {
+  max-height: 360px;
+  margin: 0;
 }
 code {
   background: #f0f0f0;

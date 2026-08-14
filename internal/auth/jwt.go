@@ -44,6 +44,12 @@ func GenerateTokenForUser(user string) (string, error) {
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth := c.GetHeader("Authorization")
+		// EventSource 无法设置 header，支持 ?token= 查询参数
+		if auth == "" {
+			if qt := c.Query("token"); qt != "" {
+				auth = "Bearer " + qt
+			}
+		}
 		if auth == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authorization"})
 			return

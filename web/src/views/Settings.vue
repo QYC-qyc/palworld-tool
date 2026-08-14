@@ -113,10 +113,27 @@
           {{ updateInfo.error }}
         </n-text>
         <n-text depth="3" style="font-size:12px">
-          更新会自动下载最新二进制与前端资源并重启服务，过程约 10–30 秒，期间面板短暂不可用。
+          更新会自动下载最新二进制与前端资源并重启服务，期间面板短暂不可用。
         </n-text>
       </n-space>
     </n-card>
+
+    <!-- 更新进度弹窗 -->
+    <n-modal v-model:show="showUpdateProgress" preset="card" title="面板更新"
+      style="max-width:520px" :mask-closable="false" :close-on-esc="false">
+      <n-space vertical :size="16">
+        <n-progress
+          type="line"
+          :percentage="updateProgress.percent"
+          :status="updateProgress.stage === 'error' ? 'error' : updateProgress.stage === 'done' ? 'success' : 'default'"
+          :indicator-placement="'inside'"
+        />
+        <n-text>{{ updateProgress.message }}</n-text>
+        <n-text v-if="updateProgress.stage === 'done'" depth="3" style="font-size:12px">
+          服务正在重启，稍后自动刷新...
+        </n-text>
+      </n-space>
+    </n-modal>
 
     <n-card size="small">
       <n-space>
@@ -131,10 +148,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NForm, NFormItem, NInput, NSwitch, NGrid, NGi,
-  NSelect, NButton, NTag, NText, NAlert, useMessage,
+  NSelect, NButton, NTag, NText, NAlert, NModal, NProgress, useMessage,
 } from 'naive-ui'
 import { api } from '@/api'
 
@@ -146,6 +163,13 @@ const adminPwd = ref('')
 const webPwd = ref('')
 const checking = ref(false)
 const updating = ref(false)
+const showUpdateProgress = ref(false)
+const updateProgress = reactive<{ stage: string; message: string; percent: number }>({
+  stage: '',
+  message: '',
+  percent: 0,
+})
+let updateEventSource: EventSource | null = null
 const updateInfo = reactive<{
   current: string
   has_update: boolean
@@ -249,27 +273,60 @@ async function checkUpdate() {
 
 async function doUpdate() {
   updating.value = true
+  showUpdateProgress.value = true
+  updateProgress.stage = 'start'
+  updateProgress.message = '正在连接服务器...'
+  updateProgress.percent = 0
   try {
-    const res = await api.doUpdate()
-    message.success(res.message || '开始更新')
-    // 服务重启后等待恢复
-    setTimeout(() => {
-      message.info('正在重新连接...')
-      const timer = setInterval(async () => {
-        try {
-          const resp = await fetch('/health')
-          if (resp.ok) {
-            clearInterval(timer)
-            message.success('更新完成，即将刷新')
-            setTimeout(() => location.reload(), 1000)
-          }
-        } catch { /* 仍在重启 */ }
-      }, 3000)
-    }, 8000)
+    const token = localStorage.getItem('paladmin_token') || ''
+    const es = new EventSource(
+      `${api.doUpdateURL()}?token=${encodeURIComponent(token)}`
+    )
+    updateEventSource = es
+    let restarted = false
+    es.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data)
+        updateProgress.stage = data.stage
+        updateProgress.message = data.message
+        if (typeof data.percent === 'number') updateProgress.percent = data.percent
+        if (data.stage === 'error') {
+          es.close()
+          updating.value = false
+          message.error(data.message)
+        }
+        if (data.stage === 'done') {
+          es.close()
+          updateProgress.percent = 100
+          restarted = true
+          // 轮询健康检查，等服务恢复
+          const timer = setInterval(async () => {
+            try {
+              const resp = await fetch('/health')
+              if (resp.ok) {
+                clearInterval(timer)
+                message.success('更新完成')
+                setTimeout(() => location.reload(), 1000)
+              }
+            } catch { /* 仍在重启 */ }
+          }, 2000)
+        }
+      } catch { /* ignore parse errors */ }
+    }
+    es.onerror = () => {
+      if (!restarted) {
+        es.close()
+        updating.value = false
+        message.error('更新连接中断')
+      }
+    }
   } catch (e: any) {
-    message.error(e.message)
-  } finally {
     updating.value = false
+    message.error(e.message)
   }
 }
+
+onUnmounted(() => {
+  if (updateEventSource) updateEventSource.close()
+})
 </script>
