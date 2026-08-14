@@ -199,7 +199,11 @@ func (m *Manager) isUpdating() bool {
 	return m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid)
 }
 
-// Start 启动游戏服
+// Start 启动游戏服。
+// 面板以 root 运行，但 PalServer 拒绝 root 启动，因此：
+//   - 若面板以 root 运行：查找安装目录属主用户，以该用户身份启动（su -c）；
+//   - 若目录属主就是 root：自动创建/使用 paladmin 用户并 chown。
+//   - 若面板非 root：直接启动。
 func (m *Manager) Start() error {
 	exe := m.serverExePath()
 	if exe == "" {
@@ -218,8 +222,28 @@ func (m *Manager) Start() error {
 		args = append(args, strings.Fields(m.cfg.ExtraArgs)...)
 	}
 
-	cmd := exec.Command(exe, args...)
-	cmd.Dir = filepath.Dir(exe)
+	runUser := ""
+	if runtime.GOOS != "windows" && os.Geteuid() == 0 {
+		runUser, err = m.ensureRunUser()
+		if err != nil {
+			return fmt.Errorf("准备运行用户失败: %w", err)
+		}
+	}
+
+	var cmd *exec.Cmd
+	if runUser != "" {
+		// 以指定用户身份启动：su -s /bin/bash <user> -c 'cd <dir> && <exe> <args>'
+		shellCmd := fmt.Sprintf("cd %s && exec %s %s",
+			shellQuote(filepath.Dir(exe)),
+			shellQuote(exe),
+			strings.Join(args, " "))
+		cmd = exec.Command("su", "-s", "/bin/bash", runUser, "-c", shellCmd)
+		cmd.Dir = filepath.Dir(exe)
+		m.logBuf.WriteString(fmt.Sprintf("以用户 %s 启动游戏服\n", runUser))
+	} else {
+		cmd = exec.Command(exe, args...)
+		cmd.Dir = filepath.Dir(exe)
+	}
 	cmd.SysProcAttr = newSysProcAttr(true)
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
@@ -233,11 +257,71 @@ func (m *Manager) Start() error {
 	go m.pipeLog(stderr)
 	go func() { _ = cmd.Wait(); m.logBuf.WriteString("=== 游戏服已停止 ===\n") }()
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * time.Second)
 	if !m.isAlive(cmd.Process.Pid) {
-		return errors.New("进程启动后立即退出，请检查日志")
+		return errors.New("进程启动后立即退出，请检查日志（可能是 root 权限问题或配置错误）")
 	}
 	return nil
+}
+
+// ensureRunUser 确定启动游戏服使用的非 root 用户：
+// 优先使用游戏安装目录的属主；若属主为 root，则创建 paladmin 用户并 chown。
+func (m *Manager) ensureRunUser() (string, error) {
+	if runtime.GOOS == "windows" {
+		return "", nil
+	}
+	installDir := m.cfg.InstallDir
+	if installDir == "" {
+		return "", errors.New("未配置游戏安装目录")
+	}
+
+	// 查看目录属主
+	ownerUID := ""
+	if fi, err := os.Stat(installDir); err == nil {
+		if stat, ok := fileOwner(fi); ok {
+			ownerUID = stat
+		}
+	}
+
+	// 属主非 root，查找对应用户名
+	if ownerUID != "" && ownerUID != "0" {
+		if name, err := lookupUsernameByUID(ownerUID); err == nil && name != "" && name != "root" {
+			return name, nil
+		}
+	}
+
+	// 属主是 root 或找不到，使用 paladmin
+	const gameUser = "paladmin"
+	if _, err := exec.LookPath("id"); err == nil {
+		out, err := exec.Command("id", "-u", gameUser).Output()
+		if err != nil || strings.TrimSpace(string(out)) == "" {
+			// 创建用户
+			m.logBuf.WriteString("创建 paladmin 用户用于运行游戏服\n")
+			cmd := exec.Command("useradd", "-r", "-m", "-d", installDir, "-s", "/bin/bash", gameUser)
+			if out, err := cmd.CombinedOutput(); err != nil {
+				return "", fmt.Errorf("创建用户失败: %v: %s", err, strings.TrimSpace(string(out)))
+			}
+		}
+	}
+	// chown 游戏目录给 paladmin
+	m.logBuf.WriteString(fmt.Sprintf("将 %s 属主改为 %s\n", installDir, gameUser))
+	cmd := exec.Command("chown", "-R", gameUser+":"+gameUser, installDir)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("chown 失败: %v: %s", err, strings.TrimSpace(string(out)))
+	}
+	// SteamCMD 目录也需要属主可访问（用于安装/更新）
+	steamExe := m.steamCmdExe()
+	if steamExe != "" {
+		steamDir := filepath.Dir(steamExe)
+		if steamDir != installDir {
+			_ = exec.Command("chown", "-R", gameUser+":"+gameUser, steamDir).Run()
+		}
+	}
+	return gameUser, nil
+}
+
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
 
 // Stop 停止游戏服
