@@ -136,18 +136,7 @@ func (p *palDefenderAPI) installWine(c *gin.Context) {
 		return
 	}
 
-	// 设置 SSE 头实时推送安装输出
-	c.Writer.Header().Set("Content-Type", "text/event-stream")
-	c.Writer.Header().Set("Cache-Control", "no-cache")
-	c.Writer.Header().Set("Connection", "keep-alive")
-	c.Writer.Header().Set("X-Accel-Buffering", "no")
-
-	send := func(msg string) {
-		data, _ := json.Marshal(map[string]string{"message": msg})
-		fmt.Fprintf(c.Writer, "data: %s\n\n", data)
-		c.Writer.Flush()
-	}
-
+	var output strings.Builder
 	commands := [][]string{
 		{"dpkg", "--add-architecture", "i386"},
 		{"apt-get", "update", "-y"},
@@ -155,36 +144,30 @@ func (p *palDefenderAPI) installWine(c *gin.Context) {
 	}
 
 	for _, args := range commands {
-		send("执行: " + strings.Join(args, " "))
 		cmd := exec.Command(args[0], args[1:]...)
 		setSysProcAttr(cmd)
-		stdout, _ := cmd.StdoutPipe()
-		cmd.Stderr = cmd.Stdout
-		if err := cmd.Start(); err != nil {
-			send("失败: " + err.Error())
-			return
-		}
-		buf := make([]byte, 4096)
-		for {
-			n, err := stdout.Read(buf)
-			if n > 0 {
-				send(strings.TrimSpace(string(buf[:n])))
-			}
-			if err != nil {
-				break
-			}
-		}
-		if err := cmd.Wait(); err != nil {
-			send("命令执行失败: " + err.Error())
+		out, err := cmd.CombinedOutput()
+		output.WriteString("$ " + strings.Join(args, " ") + "\n")
+		output.Write(out)
+		output.WriteString("\n")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, ErrorResponse{
+				Error: fmt.Sprintf("执行 %s 失败: %v\n%s", args[0], err, output.String()),
+			})
 			return
 		}
 	}
 
-	// 验证安装
 	if out, err := exec.Command("wine64", "--version").Output(); err == nil {
-		send("安装完成: " + strings.TrimSpace(string(out)))
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "Wine 安装成功: " + strings.TrimSpace(string(out)),
+		})
 	} else {
-		send("Wine 安装完成但未能验证版本，请刷新状态")
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "Wine 安装完成，请刷新状态验证",
+		})
 	}
 }
 

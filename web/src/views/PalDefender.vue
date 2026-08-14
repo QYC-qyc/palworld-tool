@@ -36,23 +36,15 @@
       <n-space vertical>
         <n-alert v-if="!status.wine_present" type="warning" :show-icon="false">
           <template #header>需要安装 Wine</template>
-          <div style="margin-bottom:8px">PalDefender 需要 Wine 才能在 Linux 上运行。可以一键安装，或手动执行：</div>
-          <pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:6px;font-size:12px;overflow:auto">dpkg --add-architecture i386
-apt update
-apt install -y wine64</pre>
-          <n-button type="primary" size="small" style="margin-top:8px"
-            @click="installWine" :loading="wineInstalling">
-            一键安装 Wine
-          </n-button>
-        </n-alert>
-
-        <!-- Wine 安装进度 -->
-        <n-modal v-model:show="showWineProgress" preset="card" title="安装 Wine"
-          style="max-width:600px" :mask-closable="false">
-          <n-space vertical>
-            <pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:6px;font-size:12px;max-height:360px;overflow:auto;white-space:pre-wrap">{{ wineLog || '准备安装...' }}</pre>
+          <div style="margin-bottom:8px">PalDefender 需要 Wine 才能在 Linux 上运行。</div>
+          <n-space>
+            <n-button type="primary" size="small"
+              @click="installWine" :loading="wineInstalling">
+              一键安装 Wine
+            </n-button>
+            <n-button size="small" @click="copyWineCmd" quaternary>复制手动命令</n-button>
           </n-space>
-        </n-modal>
+        </n-alert>
 
         <n-space>
           <n-button @click="refreshStatus" :loading="loading">刷新状态</n-button>
@@ -90,8 +82,6 @@ const message = useMessage()
 const loading = ref(false)
 const installing = ref(false)
 const wineInstalling = ref(false)
-const showWineProgress = ref(false)
-const wineLog = ref('')
 const status = ref<any>({})
 
 async function refreshStatus() {
@@ -137,30 +127,32 @@ async function install() {
 
 async function installWine() {
   wineInstalling.value = true
-  showWineProgress.value = true
-  wineLog.value = ''
   try {
     const token = localStorage.getItem('paladmin_token') || ''
-    const es = new EventSource(
-      `/api/paldefender/install-wine?token=${encodeURIComponent(token)}`
-    )
-    es.onmessage = (ev) => {
-      try {
-        const data = JSON.parse(ev.data)
-        wineLog.value += (wineLog.value ? '\n' : '') + data.message
-      } catch { /* ignore */ }
-    }
-    es.onerror = () => {
-      es.close()
-      wineInstalling.value = false
-      // 安装完成或出错后刷新状态
-      setTimeout(refreshStatus, 2000)
-      setTimeout(() => { showWineProgress.value = false }, 3000)
+    const resp = await fetch('/api/paldefender/install-wine', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    const data = await resp.json()
+    if (resp.ok && data.success) {
+      message.success(data.message || 'Wine 安装成功')
+      await refreshStatus()
+    } else {
+      message.error(data.error || '安装失败，请手动执行安装命令')
     }
   } catch (e: any) {
-    message.error(e.message)
+    message.error(e.message || '安装失败')
+  } finally {
     wineInstalling.value = false
   }
+}
+
+function copyWineCmd() {
+  const cmd = 'dpkg --add-architecture i386 && apt update && apt install -y wine64'
+  navigator.clipboard?.writeText(cmd).then(() => message.success('命令已复制'))
 }
 
 onMounted(refreshStatus)

@@ -148,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NForm, NFormItem, NInput, NSwitch, NGrid, NGi,
   NSelect, NButton, NTag, NText, NAlert, NModal, NProgress, useMessage,
@@ -169,7 +169,6 @@ const updateProgress = reactive<{ stage: string; message: string; percent: numbe
   message: '',
   percent: 0,
 })
-let updateEventSource: EventSource | null = null
 const updateInfo = reactive<{
   current: string
   has_update: boolean
@@ -298,75 +297,32 @@ function waitForRestart() {
 async function doUpdate() {
   updating.value = true
   showUpdateProgress.value = true
-  updateProgress.stage = 'start'
-  updateProgress.message = '正在连接服务器...'
-  updateProgress.percent = 0
-
-  const token = localStorage.getItem('paladmin_token') || ''
-  let gotDone = false
-  let gotError = false
+  updateProgress.percent = 30
+  updateProgress.message = '正在执行更新...'
 
   try {
-    const es = new EventSource(
-      `${api.doUpdateURL()}?token=${encodeURIComponent(token)}`
-    )
-    updateEventSource = es
-
-    // 超时保护：30秒内没收到任何消息则认为 SSE 不可用，但更新可能已在进行
-    const connectTimeout = setTimeout(() => {
-      if (!gotDone && !gotError) {
-        es.close()
-        // SSE 可能在某些反向代理下不工作，但更新请求已发出，等待重启
-        updateProgress.message = '正在等待服务重启...'
-        waitForRestart()
-      }
-    }, 30000)
-
-    es.onmessage = (ev) => {
-      try {
-        const data = JSON.parse(ev.data)
-        updateProgress.stage = data.stage
-        updateProgress.message = data.message
-        if (typeof data.percent === 'number') updateProgress.percent = data.percent
-        if (data.stage === 'error') {
-          gotError = true
-          clearTimeout(connectTimeout)
-          es.close()
-          updating.value = false
-          message.error(data.message)
-        }
-        if (data.stage === 'done' || data.stage === 'restart') {
-          gotDone = true
-          clearTimeout(connectTimeout)
-          es.close()
-          waitForRestart()
-        }
-      } catch { /* ignore */ }
+    const resp = await fetch('/api/updater/do', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('paladmin_token')}`,
+      },
+    })
+    const data = await resp.json()
+    if (!resp.ok || data.error) {
+      updating.value = false
+      message.error(data.error || '更新失败')
+      return
     }
-
-    es.onerror = () => {
-      clearTimeout(connectTimeout)
-      es.close()
-      if (!gotDone && !gotError) {
-        // 连接断开可能是因为服务正在重启（更新过程中正常）
-        // 如果已经收到过下载进度，说明更新在进行中
-        if (updateProgress.percent > 0 || updateProgress.stage === 'extract') {
-          gotDone = true
-          waitForRestart()
-        } else {
-          // 刚连接就断了，可能是网络问题
-          updating.value = false
-          message.error('无法连接更新服务，请稍后重试')
-        }
-      }
-    }
+    // 更新脚本会重启服务，等待恢复
+    updateProgress.percent = 60
+    updateProgress.message = data.message || '服务正在重启...'
+    waitForRestart()
   } catch (e: any) {
-    updating.value = false
-    message.error(e.message)
+    // 请求被中断可能是因为服务正在重启，这是正常的
+    updateProgress.percent = 60
+    updateProgress.message = '服务正在重启...'
+    waitForRestart()
   }
 }
-
-onUnmounted(() => {
-  if (updateEventSource) updateEventSource.close()
-})
 </script>

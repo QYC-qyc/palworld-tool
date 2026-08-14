@@ -1,9 +1,6 @@
 package api
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -30,7 +27,7 @@ func (u *updaterAPI) check(c *gin.Context) {
 	})
 }
 
-// do 通过 SSE (Server-Sent Events) 推送更新进度
+// do 触发更新：执行安装脚本，立即返回，前端轮询 health 等待重启
 func (u *updaterAPI) do(c *gin.Context) {
 	rel, hasUpdate, err := updater.Check()
 	if err != nil {
@@ -43,28 +40,15 @@ func (u *updaterAPI) do(c *gin.Context) {
 	}
 
 	installDir := resolveInstallDir()
-	serviceName := "paladmin"
+	// 异步执行更新，不阻塞 HTTP 响应
+	go func() {
+		_ = updater.DoUpdate(rel, installDir, "paladmin", nil)
+	}()
 
-	// 设置 SSE 头
-	c.Writer.Header().Set("Content-Type", "text/event-stream")
-	c.Writer.Header().Set("Cache-Control", "no-cache")
-	c.Writer.Header().Set("Connection", "keep-alive")
-	c.Writer.Header().Set("X-Accel-Buffering", "no")
-
-	send := func(p updater.Progress) {
-		data, _ := json.Marshal(p)
-		fmt.Fprintf(c.Writer, "data: %s\n\n", data)
-		c.Writer.Flush()
-	}
-
-	send(updater.Progress{Stage: "start", Message: "开始更新到 " + rel.TagName, Version: rel.TagName})
-
-	if err := updater.DoUpdate(rel, installDir, serviceName, send); err != nil {
-		send(updater.Progress{Stage: "error", Message: err.Error()})
-		return
-	}
-
-	send(updater.Progress{Stage: "done", Message: "更新完成，服务重启中..."})
+	c.JSON(http.StatusOK, SuccessResponse{
+		Success: true,
+		Message: "开始更新到 " + rel.TagName + "，服务即将重启",
+	})
 }
 
 // resolveInstallDir 确定面板安装目录
@@ -79,5 +63,3 @@ func resolveInstallDir() string {
 	wd, _ := os.Getwd()
 	return wd
 }
-
-var _ = io.EOF
