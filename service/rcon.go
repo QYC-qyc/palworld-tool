@@ -52,3 +52,21 @@ func RemoveRconCommand(db *bbolt.DB, id string) error {
 		return tx.Bucket([]byte(database.BucketRcons)).Delete([]byte(id))
 	})
 }
+
+// EnsureDefaultRconCommands 在命令列表为空时写入内置常用命令
+func EnsureDefaultRconCommands(db *bbolt.DB) error {
+	existing, err := ListRconCommands(db)
+	if err != nil {
+		return err
+	}
+	// 已有命令则不重复写入
+	if len(existing) > 0 {
+		return nil
+	}
+	for _, cmd := range database.DefaultRconCommands() {
+		if _, err := AddRconCommand(db, cmd); err != nil {
+			return err
+		}
+	}
+	return nil
+}

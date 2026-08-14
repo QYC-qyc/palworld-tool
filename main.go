@@ -139,6 +139,11 @@ func initRuntimeSettings(db *bbolt.DB) {
 	}
 	_ = service.InitSettings(db, defaults)
 
+	// 首次启动时写入内置 RCON 命令
+	if err := service.EnsureDefaultRconCommands(db); err != nil {
+		logger.Warnf("初始化 RCON 命令失败: %v", err)
+	}
+
 	saved, err := service.GetAllSettings(db)
 	if err == nil {
 		config.ApplyToViper(saved)
