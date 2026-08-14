@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -87,7 +88,8 @@ func getSettings(c *gin.Context) {
 
 // saveSettings 批量保存动态配置
 func saveSettings(c *gin.Context) {
-	var req map[string]string
+	// 用 interface{} 接收以兼容布尔、数字等非字符串值（前端开关等）
+	var req map[string]interface{}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
@@ -95,15 +97,16 @@ func saveSettings(c *gin.Context) {
 
 	updates := map[string]string{}
 	for k, v := range req {
-		// 脱敏占位符不覆盖真实密码
-		if isSecret(k) && v == "********" {
-			continue
-		}
 		// 只允许已知键
 		if !isEditableKey(k) {
 			continue
 		}
-		updates[k] = v
+		str := toString(v)
+		// 脱敏占位符不覆盖真实密码
+		if isSecret(k) && str == "********" {
+			continue
+		}
+		updates[k] = str
 	}
 
 	if err := service.SetSettings(db, updates); err != nil {
@@ -117,6 +120,29 @@ func saveSettings(c *gin.Context) {
 
 	_ = anticheat.AddAudit(db, "web", "settings_update", "", "更新面板动态配置", "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
+}
+
+// toString 将任意 JSON 值转为字符串存储
+func toString(v interface{}) string {
+	switch t := v.(type) {
+	case string:
+		return t
+	case bool:
+		if t {
+			return "true"
+		}
+		return "false"
+	case float64:
+		// 整数不显示小数点
+		if t == float64(int64(t)) {
+			return fmt.Sprintf("%d", int64(t))
+		}
+		return fmt.Sprintf("%v", t)
+	case nil:
+		return ""
+	default:
+		return fmt.Sprintf("%v", t)
+	}
 }
 
 func isSecret(k string) bool {
