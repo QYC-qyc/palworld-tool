@@ -271,19 +271,57 @@ async function checkUpdate() {
   }
 }
 
+function waitForRestart() {
+  updateProgress.message = '服务正在重启，请稍候...'
+  let elapsed = 0
+  const timer = setInterval(async () => {
+    elapsed += 2
+    try {
+      const resp = await fetch('/health')
+      if (resp.ok) {
+        clearInterval(timer)
+        updateProgress.percent = 100
+        updateProgress.message = '更新完成，即将刷新...'
+        message.success('面板更新完成')
+        setTimeout(() => location.reload(), 1500)
+      }
+    } catch {
+      if (elapsed > 60) {
+        clearInterval(timer)
+        updating.value = false
+        message.error('服务重启超时，请手动刷新页面')
+      }
+    }
+  }, 2000)
+}
+
 async function doUpdate() {
   updating.value = true
   showUpdateProgress.value = true
   updateProgress.stage = 'start'
   updateProgress.message = '正在连接服务器...'
   updateProgress.percent = 0
+
+  const token = localStorage.getItem('paladmin_token') || ''
+  let gotDone = false
+  let gotError = false
+
   try {
-    const token = localStorage.getItem('paladmin_token') || ''
     const es = new EventSource(
       `${api.doUpdateURL()}?token=${encodeURIComponent(token)}`
     )
     updateEventSource = es
-    let restarted = false
+
+    // 超时保护：30秒内没收到任何消息则认为 SSE 不可用，但更新可能已在进行
+    const connectTimeout = setTimeout(() => {
+      if (!gotDone && !gotError) {
+        es.close()
+        // SSE 可能在某些反向代理下不工作，但更新请求已发出，等待重启
+        updateProgress.message = '正在等待服务重启...'
+        waitForRestart()
+      }
+    }, 30000)
+
     es.onmessage = (ev) => {
       try {
         const data = JSON.parse(ev.data)
@@ -291,33 +329,35 @@ async function doUpdate() {
         updateProgress.message = data.message
         if (typeof data.percent === 'number') updateProgress.percent = data.percent
         if (data.stage === 'error') {
+          gotError = true
+          clearTimeout(connectTimeout)
           es.close()
           updating.value = false
           message.error(data.message)
         }
-        if (data.stage === 'done') {
+        if (data.stage === 'done' || data.stage === 'restart') {
+          gotDone = true
+          clearTimeout(connectTimeout)
           es.close()
-          updateProgress.percent = 100
-          restarted = true
-          // 轮询健康检查，等服务恢复
-          const timer = setInterval(async () => {
-            try {
-              const resp = await fetch('/health')
-              if (resp.ok) {
-                clearInterval(timer)
-                message.success('更新完成')
-                setTimeout(() => location.reload(), 1000)
-              }
-            } catch { /* 仍在重启 */ }
-          }, 2000)
+          waitForRestart()
         }
-      } catch { /* ignore parse errors */ }
+      } catch { /* ignore */ }
     }
+
     es.onerror = () => {
-      if (!restarted) {
-        es.close()
-        updating.value = false
-        message.error('更新连接中断')
+      clearTimeout(connectTimeout)
+      es.close()
+      if (!gotDone && !gotError) {
+        // 连接断开可能是因为服务正在重启（更新过程中正常）
+        // 如果已经收到过下载进度，说明更新在进行中
+        if (updateProgress.percent > 0 || updateProgress.stage === 'extract') {
+          gotDone = true
+          waitForRestart()
+        } else {
+          // 刚连接就断了，可能是网络问题
+          updating.value = false
+          message.error('无法连接更新服务，请稍后重试')
+        }
       }
     }
   } catch (e: any) {
