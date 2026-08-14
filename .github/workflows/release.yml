@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  delete:
   workflow_dispatch:
 
 permissions:
@@ -11,6 +12,8 @@ permissions:
 
 jobs:
   build:
+    # 仅在推送 tag 或手动触发时构建
+    if: github.event_name != 'delete'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,3 +63,23 @@ jobs:
           files: |
             paladmin_linux_amd64.tar.gz
             paladmin_linux_arm64.tar.gz
+
+  cleanup:
+    # 删除 tag 时，同步删除对应的 GitHub Release
+    if: github.event_name == 'delete' && github.event.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete release for deleted tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.ref }}
+        run: |
+          set +e
+          rid=$(gh api -H "Accept: application/vnd.github+json" \
+            "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null)
+          if [ -n "$rid" ] && [ "$rid" != "null" ]; then
+            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/${rid}"
+            echo "已删除 tag ${TAG} 对应的 release (id=${rid})"
+          else
+            echo "tag ${TAG} 没有对应的 release，无需删除"
+          fi
