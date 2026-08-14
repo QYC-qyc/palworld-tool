@@ -173,23 +173,35 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 		return fmt.Errorf("所有镜像下载失败: %w", lastErr)
 	}
 
-	onProgress(Progress{Stage: "extract", Message: "解压并替换文件...", Percent: 95})
-	if err := extractTarGz(tmpTar, installDir); err != nil {
+	onProgress(Progress{Stage: "extract", Message: "解压文件...", Percent: 92})
+	// 先解压到临时目录，避免覆盖正在运行的二进制
+	tmpDir := filepath.Join(os.TempDir(), "paladmin-update-"+time.Now().Format("20060102150405"))
+	if err := os.MkdirAll(tmpDir, 0755); err != nil {
+		return fmt.Errorf("创建临时目录失败: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	if err := extractTarGz(tmpTar, tmpDir); err != nil {
 		return fmt.Errorf("解压失败: %w", err)
 	}
 
-	binPath := filepath.Join(installDir, "paladmin")
-	_ = os.Chmod(binPath, 0755)
-	if sav := filepath.Join(installDir, "sav_cli"); fileExists(sav) {
+	// 设置权限
+	_ = os.Chmod(filepath.Join(tmpDir, "paladmin"), 0755)
+	if sav := filepath.Join(tmpDir, "sav_cli"); fileExists(sav) {
 		_ = os.Chmod(sav, 0755)
 	}
 
-	onProgress(Progress{Stage: "restart", Message: "正在重启服务...", Percent: 98})
-	// 用 nohup 延迟重启，确保当前 HTTP 响应能返回
-	restartScript := fmt.Sprintf(`sleep 2 && systemctl restart %s`, service)
-	cmd := exec.Command("setsid", "bash", "-c", restartScript)
+	onProgress(Progress{Stage: "restart", Message: "正在替换文件并重启...", Percent: 97})
+	// 用脚本完成原子替换+重启，脱离当前进程
+	replaceScript := fmt.Sprintf(`sleep 1
+cp -rf %s/* %s/
+systemctl restart %s
+`, tmpDir, installDir, service)
+	cmd := exec.Command("setsid", "bash", "-c", replaceScript)
 	cmd.SysProcAttr = newSysProcAttr()
-	_ = cmd.Start()
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("启动替换脚本失败: %w", err)
+	}
 
 	return nil
 }
@@ -218,19 +230,23 @@ func downloadWithProgress(url, dst string, totalSize int64, onProgress func(floa
 	start := time.Now()
 	buf := make([]byte, 64*1024)
 	var downloaded int64
+	var lastPct int
 	for {
 		n, err := resp.Body.Read(buf)
 		if n > 0 {
 			out.Write(buf[:n])
 			downloaded += int64(n)
 			if totalSize > 0 {
-				pct := float64(downloaded) / float64(totalSize) * 100
-				elapsed := time.Since(start).Seconds()
-				speed := ""
-				if elapsed > 0 {
-					speed = fmt.Sprintf("%.1f MB/s", float64(downloaded)/elapsed/1024/1024)
+				pct := int(float64(downloaded) / float64(totalSize) * 100)
+				if pct != lastPct {
+					lastPct = pct
+					elapsed := time.Since(start).Seconds()
+					speed := ""
+					if elapsed > 0 {
+						speed = fmt.Sprintf("%.1f MB/s", float64(downloaded)/elapsed/1024/1024)
+					}
+					onProgress(float64(pct), speed)
 				}
-				onProgress(pct, speed)
 			}
 		}
 		if err == io.EOF {
