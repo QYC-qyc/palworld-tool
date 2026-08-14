@@ -68,18 +68,6 @@
       </n-form>
     </n-card>
 
-    <n-card title="反作弊" size="small">
-      <n-form label-placement="left" label-width="140">
-        <n-form-item label="启用反作弊">
-          <n-switch :value="form['anticheat.enabled'] === 'true'"
-            @update:value="(v) => (form['anticheat.enabled'] = v ? 'true' : 'false')" />
-        </n-form-item>
-        <n-form-item label="反作弊模式">
-          <n-select v-model:value="form['anticheat.mode']" :options="acModes" />
-        </n-form-item>
-      </n-form>
-    </n-card>
-
     <n-card title="面板" size="small">
       <n-form label-placement="left" label-width="140">
         <n-form-item label="面板新密码">
@@ -140,7 +128,7 @@
         <n-button type="primary" :loading="saving" @click="save">保存设置</n-button>
         <n-tag :bordered="false">端口 {{ form['web.port'] }}（静态，需重启修改）</n-tag>
         <n-text depth="3" style="font-size:12px">
-          密码类字段留空表示不修改；连接、反作弊、存档路径等保存后即时生效。
+          密码类字段留空表示不修改；连接、存档路径等保存后即时生效。
         </n-text>
       </n-space>
     </n-card>
@@ -182,9 +170,6 @@ const processModes = [
   { label: '不控制（手动停服）', value: 'noop' },
   { label: 'systemd', value: 'systemd' },
   { label: 'docker', value: 'docker' },
-]
-const acModes = [
-  { label: '外置（存档扫描，纯 Linux 原生）', value: 'external' },
 ]
 
 async function load() {

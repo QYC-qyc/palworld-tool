@@ -77,10 +77,22 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 		return
 	}
 
+	// 自动确定或创建 Win64 目录
 	win64 := st.Win64Path
 	if win64 == "" {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "未找到 Pal/Binaries/Win64 目录，请确认游戏安装目录正确"})
-		return
+		gameDir := req.GameDir
+		if gameDir == "" && gameAPI != nil {
+			gameDir = gameAPI.mgr.ConfigValue().InstallDir
+		}
+		if gameDir == "" {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: "未配置游戏安装目录"})
+			return
+		}
+		win64 = filepath.Join(gameDir, "Pal", "Binaries", "Win64")
+		if err := os.MkdirAll(win64, 0755); err != nil {
+			c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "创建 Win64 目录失败: " + err.Error()})
+			return
+		}
 	}
 
 	// 获取最新版本
@@ -103,15 +115,32 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 		return
 	}
 
+	// 下载 DLL，通过国内镜像加速
+	dlMirrors := []string{
+		"https://ghfast.top/",
+		"https://gh-proxy.com/",
+		"https://ghproxy.net/",
+		"",
+	}
 	downloaded := 0
 	for _, asset := range rel.Assets {
 		if asset.Name != palDefenderDLL1 && asset.Name != palDefenderDLL2 {
 			continue
 		}
 		dst := filepath.Join(win64, asset.Name)
-		if err := downloadFile(asset.BrowserDownloadURL, dst); err != nil {
+		var lastErr error
+		for _, prefix := range dlMirrors {
+			url := prefix + asset.BrowserDownloadURL
+			if err := downloadFile(url, dst); err == nil {
+				lastErr = nil
+				break
+			} else {
+				lastErr = err
+			}
+		}
+		if lastErr != nil {
 			c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Error: fmt.Sprintf("下载 %s 失败: %v", asset.Name, err),
+				Error: fmt.Sprintf("下载 %s 失败: %v", asset.Name, lastErr),
 			})
 			return
 		}
