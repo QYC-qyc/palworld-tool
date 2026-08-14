@@ -9,10 +9,13 @@ import (
 	"github.com/spf13/viper"
 	"go.etcd.io/bbolt"
 	"paladmin/internal/database"
+	"paladmin/internal/detect"
 	"paladmin/internal/logger"
 	"paladmin/internal/tool"
 	"paladmin/service"
 )
+
+var detectCfg = detect.DefaultConfig()
 
 var (
 	scheduler gocron.Scheduler
@@ -47,6 +50,8 @@ func SyncPlayersOnce() {
 	if viper.GetBool("manage.kick_non_whitelist") {
 		checkAndKickPlayers(online)
 	}
+	// 轻量外部反作弊检测
+	go detect.RunOnlineCheck(dbRef, detectCfg)
 }
 
 // SyncSavOnce 执行一次存档同步
@@ -155,6 +160,16 @@ func Schedule() error {
 			gocron.NewTask(backupTask)); err != nil {
 			logger.Errorf("注册备份任务失败: %v", err)
 		}
+	}
+	// 轻量反作弊在线检测（独立间隔，默认10秒）
+	detectInterval := detectCfg.OnlineInterval
+	if detectInterval <= 0 {
+		detectInterval = 10
+	}
+	go detect.RunOnlineCheck(dbRef, detectCfg)
+	if _, err := s.NewJob(gocron.DurationJob(time.Duration(detectInterval)*time.Second),
+		gocron.NewTask(func() { detect.RunOnlineCheck(dbRef, detectCfg) })); err != nil {
+		logger.Errorf("注册反作弊检测任务失败: %v", err)
 	}
 	s.Start()
 	return nil

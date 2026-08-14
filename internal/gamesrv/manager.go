@@ -210,16 +210,7 @@ func (m *Manager) isUpdating() bool {
 //   - 若目录属主就是 root：自动创建/使用 paladmin 用户并 chown。
 //   - 若面板非 root：直接启动。
 func (m *Manager) Start() error {
-	exe := m.serverExePath()
-	if exe == "" {
-		return errors.New("未配置安装目录")
-	}
-	info, err := os.Stat(exe)
-	if err != nil || info.IsDir() {
-		return errors.New("服务端未安装，请先在面板点击安装")
-	}
-
-	// 先确保没有其他游戏服实例在运行（可能是重启前面板启动的、或手动启动的）
+	// 先确保没有其他游戏服实例在运行
 	if running := m.findRunningProcesses(); len(running) > 0 {
 		m.logBuf.WriteString(fmt.Sprintf("检测到 %d 个正在运行的游戏服进程，先停止...\n", len(running)))
 		if err := m.killAllPalServer(); err != nil {
@@ -234,6 +225,7 @@ func (m *Manager) Start() error {
 	}
 
 	runUser := ""
+	var err error
 	if runtime.GOOS != "windows" && os.Geteuid() == 0 {
 		runUser, err = m.ensureRunUser()
 		if err != nil {
@@ -241,9 +233,57 @@ func (m *Manager) Start() error {
 		}
 	}
 
+	// 检测是否使用 Wine 模式（安装了 PalDefender DLL 时自动切换）
+	useWine := m.shouldUseWine()
+	var exe string
+	if useWine {
+		exe = m.winServerExePath()
+		if _, statErr := os.Stat(exe); statErr != nil {
+			return fmt.Errorf("Wine 模式：未找到 Windows 版服务端 %s", exe)
+		}
+		m.logBuf.WriteString("检测到 PalDefender，使用 Wine 启动 Windows 版服务端\n")
+	} else {
+		exe = m.serverExePath()
+		if exe == "" {
+			return errors.New("未配置安装目录")
+		}
+		if _, statErr := os.Stat(exe); statErr != nil || statErr != nil && os.IsNotExist(statErr) {
+			return errors.New("服务端未安装，请先在面板点击安装")
+		}
+	}
+
+	// 构建启动命令
 	var cmd *exec.Cmd
-	if runUser != "" {
-		// 以指定用户身份启动：su -s /bin/bash <user> -c 'cd <dir> && <exe> <args>'
+	if useWine && runtime.GOOS != "windows" {
+		// Wine 启动：wine PalServer-Win64-Shipping-Cmd.exe <args>
+		wineExe := "wine64"
+		if p, lookErr := exec.LookPath("wine64"); lookErr != nil {
+			if p2, lookErr2 := exec.LookPath("wine"); lookErr2 == nil {
+				wineExe = p2
+			} else {
+				return errors.New("未找到 wine/wine64，请先安装 Wine")
+			}
+		} else {
+			wineExe = p
+		}
+		wineArgs := append([]string{exe}, args...)
+		if runUser != "" {
+			shellCmd := fmt.Sprintf("cd %s && exec %s %s",
+				shellQuote(filepath.Dir(exe)),
+				shellQuote(wineExe),
+				strings.Join(wineArgs, " "))
+			cmd = exec.Command("su", "-s", "/bin/bash", runUser, "-c", shellCmd)
+		} else {
+			cmd = exec.Command(wineExe, wineArgs...)
+		}
+		cmd.Dir = filepath.Dir(exe)
+		// Wine 需要的环境变量
+		cmd.Env = append(os.Environ(),
+			"WINEDEBUG=-all",
+			"WINEDLLOVERRIDES=d3d9=n,b",
+		)
+		m.logBuf.WriteString(fmt.Sprintf("Wine 启动: %s %s\n", wineExe, exe))
+	} else if runUser != "" {
 		shellCmd := fmt.Sprintf("cd %s && exec %s %s",
 			shellQuote(filepath.Dir(exe)),
 			shellQuote(exe),
@@ -268,11 +308,32 @@ func (m *Manager) Start() error {
 	go m.pipeLog(stderr)
 	go func() { _ = cmd.Wait(); m.logBuf.WriteString("=== 游戏服已停止 ===\n") }()
 
-	time.Sleep(3 * time.Second)
+	time.Sleep(5 * time.Second)
 	if !m.isAlive(cmd.Process.Pid) {
-		return errors.New("进程启动后立即退出，请检查日志（可能是 root 权限问题或配置错误）")
+		return errors.New("进程启动后立即退出，请检查日志")
 	}
 	return nil
+}
+
+// shouldUseWine 检测是否应使用 Wine 模式
+func (m *Manager) shouldUseWine() bool {
+	if runtime.GOOS == "windows" {
+		return false
+	}
+	win64 := filepath.Join(m.cfg.InstallDir, "Pal", "Binaries", "Win64")
+	// 如果 d3d9.dll 存在（PalDefender 的 hook），使用 Wine
+	if _, err := os.Stat(filepath.Join(win64, "d3d9.dll")); err == nil {
+		return true
+	}
+	return false
+}
+
+// winServerExePath 返回 Windows 版服务端路径
+func (m *Manager) winServerExePath() string {
+	if m.cfg.InstallDir == "" {
+		return ""
+	}
+	return filepath.Join(m.cfg.InstallDir, "Pal", "Binaries", "Win64", "PalServer-Win64-Shipping-Cmd.exe")
 }
 
 // ensureRunUser 确定启动游戏服使用的非 root 用户：
