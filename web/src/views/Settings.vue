@@ -255,50 +255,20 @@ async function checkUpdate() {
   }
 }
 
-function waitForRestart() {
-  updateProgress.message = '正在下载并安装更新，请耐心等待（可能需要 1-3 分钟）...'
-  let elapsed = 0
-  let wasDown = false
-  const timer = setInterval(async () => {
-    elapsed += 2
-    try {
-      const resp = await fetch('/health')
-      if (resp.ok) {
-        // 必须先经历过服务断开才确认是重启完成
-        if (wasDown) {
-          clearInterval(timer)
-          updateProgress.percent = 100
-          updateProgress.message = '更新完成，即将刷新...'
-          message.success('面板更新完成')
-          setTimeout(() => location.reload(), 2000)
-        } else {
-          updateProgress.message = `正在下载更新...（${elapsed}秒）`
-        }
-      }
-    } catch {
-      wasDown = true
-      updateProgress.message = '服务正在重启...'
-      if (elapsed > 240) {
-        clearInterval(timer)
-        updating.value = false
-        message.error('更新超时，请检查服务器日志或手动刷新页面')
-      }
-    }
-  }, 3000)
-}
-
 async function doUpdate() {
   updating.value = true
   showUpdateProgress.value = true
-  updateProgress.percent = 30
-  updateProgress.message = '正在执行更新...'
+  updateProgress.percent = 0
+  updateProgress.message = '正在准备更新...'
 
+  const token = localStorage.getItem('paladmin_token') || ''
   try {
+    // 触发更新
     const resp = await fetch('/api/updater/do', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('paladmin_token')}`,
+        Authorization: `Bearer ${token}`,
       },
     })
     const data = await resp.json()
@@ -307,15 +277,56 @@ async function doUpdate() {
       message.error(data.error || '更新失败')
       return
     }
-    // 更新脚本会重启服务，等待恢复
-    updateProgress.percent = 60
-    updateProgress.message = data.message || '服务正在重启...'
-    waitForRestart()
+
+    // 轮询更新进度
+    let elapsed = 0
+    let wasDown = false
+    const pollTimer = setInterval(async () => {
+      elapsed += 1
+      try {
+        // 优先从后端获取下载进度
+        const progResp = await fetch('/api/updater/status', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (progResp.ok) {
+          const prog = await progResp.json()
+          if (prog.message) updateProgress.message = prog.message
+          if (typeof prog.percent === 'number') updateProgress.percent = prog.percent
+          if (prog.done) {
+            if (prog.error) {
+              clearInterval(pollTimer)
+              updating.value = false
+              message.error(prog.error)
+              return
+            }
+          }
+        }
+      } catch { /* 后端可能正在重启，降级为 health 检测 */ }
+
+      // 检测服务是否重启
+      try {
+        const healthResp = await fetch('/health')
+        if (healthResp.ok && wasDown) {
+          clearInterval(pollTimer)
+          updateProgress.percent = 100
+          updateProgress.message = '更新完成，即将刷新...'
+          message.success('面板更新完成')
+          setTimeout(() => location.reload(), 2000)
+        }
+      } catch {
+        wasDown = true
+        updateProgress.message = '服务正在重启...'
+      }
+
+      if (elapsed > 180) {
+        clearInterval(pollTimer)
+        updating.value = false
+        message.error('更新超时，请检查服务器或手动刷新')
+      }
+    }, 1000)
   } catch (e: any) {
-    // 请求被中断可能是因为服务正在重启，这是正常的
-    updateProgress.percent = 60
-    updateProgress.message = '服务正在重启...'
-    waitForRestart()
+    updating.value = false
+    message.error(e.message || '更新失败')
   }
 }
 </script>

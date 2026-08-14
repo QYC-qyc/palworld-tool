@@ -115,6 +115,7 @@ func RegisterRouter(r *gin.Engine) {
 		updaterAPI := &updaterAPI{}
 		authGroup.GET("/updater/check", updaterAPI.check)
 		authGroup.POST("/updater/do", updaterAPI.do)
+		authGroup.GET("/updater/status", updaterAPI.status)
 
 		// 审计日志
 		authGroup.GET("/audit", func(c *gin.Context) {
