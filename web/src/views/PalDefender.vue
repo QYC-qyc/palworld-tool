@@ -36,11 +36,23 @@
       <n-space vertical>
         <n-alert v-if="!status.wine_present" type="warning" :show-icon="false">
           <template #header>需要安装 Wine</template>
-          <div style="margin-bottom:8px">PalDefender 需要 Wine 才能在 Linux 上运行。执行以下命令安装：</div>
+          <div style="margin-bottom:8px">PalDefender 需要 Wine 才能在 Linux 上运行。可以一键安装，或手动执行：</div>
           <pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:6px;font-size:12px;overflow:auto">dpkg --add-architecture i386
 apt update
 apt install -y wine64</pre>
+          <n-button type="primary" size="small" style="margin-top:8px"
+            @click="installWine" :loading="wineInstalling">
+            一键安装 Wine
+          </n-button>
         </n-alert>
+
+        <!-- Wine 安装进度 -->
+        <n-modal v-model:show="showWineProgress" preset="card" title="安装 Wine"
+          style="max-width:600px" :mask-closable="false">
+          <n-space vertical>
+            <pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:6px;font-size:12px;max-height:360px;overflow:auto;white-space:pre-wrap">{{ wineLog || '准备安装...' }}</pre>
+          </n-space>
+        </n-modal>
 
         <n-space>
           <n-button @click="refreshStatus" :loading="loading">刷新状态</n-button>
@@ -71,12 +83,15 @@ apt install -y wine64</pre>
 import { onMounted, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
-  NButton, NText, useMessage,
+  NButton, NText, NModal, useMessage,
 } from 'naive-ui'
 
 const message = useMessage()
 const loading = ref(false)
 const installing = ref(false)
+const wineInstalling = ref(false)
+const showWineProgress = ref(false)
+const wineLog = ref('')
 const status = ref<any>({})
 
 async function refreshStatus() {
@@ -117,6 +132,34 @@ async function install() {
     message.error(e.message)
   } finally {
     installing.value = false
+  }
+}
+
+async function installWine() {
+  wineInstalling.value = true
+  showWineProgress.value = true
+  wineLog.value = ''
+  try {
+    const token = localStorage.getItem('paladmin_token') || ''
+    const es = new EventSource(
+      `/api/paldefender/install-wine?token=${encodeURIComponent(token)}`
+    )
+    es.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data)
+        wineLog.value += (wineLog.value ? '\n' : '') + data.message
+      } catch { /* ignore */ }
+    }
+    es.onerror = () => {
+      es.close()
+      wineInstalling.value = false
+      // 安装完成或出错后刷新状态
+      setTimeout(refreshStatus, 2000)
+      setTimeout(() => { showWineProgress.value = false }, 3000)
+    }
+  } catch (e: any) {
+    message.error(e.message)
+    wineInstalling.value = false
   }
 }
 

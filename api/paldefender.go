@@ -129,6 +129,65 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 	})
 }
 
+// installWine 通过 apt 安装 Wine
+func (p *palDefenderAPI) installWine(c *gin.Context) {
+	if runtime.GOOS != "linux" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "仅支持 Linux"})
+		return
+	}
+
+	// 设置 SSE 头实时推送安装输出
+	c.Writer.Header().Set("Content-Type", "text/event-stream")
+	c.Writer.Header().Set("Cache-Control", "no-cache")
+	c.Writer.Header().Set("Connection", "keep-alive")
+	c.Writer.Header().Set("X-Accel-Buffering", "no")
+
+	send := func(msg string) {
+		data, _ := json.Marshal(map[string]string{"message": msg})
+		fmt.Fprintf(c.Writer, "data: %s\n\n", data)
+		c.Writer.Flush()
+	}
+
+	commands := [][]string{
+		{"dpkg", "--add-architecture", "i386"},
+		{"apt-get", "update", "-y"},
+		{"apt-get", "install", "-y", "wine64"},
+	}
+
+	for _, args := range commands {
+		send("执行: " + strings.Join(args, " "))
+		cmd := exec.Command(args[0], args[1:]...)
+		setSysProcAttr(cmd)
+		stdout, _ := cmd.StdoutPipe()
+		cmd.Stderr = cmd.Stdout
+		if err := cmd.Start(); err != nil {
+			send("失败: " + err.Error())
+			return
+		}
+		buf := make([]byte, 4096)
+		for {
+			n, err := stdout.Read(buf)
+			if n > 0 {
+				send(strings.TrimSpace(string(buf[:n])))
+			}
+			if err != nil {
+				break
+			}
+		}
+		if err := cmd.Wait(); err != nil {
+			send("命令执行失败: " + err.Error())
+			return
+		}
+	}
+
+	// 验证安装
+	if out, err := exec.Command("wine64", "--version").Output(); err == nil {
+		send("安装完成: " + strings.TrimSpace(string(out)))
+	} else {
+		send("Wine 安装完成但未能验证版本，请刷新状态")
+	}
+}
+
 func (p *palDefenderAPI) detect() pdStatus {
 	return p.detectAt("")
 }

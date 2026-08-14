@@ -102,6 +102,7 @@ func RegisterRouter(r *gin.Engine) {
 		pdAPI := &palDefenderAPI{}
 		authGroup.GET("/paldefender/status", pdAPI.status)
 		authGroup.POST("/paldefender/install", pdAPI.install)
+		authGroup.POST("/paldefender/install-wine", pdAPI.installWine)
 		authGroup.POST("/paldefender/verify", pdAPI.verify)
 
 		// 面板动态设置
