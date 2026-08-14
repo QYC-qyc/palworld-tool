@@ -57,7 +57,7 @@ CentOS / RHEL 等请参考 SteamCMD 官方文档。Windows 下载 SteamCMD 压�
 一键脚本（自动从 GitHub Release 下载对应架构二进制、注册 systemd 服务）：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
+curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
 ```
 
 脚本会：
@@ -82,7 +82,7 @@ journalctl -u paladmin -f      # 查看日志，应出现“监听: http://0.0.0
 
 ```bash
 # 重新运行安装脚本即可（配置和数据保留）
-curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
+curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
 systemctl restart paladmin
 ```
 
@@ -93,7 +93,7 @@ systemctl restart paladmin
 ```bash
 mkdir -p /www/palworld-tool && cd /www/palworld-tool
 curl -o docker-compose.yml \
-  https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/docker-compose.yml
+  https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.yml
 docker compose up -d
 ```
 
@@ -137,7 +137,7 @@ systemctl status paladmin      # 状态
 systemctl restart paladmin     # 重启
 journalctl -u paladmin -f      # 日志
 # 更新 PalAdmin：重新运行安装脚本
-curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
+curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
 ```
 
 **Docker 方式：**

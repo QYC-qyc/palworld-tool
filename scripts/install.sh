@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # PalAdmin 一键安装脚本（二进制 + systemd，直接安装到宿主机）
-# 用法（国内服务器推荐用 Gitee 源拉脚本）:
+# 用法（国内服务器推荐用 Gitee 源拉脚本，直连不卡）:
 #   curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
-# GitHub 源:
-#   curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
 set -e
 
 INSTALL_DIR="/opt/paladmin"
