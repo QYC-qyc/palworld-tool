@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # PalAdmin 一键安装脚本（二进制 + systemd，直接安装到宿主机）
-# 用法:
+# 用法（国内服务器推荐用 Gitee 源拉脚本）:
+#   curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
+# GitHub 源:
 #   curl -fsSL https://raw.githubusercontent.com/QYC-qyc/palworld-tool/main/scripts/install.sh | sudo bash
 set -e
 
@@ -29,26 +31,27 @@ esac
 
 # 公共 GitHub 加速镜像（按顺序尝试，最后直连兜底）
 MIRRORS=(
-  "https://ghproxy.net/https://github.com"
-  "https://gh-proxy.com/https://github.com"
   "https://ghfast.top/https://github.com"
-  "https://mirror.ghproxy.com/https://github.com"
+  "https://gh-proxy.com/https://github.com"
+  "https://ghproxy.net/https://github.com"
   "https://github.com"
 )
 
-echo "==> 下载 $ASSET（多镜像自动重试）"
+echo "==> 下载 $ASSET（多镜像自动重试，显示进度）"
 TMP="$(mktemp -d)"
 DOWNLOADED=0
 for BASE in "${MIRRORS[@]}"; do
   URL="$BASE/$REPO/releases/latest/download/$ASSET"
-  echo "  尝试: $BASE"
+  echo "  -> 尝试: $BASE"
   if command -v aria2c >/dev/null 2>&1; then
-    echo "  使用 aria2 多线程下载..."
-    if aria2c -x16 -s16 -k1M --summary-interval=0 -d "$TMP" -o "$ASSET" "$URL"; then
+    if aria2c -x16 -s16 -k1M --console-log-level=warn --summary-interval=3 \
+        --connect-timeout=10 --timeout=30 -d "$TMP" -o "$ASSET" "$URL"; then
       DOWNLOADED=1; break
     fi
   else
-    if curl -fL --retry 2 --connect-timeout 10 --max-time 300 -o "$TMP/$ASSET" "$URL"; then
+    # -f 失败返回非零、-L 跟随重定向、--progress-bar 显示进度
+    if curl -fL --progress-bar --retry 1 --connect-timeout 10 --max-time 180 \
+        -o "$TMP/$ASSET" "$URL"; then
       DOWNLOADED=1; break
     fi
   fi
@@ -57,8 +60,10 @@ done
 
 if [ "$DOWNLOADED" != "1" ]; then
   echo "==> 所有镜像均下载失败"
-  echo "    可手动下载后放到 $TMP/$ASSET 重新运行，或配置代理后重试："
-  echo "    export https_proxy=http://你的代理IP:端口"
+  echo "    1) 配置代理后重试: export https_proxy=http://你的代理IP:端口"
+  echo "    2) 或在能访问 GitHub 的机器手动下载后上传到服务器："
+  echo "       https://github.com/$REPO/releases/latest/download/$ASSET"
+  echo "       上传后执行: tar -xzf $ASSET -C /tmp/paladmin && cp /tmp/paladmin/paladmin $INSTALL_DIR/"
   exit 1
 fi
 echo "  下载完成"
