@@ -58,15 +58,44 @@
           </n-button>
         </n-space>
         <n-alert v-if="!status.win64_path" type="info" :show-icon="false" style="font-size:12px">
-          未找到 Win64 目录，安装时会自动在游戏目录下创建 <code>Pal/Binaries/Win64/</code>
+          未找到 Win64 目录，安装时会自动创建
         </n-alert>
 
         <n-text depth="3" style="font-size:12px">
           安装后请通过 Wine 方式启动游戏服（而非原生 Linux 版 PalServer.sh），DLL 才会被加载。
-          首次启动会自动生成 PalDefender 配置目录。
         </n-text>
       </n-space>
     </n-card>
+
+    <!-- Wine 安装进度弹窗 -->
+    <n-modal v-model:show="showWineProgress" preset="card" title="安装 Wine"
+      style="max-width:600px" :mask-closable="false">
+      <n-space vertical>
+        <n-progress
+          type="line"
+          :percentage="winePercent"
+          :status="wineDone ? (wineSuccess ? 'success' : 'error') : 'default'"
+          :indicator-placement="'inside'"
+        />
+        <n-text>{{ wineMessage || '准备安装...' }}</n-text>
+        <pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:6px;font-size:12px;max-height:300px;overflow:auto;white-space:pre-wrap">{{ wineLog || '等待输出...' }}</pre>
+      </n-space>
+    </n-modal>
+
+    <!-- PalDefender 安装进度弹窗 -->
+    <n-modal v-model:show="showPdProgress" preset="card" title="安装 PalDefender"
+      style="max-width:520px" :mask-closable="false">
+      <n-space vertical>
+        <n-progress
+          type="line"
+          :percentage="pdPercent"
+          :status="pdDone ? (pdSuccess ? 'success' : 'error') : 'default'"
+          :indicator-placement="'inside'"
+        />
+        <n-text>{{ pdMessage || '准备安装...' }}</n-text>
+        <n-text v-if="pdError" depth="3" style="font-size:12px;color:#d03050">{{ pdError }}</n-text>
+      </n-space>
+    </n-modal>
   </n-space>
 </template>
 
@@ -74,7 +103,7 @@
 import { onMounted, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
-  NButton, NText, NModal, useMessage,
+  NButton, NText, NModal, NProgress, useMessage,
 } from 'naive-ui'
 
 const message = useMessage()
@@ -83,12 +112,29 @@ const installing = ref(false)
 const wineInstalling = ref(false)
 const status = ref<any>({})
 
+// Wine 进度
+const showWineProgress = ref(false)
+const wineLog = ref('')
+const winePercent = ref(0)
+const wineMessage = ref('')
+const wineDone = ref(false)
+const wineSuccess = ref(false)
+
+// PalDefender 进度
+const showPdProgress = ref(false)
+const pdPercent = ref(0)
+const pdMessage = ref('')
+const pdDone = ref(false)
+const pdSuccess = ref(false)
+const pdError = ref('')
+
+const token = () => localStorage.getItem('paladmin_token') || ''
+
 async function refreshStatus() {
   loading.value = true
   try {
-    const token = localStorage.getItem('paladmin_token') || ''
     const resp = await fetch('/api/paldefender/status', {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token()}` },
     })
     status.value = await resp.json()
   } catch (e: any) {
@@ -100,26 +146,53 @@ async function refreshStatus() {
 
 async function install() {
   installing.value = true
+  showPdProgress.value = true
+  pdPercent.value = 0
+  pdMessage.value = '开始安装...'
+  pdDone.value = false
+  pdSuccess.value = false
+  pdError.value = ''
+
   try {
-    const token = localStorage.getItem('paladmin_token') || ''
     const resp = await fetch('/api/paldefender/install', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
       body: JSON.stringify({ game_dir: '' }),
     })
     const data = await resp.json()
-    if (resp.ok && data.success) {
-      message.success(data.message || '安装成功')
-      await refreshStatus()
-    } else {
-      message.error(data.error || '安装失败')
+    if (!resp.ok || data.error) {
+      pdError.value = data.error || '安装失败'
+      pdDone.value = true
+      installing.value = false
+      return
     }
+
+    // 轮询进度
+    const timer = setInterval(async () => {
+      try {
+        const r = await fetch('/api/paldefender/install-status', {
+          headers: { Authorization: `Bearer ${token()}` },
+        })
+        const d = await r.json()
+        if (typeof d.percent === 'number') pdPercent.value = d.percent
+        if (d.message) pdMessage.value = d.message
+        if (d.error) pdError.value = d.error
+        if (d.done) {
+          clearInterval(timer)
+          pdDone.value = true
+          pdSuccess.value = d.success
+          installing.value = false
+          if (d.success) {
+            message.success('PalDefender 安装成功')
+            await refreshStatus()
+            setTimeout(() => { showPdProgress.value = false }, 3000)
+          }
+        }
+      } catch { /* ignore */ }
+    }, 1000)
   } catch (e: any) {
-    message.error(e.message)
-  } finally {
+    pdError.value = e.message
+    pdDone.value = true
     installing.value = false
   }
 }
@@ -128,27 +201,30 @@ async function installWine() {
   wineInstalling.value = true
   showWineProgress.value = true
   wineLog.value = ''
-  let pollTimer: number | null = null
+  winePercent.value = 0
+  wineMessage.value = '准备安装...'
+  wineDone.value = false
+  wineSuccess.value = false
+
   try {
-    const token = localStorage.getItem('paladmin_token') || ''
-    // 触发后台安装
     await fetch('/api/paldefender/install-wine', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
     })
-    // 轮询进度
-    pollTimer = window.setInterval(async () => {
+
+    const timer = setInterval(async () => {
       try {
         const resp = await fetch('/api/paldefender/wine-status', {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token()}` },
         })
         const data = await resp.json()
         wineLog.value = data.log || ''
+        if (typeof data.percent === 'number') winePercent.value = data.percent
+        if (data.message) wineMessage.value = data.message
         if (data.done) {
-          if (pollTimer) clearInterval(pollTimer)
+          clearInterval(timer)
+          wineDone.value = true
+          wineSuccess.value = data.success
           wineInstalling.value = false
           if (data.success) {
             message.success('Wine 安装成功')
@@ -158,11 +234,11 @@ async function installWine() {
             message.error(data.error || '安装失败')
           }
         }
-      } catch { /* ignore poll errors */ }
+      } catch { /* ignore */ }
     }, 2000)
   } catch (e: any) {
     wineInstalling.value = false
-    message.error(e.message || '安装失败')
+    message.error(e.message)
   }
 }
 

@@ -56,120 +56,194 @@ func (p *palDefenderAPI) verify(c *gin.Context) {
 	c.JSON(http.StatusOK, st)
 }
 
-// install 下载并安装 PalDefender DLL
+// pdInstallState PalDefender 安装任务状态
+type pdInstallState struct {
+	sync.Mutex
+	running  bool
+	done     bool
+	success  bool
+	errMsg   string
+	percent  int
+	message  string
+	version  string
+}
+
+var pdTask = &pdInstallState{}
+
+// install 启动后台 PalDefender 下载安装
 func (p *palDefenderAPI) install(c *gin.Context) {
 	var req struct {
 		GameDir string `json:"game_dir"`
 	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
-		return
-	}
+	_ = c.ShouldBindJSON(&req)
 
 	if runtime.GOOS != "linux" {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "PalDefender 自动安装仅支持 Linux"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "仅支持 Linux"})
 		return
 	}
 
 	st := p.detectAt(req.GameDir)
 	if !st.WinePresent {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "未检测到 Wine，请先安装 Wine（apt install wine64）"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "未检测到 Wine，请先安装"})
 		return
 	}
 
-	// 自动确定或创建 Win64 目录
-	win64 := st.Win64Path
-	if win64 == "" {
-		gameDir := req.GameDir
-		if gameDir == "" && gameAPI != nil {
-			gameDir = gameAPI.mgr.ConfigValue().InstallDir
-		}
-		if gameDir == "" {
-			c.JSON(http.StatusBadRequest, ErrorResponse{Error: "未配置游戏安装目录"})
-			return
-		}
-		win64 = filepath.Join(gameDir, "Pal", "Binaries", "Win64")
-		if err := os.MkdirAll(win64, 0755); err != nil {
-			c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "创建 Win64 目录失败: " + err.Error()})
-			return
-		}
-	}
-
-	// 获取最新版本
-	resp, err := httpClient.Get(palDefenderVersionAPI)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "检查最新版本失败: " + err.Error()})
+	pdTask.Lock()
+	if pdTask.running {
+		pdTask.Unlock()
+		c.JSON(http.StatusOK, gin.H{"running": true})
 		return
 	}
-	defer resp.Body.Close()
+	pdTask.running = true
+	pdTask.done = false
+	pdTask.success = false
+	pdTask.errMsg = ""
+	pdTask.percent = 0
+	pdTask.message = "准备安装..."
+	pdTask.version = ""
+	pdTask.Unlock()
 
-	var rel struct {
-		TagName string `json:"tag_name"`
-		Assets  []struct {
-			Name               string `json:"name"`
-			BrowserDownloadURL string `json:"browser_download_url"`
-		} `json:"assets"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "解析版本信息失败: " + err.Error()})
-		return
-	}
+	go func() {
+		defer func() {
+			pdTask.Lock()
+			pdTask.running = false
+			pdTask.done = true
+			pdTask.Unlock()
+		}()
 
-	// 下载 DLL，通过国内镜像加速
-	dlMirrors := []string{
-		"https://ghfast.top/",
-		"https://gh-proxy.com/",
-		"https://ghproxy.net/",
-		"",
-	}
-	downloaded := 0
-	for _, asset := range rel.Assets {
-		if asset.Name != palDefenderDLL1 && asset.Name != palDefenderDLL2 {
-			continue
+		setProgress := func(pct int, msg string) {
+			pdTask.Lock()
+			pdTask.percent = pct
+			pdTask.message = msg
+			pdTask.Unlock()
 		}
-		dst := filepath.Join(win64, asset.Name)
-		var lastErr error
-		for _, prefix := range dlMirrors {
-			url := prefix + asset.BrowserDownloadURL
-			if err := downloadFile(url, dst); err == nil {
-				lastErr = nil
-				break
-			} else {
-				lastErr = err
+
+		// 确定 Win64 目录
+		win64 := st.Win64Path
+		if win64 == "" {
+			gameDir := req.GameDir
+			if gameDir == "" && gameAPI != nil {
+				gameDir = gameAPI.mgr.ConfigValue().InstallDir
+			}
+			win64 = filepath.Join(gameDir, "Pal", "Binaries", "Win64")
+			if err := os.MkdirAll(win64, 0755); err != nil {
+				pdTask.Lock()
+				pdTask.errMsg = "创建目录失败: " + err.Error()
+				pdTask.Unlock()
+				return
 			}
 		}
-		if lastErr != nil {
-			c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Error: fmt.Sprintf("下载 %s 失败: %v", asset.Name, lastErr),
-			})
+
+		setProgress(10, "检查最新版本...")
+		resp, err := httpClient.Get(palDefenderVersionAPI)
+		if err != nil {
+			pdTask.Lock()
+			pdTask.errMsg = "检查版本失败: " + err.Error()
+			pdTask.Unlock()
 			return
 		}
-		downloaded++
-	}
+		var rel struct {
+			TagName string `json:"tag_name"`
+			Assets  []struct {
+				Name               string `json:"name"`
+				BrowserDownloadURL string `json:"browser_download_url"`
+			} `json:"assets"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
+			resp.Body.Close()
+			pdTask.Lock()
+			pdTask.errMsg = "解析版本失败: " + err.Error()
+			pdTask.Unlock()
+			return
+		}
+		resp.Body.Close()
 
-	if downloaded < 2 {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "未能下载全部 DLL 文件"})
-		return
-	}
+		dlMirrors := []string{
+			"https://ghfast.top/",
+			"https://gh-proxy.com/",
+			"https://ghproxy.net/",
+			"",
+		}
 
+		dllNames := []string{palDefenderDLL1, palDefenderDLL2}
+		for idx, name := range dllNames {
+			setProgress(20+idx*35, fmt.Sprintf("下载 %s...", name))
+			var dlURL string
+			for _, a := range rel.Assets {
+				if a.Name == name {
+					dlURL = a.BrowserDownloadURL
+					break
+				}
+			}
+			if dlURL == "" {
+				pdTask.Lock()
+				pdTask.errMsg = "未找到 " + name
+				pdTask.Unlock()
+				return
+			}
+			dst := filepath.Join(win64, name)
+			var ok bool
+			for _, prefix := range dlMirrors {
+				if err := downloadFile(prefix+dlURL, dst); err == nil {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				pdTask.Lock()
+				pdTask.errMsg = "下载 " + name + " 失败（所有镜像不可用）"
+				pdTask.Unlock()
+				return
+			}
+		}
+
+		setProgress(95, "安装完成")
+		pdTask.Lock()
+		pdTask.success = true
+		pdTask.percent = 100
+		pdTask.message = fmt.Sprintf("PalDefender %s 安装成功", rel.TagName)
+		pdTask.version = rel.TagName
+		pdTask.Unlock()
+	}()
+
+	c.JSON(http.StatusOK, gin.H{"running": true, "message": "开始安装 PalDefender"})
+}
+
+// installStatus 返回 PalDefender 安装进度
+func (p *palDefenderAPI) installStatus(c *gin.Context) {
+	pdTask.Lock()
+	defer pdTask.Unlock()
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": fmt.Sprintf("PalDefender %s 已安装到 %s", rel.TagName, win64),
-		"version": rel.TagName,
+		"running": pdTask.running,
+		"done":    pdTask.done,
+		"success": pdTask.success,
+		"error":   pdTask.errMsg,
+		"percent": pdTask.percent,
+		"message": pdTask.message,
+		"version": pdTask.version,
 	})
 }
 
 // wineInstallState Wine 安装任务状态
 type wineInstallState struct {
-	running   bool
-	done      bool
-	success   bool
-	log       strings.Builder
-	errMsg    string
-	mu        sync.Mutex
+	running  bool
+	done     bool
+	success  bool
+	log      strings.Builder
+	errMsg   string
+	percent  int
+	message  string
+	mu       sync.Mutex
 }
 
 var wineTask = &wineInstallState{}
+
+func setWineProgress(pct int, msg string) {
+	wineTask.mu.Lock()
+	wineTask.percent = pct
+	wineTask.message = msg
+	wineTask.mu.Unlock()
+}
 
 // installWine 后台执行 Wine 安装，立即返回
 func (p *palDefenderAPI) installWine(c *gin.Context) {
@@ -199,18 +273,24 @@ func (p *palDefenderAPI) installWine(c *gin.Context) {
 			wineTask.mu.Unlock()
 		}()
 
-		commands := [][]string{
-			{"dpkg", "--add-architecture", "i386"},
-			{"apt-get", "update", "-y"},
-			{"apt-get", "install", "-y", "wine64"},
+		setWineProgress(10, "启用 i386 架构...")
+		commands := []struct {
+			args    []string
+			percent int
+			label   string
+		}{
+			{[]string{"dpkg", "--add-architecture", "i386"}, 10, "启用 i386 架构..."},
+			{[]string{"apt-get", "update", "-y"}, 30, "更新软件源..."},
+			{[]string{"apt-get", "install", "-y", "wine64"}, 50, "安装 Wine（可能需要几分钟）..."},
 		}
 
-		for _, args := range commands {
+		for _, step := range commands {
+			setWineProgress(step.percent, step.label)
 			wineTask.mu.Lock()
-			wineTask.log.WriteString("$ " + strings.Join(args, " ") + "\n")
+			wineTask.log.WriteString("$ " + strings.Join(step.args, " ") + "\n")
 			wineTask.mu.Unlock()
 
-			cmd := exec.Command(args[0], args[1:]...)
+			cmd := exec.Command(step.args[0], step.args[1:]...)
 			setSysProcAttr(cmd)
 			stdout, _ := cmd.StdoutPipe()
 			cmd.Stderr = cmd.Stdout
@@ -234,21 +314,25 @@ func (p *palDefenderAPI) installWine(c *gin.Context) {
 			}
 			if err := cmd.Wait(); err != nil {
 				wineTask.mu.Lock()
-				wineTask.errMsg = fmt.Sprintf("执行 %s 失败: %v", args[0], err)
+				wineTask.errMsg = fmt.Sprintf("执行 %s 失败: %v", step.args[0], err)
 				wineTask.mu.Unlock()
 				return
 			}
 		}
 
+		setWineProgress(95, "验证安装...")
 		if out, err := exec.Command("wine64", "--version").Output(); err == nil {
 			wineTask.mu.Lock()
 			wineTask.success = true
+			wineTask.percent = 100
+			wineTask.message = "安装完成"
 			wineTask.log.WriteString("\n安装完成: " + strings.TrimSpace(string(out)) + "\n")
 			wineTask.mu.Unlock()
 		} else {
 			wineTask.mu.Lock()
 			wineTask.success = true
-			wineTask.log.WriteString("\nWine 安装完成，请刷新状态\n")
+			wineTask.percent = 100
+			wineTask.message = "Wine 安装完成"
 			wineTask.mu.Unlock()
 		}
 	}()
@@ -265,6 +349,8 @@ func (p *palDefenderAPI) wineInstallStatus(c *gin.Context) {
 		"done":    wineTask.done,
 		"success": wineTask.success,
 		"error":   wineTask.errMsg,
+		"percent": wineTask.percent,
+		"message": wineTask.message,
 		"log":     wineTask.log.String(),
 	})
 }
