@@ -3,184 +3,147 @@
     <n-card title="在线玩家位置" size="small">
       <template #header-extra>
         <n-space align="center">
-          <n-tag :bordered="false" size="small" type="info">
-            在线: {{ online.length }} 人
-          </n-tag>
+          <n-tag :bordered="false" size="small" type="info">在线: {{ online.length }} 人</n-tag>
           <n-button size="small" @click="loadOnline" :loading="loading">刷新</n-button>
         </n-space>
       </template>
-      <div class="map-container" ref="mapRef">
-        <div class="map-grid">
-          <!-- 坐标刻度 -->
-          <div class="axis axis-top">
-            <span v-for="g in gridLines" :key="'tx'+g" :style="{ left: g.pos + '%' }">{{ g.label }}</span>
-          </div>
-          <div class="axis axis-left">
-            <span v-for="g in gridLines" :key="'ty'+g" :style="{ top: g.pos + '%' }">{{ -g.label }}</span>
-          </div>
-          <!-- 网格线 -->
-          <div v-for="i in 8" :key="'v'+i" class="grid-line-v" :style="{ left: (i * 100 / 8) + '%' }" />
-          <div v-for="i in 8" :key="'h'+i" class="grid-line-h" :style="{ top: (i * 100 / 8) + '%' }" />
-          <!-- 原点 -->
-          <div class="origin"></div>
-          <!-- 玩家标记 -->
-          <div
-            v-for="(p, idx) in online"
-            :key="p.player_uid || idx"
-            class="player-marker"
-            :style="markerStyle(p)"
-          >
-            <n-tooltip placement="top">
-              <template #trigger>
-                <div class="marker-dot" :style="{ background: colors[idx % colors.length] }"></div>
-              </template>
-              <div>
-                <strong>{{ p.nickname }}</strong><br />
-                等级: {{ p.level }}<br />
-                坐标: {{ Math.round(p.location_x) }}, {{ Math.round(p.location_y) }}<br />
-                Ping: {{ Math.round(p.ping) }}ms
-              </div>
-            </n-tooltip>
-          </div>
-        </div>
-      </div>
-      <n-text depth="3" style="font-size:12px;display:block;margin-top:8px">
-        坐标范围约 -1,400,000 至 1,400,000。每 10 秒自动刷新。
-      </n-text>
+      <div ref="mapEl" class="map-container"></div>
     </n-card>
   </n-space>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
-import { NSpace, NCard, NButton, NTag, NTooltip, NText } from 'naive-ui'
+import { onMounted, onUnmounted, ref, nextTick } from 'vue'
+import { NSpace, NCard, NButton, NTag, useMessage } from 'naive-ui'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { api } from '@/api'
 
+const message = useMessage()
+const mapEl = ref<HTMLElement>()
 const online = ref<any[]>([])
 const loading = ref(false)
 
-const WORLD_HALF = 1400000
+const WORLD_HALF = 1400000 // 游戏坐标半范围
+const IMG_SIZE = 4096      // 地图图片像素
+let map: L.Map | null = null
+let markersLayer: L.LayerGroup | null = null
+let timer: any
 
-const colors = ['#ff4444', '#44ff44', '#4488ff', '#ffaa00', '#ff44ff', '#44ffff', '#ffff44', '#ff8844']
+// 游戏坐标 -> Leaflet 坐标（Simple CRS, y轴翻转）
+function gameToMap(x: number, y: number): [number, number] {
+  const px = ((x + WORLD_HALF) / (WORLD_HALF * 2)) * IMG_SIZE
+  const py = ((-y + WORLD_HALF) / (WORLD_HALF * 2)) * IMG_SIZE
+  return [py, px] // Leaflet uses [lat, lng] = [y, x] in pixel CRS
+}
 
 async function loadOnline() {
   loading.value = true
   try {
     online.value = await api.getOnline()
-  } catch {
-    // 忽略
+    updateMarkers()
+  } catch (e: any) {
+    message.error(e.message)
   } finally {
     loading.value = false
   }
 }
 
-function markerStyle(p: any) {
-  const x = ((Number(p.location_x) + WORLD_HALF) / (WORLD_HALF * 2)) * 100
-  const y = ((Number(p.location_y) + WORLD_HALF) / (WORLD_HALF * 2)) * 100
-  return { left: `${x}%`, top: `${y}%` }
+function updateMarkers() {
+  if (!markersLayer || !map) return
+  markersLayer.clearLayers()
+
+  const colors = ['#ff4444', '#44ff44', '#4488ff', '#ffaa00', '#ff44ff', '#44ffff']
+  online.value.forEach((p, i) => {
+    if (p.location_x === undefined || p.location_y === undefined) return
+    const [lat, lng] = gameToMap(Number(p.location_x), Number(p.location_y))
+    const color = colors[i % colors.length]
+    const icon = L.divIcon({
+      className: 'player-marker',
+      html: `<div style="width:14px;height:14px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px ${color}"></div>`,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7],
+    })
+    const marker = L.marker([lat, lng], { icon })
+    marker.bindPopup(`
+      <strong>${p.nickname}</strong><br/>
+      等级: ${p.level}<br/>
+      坐标: ${Math.round(p.location_x)}, ${Math.round(p.location_y)}<br/>
+      Ping: ${Math.round(p.ping)}ms
+    `)
+    marker.addTo(markersLayer)
+  })
 }
 
-const gridLines = [
-  { pos: 0, label: '-1400k' },
-  { pos: 25, label: '-700k' },
-  { pos: 50, label: '0' },
-  { pos: 75, label: '700k' },
-  { pos: 100, label: '1400k' },
-]
-
-let timer: any
 onMounted(async () => {
+  await nextTick()
+  if (!mapEl.value) return
+
+  // Simple CRS: 像素坐标系，y 向下为正
+  map = L.map(mapEl.value, {
+    crs: L.CRS.Simple,
+    minZoom: -2,
+    maxZoom: 3,
+    zoomSnap: 0.5,
+    center: [IMG_SIZE / 2, IMG_SIZE / 2],
+    zoom: -1,
+    attributionControl: false,
+  })
+
+  // 地图边界
+  const bounds: L.LatLngBoundsExpression = [
+    [0, 0],
+    [IMG_SIZE, IMG_SIZE],
+  ]
+  L.imageOverlay('/map/world.webp', bounds).addTo(map)
+  map.fitBounds(bounds)
+  map.setMaxBounds(bounds)
+
+  markersLayer = L.layerGroup().addTo(map)
+
   await loadOnline()
   timer = setInterval(loadOnline, 10000)
 })
-onUnmounted(() => clearInterval(timer))
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+  if (map) map.remove()
+})
 </script>
 
 <style scoped>
 .map-container {
-  position: relative;
   width: 100%;
-  padding-top: 75%;
+  height: 70vh;
   background: #1a2332;
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
 }
-.map-grid {
-  position: absolute;
-  inset: 30px;
-  top: 25px;
-  left: 60px;
-  right: 20px;
-  bottom: 30px;
-  border: 1px solid #2a4a6a;
+</style>
+
+<style>
+/* Leaflet 暗色主题 */
+.leaflet-container {
+  background: #1a2332 !important;
 }
-.grid-line-v {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: rgba(255,255,255,0.08);
+.leaflet-bar a {
+  background: #2a3a4a !important;
+  color: #ccc !important;
+  border-color: #3a4a5a !important;
 }
-.grid-line-h {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: rgba(255,255,255,0.08);
+.leaflet-bar a:hover {
+  background: #3a5a7a !important;
 }
-.origin {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  background: #ff6600;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+.leaflet-popup-content-wrapper {
+  background: #1f2937 !important;
+  color: #e5e7eb !important;
+  border-radius: 6px;
 }
-.axis {
-  position: absolute;
-  color: #6a8aaa;
-  font-size: 10px;
-}
-.axis-top {
-  top: 5px;
-  left: 60px;
-  right: 20px;
-  height: 16px;
-}
-.axis-top span {
-  position: absolute;
-  transform: translateX(-50%);
-}
-.axis-left {
-  left: 5px;
-  top: 25px;
-  bottom: 30px;
-  width: 50px;
-}
-.axis-left span {
-  position: absolute;
-  transform: translateY(-50%);
-  text-align: right;
-  width: 45px;
+.leaflet-popup-tip {
+  background: #1f2937 !important;
 }
 .player-marker {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-}
-.marker-dot {
-  width: 14px;
-  height: 14px;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(255,255,255,0.3);
-  animation: pulse 2s infinite;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.3); }
+  background: transparent !important;
+  border: none !important;
 }
 </style>
