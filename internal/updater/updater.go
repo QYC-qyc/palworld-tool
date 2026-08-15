@@ -172,16 +172,16 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 	}
 
 	onProgress(Progress{Stage: "extract", Message: "解压文件...", Percent: 92})
-	// 先解压到临时目录
+	// 先解压到临时目录（不能 defer 删除，替换脚本还要用）
 	tmpDir := filepath.Join(os.TempDir(), "paladmin-update-"+time.Now().Format("20060102150405"))
 	if err := os.MkdirAll(tmpDir, 0755); err != nil {
 		return fmt.Errorf("创建临时目录失败: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
 
-	// 用系统 tar 命令解压（比 Go archive/tar 兼容性更好）
+	// 用系统 tar 命令解压
 	cmd := exec.Command("tar", "-xzf", tmpTar, "-C", tmpDir)
 	if out, err := cmd.CombinedOutput(); err != nil {
+		os.RemoveAll(tmpDir)
 		return fmt.Errorf("解压失败: %w: %s", err, string(out))
 	}
 
@@ -192,16 +192,18 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 	}
 
 	onProgress(Progress{Stage: "restart", Message: "正在替换文件并重启...", Percent: 97})
-	// 用脚本完成替换+重启，脱离当前进程
-	replaceScript := fmt.Sprintf(`sleep 1
-cp -rf %s/* %s/ 2>/dev/null
-chmod +x %s/paladmin 2>/dev/null
-chmod +x %s/sav_cli 2>/dev/null
+	// 替换脚本：sleep 等待当前进程退出，然后复制文件、清理临时目录、重启服务
+	replaceScript := fmt.Sprintf(`sleep 2
+cp -rf %s/* %s/
+chmod +x %s/paladmin
+[ -f %s/sav_cli ] && chmod +x %s/sav_cli
+rm -rf %s
 systemctl restart %s
-`, tmpDir, installDir, installDir, installDir, service)
+`, tmpDir, installDir, installDir, tmpDir, tmpDir, tmpDir, service)
 	cmd = exec.Command("setsid", "bash", "-c", replaceScript)
 	cmd.SysProcAttr = newSysProcAttr()
 	if err := cmd.Start(); err != nil {
+		os.RemoveAll(tmpDir)
 		return fmt.Errorf("启动替换脚本失败: %w", err)
 	}
 
