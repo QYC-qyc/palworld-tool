@@ -5,7 +5,7 @@
       保存时可勾选"保存并重启"。
     </n-alert>
 
-    <n-tabs type="line" animated default-value="基础">
+    <n-tabs type="line" animated default-value="服务器">
       <n-tab-pane v-for="g in groups" :key="g" :tab="g" :name="g">
         <n-card size="small">
           <n-form label-placement="top" v-if="fields[g]">
@@ -32,6 +32,12 @@
                     :value="form[f.key]"
                     :options="f.options || []"
                     @update:value="(v: string) => onEnumChange(f.key, v)" />
+                  <!-- 多选下拉 -->
+                  <n-select v-else-if="f.type === 'multi'"
+                    :value="(form[f.key] || '').split(',').filter(Boolean)"
+                    :options="f.options || []"
+                    multiple
+                    @update:value="(v: string[]) => { form[f.key] = v.join(','); markCustom(f.key) }" />
                   <!-- 数字 -->
                   <n-input-number v-else-if="f.type === 'int'"
                     :value="toNum(form[f.key])"
