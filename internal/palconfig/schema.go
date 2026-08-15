@@ -199,7 +199,7 @@ func Schema() []Field {
 		boolField("bAllowGlobalPalboxExport", "允许全局帕鲁箱导出", "False", "允许把帕鲁导出到全局", "公会", false),
 		boolField("bAutoResetGuildNoOnlinePlayers", "自动清理无人公会", "False", "公会长时间无人在线时自动解散", "公会", false),
 		{Key: "AutoResetGuildTimeNoOnlinePlayers", Label: "无人公会解散时间(小时)", Type: TypeFloat, Default: "72.0",
-			Description: "公会所有成员离线多久后自动解散（小时）", Group: "多人与公会", Min: fmin(0), Step: fstep(1)},
+			Description: "公会所有成员离线多久后自动解散（小时）", Group: "公会", Min: fmin(0), Step: fstep(1)},
 		// ---- 帕鲁随机化 ----
 		{Key: "RandomizerType", Label: "随机化模式", Type: TypeEnum, Default: "None",
 			Options: []FieldOption{opt("None", "无"), opt("Region", "按区域"), opt("All", "完全随机")},
@@ -228,17 +228,17 @@ func Schema() []Field {
 			Description: "掉落物在世界中存在的最长时间（小时）", Group: "经济与掉落", Min: fmin(0.1), Step: fstep(0.1)},
 		rateField("BuildObjectHpRate", "建筑血量倍率", "1.0", "建筑最大生命值倍率", "据点", false, 0.5, 5),
 		{Key: "ServerReplicatePawnCullDistance", Label: "帕鲁同步距离(cm)", Type: TypeInt, Default: "15000",
-			Description: "玩家周围帕鲁的同步距离（厘米），官方范围 5000–15000", Group: "多人与公会",
+			Description: "玩家周围帕鲁的同步距离（厘米），官方范围 5000–15000", Group: "公会",
 			Min: fmin(5000), Max: fmax(15000), Step: fstep(100)},
 		boolField("bAllowClientMod", "允许玩家使用 Mod", "True", "允许加载了 Mod 的玩家加入", "服务器", false),
 		{Key: "VoiceChatMaxVolumeDistance", Label: "语音最大听到距离", Type: TypeInt, Default: "2000",
-			Description: "语音聊天能听到的最大距离", Group: "多人与公会", Min: fmin(0)},
+			Description: "语音聊天能听到的最大距离", Group: "公会", Min: fmin(0)},
 		{Key: "VoiceChatZeroVolumeDistance", Label: "语音静音距离", Type: TypeInt, Default: "5000",
-			Description: "超过此距离完全听不到语音", Group: "多人与公会", Min: fmin(0)},
+			Description: "超过此距离完全听不到语音", Group: "公会", Min: fmin(0)},
 		{Key: "DenyTechnologyList", Label: "禁用科技列表", Type: TypeString, Default: "()",
-			Description: "禁用的科技 ID 列表，格式如 (TechID1,TechID2)", Group: "游戏设置"},
+			Description: "禁用的科技 ID 列表，格式如 (TechID1,TechID2)", Group: "公会"},
 		{Key: "GuildRejoinCooldownMinutes", Label: "公会重加冷却(分钟)", Type: TypeInt, Default: "0",
-			Description: "退出公会后多久才能重新加入（分钟）", Group: "多人与公会", Min: fmin(0)},
+			Description: "退出公会后多久才能重新加入（分钟）", Group: "公会", Min: fmin(0)},
 		{Key: "BlockRespawnTime", Label: "死亡复活冷却(秒)", Type: TypeFloat, Default: "5.0",
 			Description: "死亡后需要等待多久才能复活（秒）", Group: "玩家", Min: fmin(0)},
 		{Key: "RespawnPenaltyDurationThreshold", Label: "复活惩罚阈值(秒)", Type: TypeFloat, Default: "0",
@@ -246,9 +246,9 @@ func Schema() []Field {
 		{Key: "RespawnPenaltyTimeScale", Label: "复活惩罚时间倍率", Type: TypeFloat, Default: "2.0",
 			Description: "短时间内连续死亡时复活等待时间的倍率", Group: "玩家", Min: fmin(0), Step: fstep(0.1)},
 		boolField("bDisplayPvPItemNumOnWorldMap_BaseCamp", "地图显示据点PvP物品数", "False",
-			"在世界地图上显示各据点的 PvP 专属物品数量", "游戏设置", false),
+			"在世界地图上显示各据点的 PvP 专属物品数量", "公会", false),
 		boolField("bDisplayPvPItemNumOnWorldMap_Player", "地图显示玩家PvP物品数", "False",
-			"在世界地图上显示玩家位置和 PvP 专属物品数量", "游戏设置", false),
+			"在世界地图上显示玩家位置和 PvP 专属物品数量", "公会", false),
 		boolField("bAllowEnhanceStat_Health", "允许强化HP", "True", "允许玩家分配点数到生命值", "玩家", false),
 		boolField("bAllowEnhanceStat_Attack", "允许强化攻击", "True", "允许玩家分配点数到攻击", "玩家", false),
 		boolField("bAllowEnhanceStat_Stamina", "允许强化耐力", "True", "允许玩家分配点数到耐力", "玩家", false),
@@ -267,15 +267,15 @@ func Schema() []Field {
 		{Key: "PhysicsActiveDropItemMaxNum", Label: "物理掉落物上限", Type: TypeInt, Default: "-1",
 			Description: "使用物理行为的掉落物最大数量，-1 表示不限制", Group: "经济与掉落", Min: fmin(-1), Max: fmax(10000)},
 		boolField("bInvisibleOtherGuildBaseCampAreaFX", "隐藏他公会据点特效", "False",
-			"不显示其他公会据点的区域边界特效", "多人与公会", false),
+			"不显示其他公会据点的区域边界特效", "公会", false),
 		boolField("bIsMultiplay", "多人游戏（仅客户端开服）", "False",
-			"启用多人游戏模式，对专用服务器无效", "多人与公会", false),
+			"启用多人游戏模式，对专用服务器无效", "公会", false),
 	}
 
 	// 添加死亡惩罚枚举
 	deathPenalty := Field{Key: "DeathPenalty", Label: "死亡惩罚", Type: TypeEnum, Default: "All",
 		Options: []FieldOption{opt("None", "无掉落"), opt("Item", "掉落物品（除装备）"), opt("ItemAndEquipment", "掉落全部物品"), opt("All", "掉落物品和帕鲁")},
-		Description: "玩家死亡时掉落的内容", Group: "多人与公会"}
+		Description: "玩家死亡时掉落的内容", Group: "公会"}
 	fields = append(fields, deathPenalty)
 
 	// 给每个字段追加 ini 键名和范围提示到 Description
