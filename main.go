@@ -72,6 +72,9 @@ func main() {
 	}
 	if webDir != "" {
 		router.StaticFS("/assets", http.Dir(filepath.Join(webDir, "assets")))
+		router.StaticFS("/data", http.Dir(filepath.Join(webDir, "data")))
+		router.StaticFS("/icons", http.Dir(filepath.Join(webDir, "icons")))
+		router.StaticFS("/map", http.Dir(filepath.Join(webDir, "map")))
 		router.NoRoute(func(c *gin.Context) {
 			if strings.HasPrefix(c.Request.URL.Path, "/api/") {
 				c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
