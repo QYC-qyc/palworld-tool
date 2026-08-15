@@ -26,26 +26,33 @@
                   <!-- 布尔开关 -->
                   <n-switch v-if="f.type === 'bool'"
                     :value="form[f.key] === 'True'"
-                    @update:value="(v: boolean) => (form[f.key] = v ? 'True' : 'False')" />
+                    @update:value="(v: boolean) => { form[f.key] = v ? 'True' : 'False'; markCustom(f.key) }" />
                   <!-- 枚举下拉 -->
                   <n-select v-else-if="f.type === 'enum'"
                     :value="form[f.key]"
                     :options="f.options || []"
-                    @update:value="(v: string) => (form[f.key] = v)" />
+                    @update:value="(v: string) => onEnumChange(f.key, v)" />
                   <!-- 数字 -->
                   <n-input-number v-else-if="f.type === 'int'"
                     :value="toNum(form[f.key])"
-                    @update:value="(v: number | null) => (form[f.key] = String(v ?? 0))"
+                    :min="f.min ?? undefined"
+                    :max="f.max && f.max > 0 ? f.max : undefined"
+                    :step="f.step ?? 1"
+                    @update:value="(v: number | null) => { form[f.key] = String(v ?? 0); markCustom(f.key) }"
                     style="width:100%" />
                   <n-input-number v-else-if="f.type === 'float'"
-                    :value="toNum(form[f.key])" :step="0.1"
-                    @update:value="(v: number | null) => (form[f.key] = String(v ?? 0))"
+                    :value="toNum(form[f.key])"
+                    :min="f.min ?? 0"
+                    :max="f.max && f.max > 0 ? f.max : undefined"
+                    :step="f.step ?? 0.1"
+                    @update:value="(v: number | null) => { form[f.key] = String(v ?? 0); markCustom(f.key) }"
                     style="width:100%" />
                   <!-- 字符串 -->
                   <n-input v-else v-model:value="form[f.key]"
                     :type="isSecret(f.key) ? 'password' : 'text'"
                     show-password-on="click"
-                    :placeholder="f.default" />
+                    :placeholder="f.default"
+                    @update:value="() => markCustom(f.key)" />
                 </n-form-item>
               </n-gi>
             </n-grid>
@@ -110,6 +117,52 @@ function isSecret(k: string) {
 function toNum(v: string) {
   const n = parseFloat(v)
   return isNaN(n) ? 0 : n
+}
+
+// 官方难度预设值（来自 DefaultPalWorldSettings.ini）
+const difficultyPresets: Record<string, Record<string, string>> = {
+  Easy: {
+    DayTimeSpeedRate: '1.0', NightTimeSpeedRate: '1.0', ExpRate: '2.0',
+    PalCaptureRate: '2.0', PalSpawnNumRate: '1.0', PalDamageRateAttack: '0.8',
+    PalDamageRateDefense: '0.8', PlayerDamageRateAttack: '0.5', PlayerDamageRateDefense: '0.5',
+    BuildObjectDamageRate: '0.5', BuildObjectDeteriorationDamageRate: '0.0',
+    CollectionDropRate: '2.0', CollectionObjectHpRate: '2.0', CollectionObjectRespawnSpeedRate: '2.0',
+    EnemyDropItemRate: '2.0',
+  },
+  Normal: {
+    DayTimeSpeedRate: '1.0', NightTimeSpeedRate: '1.0', ExpRate: '1.0',
+    PalCaptureRate: '1.0', PalSpawnNumRate: '1.0', PalDamageRateAttack: '1.0',
+    PalDamageRateDefense: '1.0', PlayerDamageRateAttack: '1.0', PlayerDamageRateDefense: '1.0',
+    BuildObjectDamageRate: '1.0', BuildObjectDeteriorationDamageRate: '1.0',
+    CollectionDropRate: '1.0', CollectionObjectHpRate: '1.0', CollectionObjectRespawnSpeedRate: '1.0',
+    EnemyDropItemRate: '1.0',
+  },
+  Hard: {
+    DayTimeSpeedRate: '1.0', NightTimeSpeedRate: '1.0', ExpRate: '0.5',
+    PalCaptureRate: '0.5', PalSpawnNumRate: '1.0', PalDamageRateAttack: '1.5',
+    PalDamageRateDefense: '1.5', PlayerDamageRateAttack: '2.0', PlayerDamageRateDefense: '2.0',
+    BuildObjectDamageRate: '1.5', BuildObjectDeteriorationDamageRate: '2.0',
+    CollectionDropRate: '0.5', CollectionObjectHpRate: '0.5', CollectionObjectRespawnSpeedRate: '0.5',
+    EnemyDropItemRate: '0.5',
+  },
+}
+
+// 修改倍率字段时，如果难度不是自定义，自动切回自定义
+function markCustom(key: string) {
+  const difficultyKeys = Object.keys(difficultyPresets.Easy)
+  if (difficultyKeys.includes(key) && form['Difficulty'] && form['Difficulty'] !== 'None') {
+    form['Difficulty'] = 'None'
+  }
+}
+
+// 难度选择变化时应用预设
+function onEnumChange(key: string, v: string) {
+  form[key] = v
+  if (key === 'Difficulty' && v !== 'None' && difficultyPresets[v]) {
+    Object.entries(difficultyPresets[v]).forEach(([k, val]) => {
+      form[k] = val
+    })
+  }
 }
 
 async function load() {

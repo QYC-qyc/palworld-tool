@@ -56,7 +56,7 @@
           </n-gi>
           <n-gi>
             <n-form-item label="systemd 服务名" label-placement="top">
-              <n-input v-model:value="form['process.service']" placeholder="palworld" />
+              <n-input v-model:value="form['process.service']" placeholder="paladmin" />
             </n-form-item>
           </n-gi>
           <n-gi>
@@ -65,6 +65,13 @@
             </n-form-item>
           </n-gi>
         </n-grid>
+        <n-form-item label="自动备份间隔（分钟，0=关闭）">
+          <n-input-number v-model:value="backupInterval" :min="0" :max="1440"
+            :step="10" style="width:200px" />
+          <n-text depth="3" style="font-size:12px;margin-left:12px">
+            仅在游戏服运行时执行备份
+          </n-text>
+        </n-form-item>
       </n-form>
     </n-card>
 
@@ -172,9 +179,14 @@ const processModes = [
   { label: 'docker', value: 'docker' },
 ]
 
+const backupInterval = ref(60)
+
 async function load() {
   const s = await api.getSettings()
   Object.keys(s).forEach((k) => (form[k] = s[k]))
+  // 备份间隔：秒转分钟
+  const sec = parseInt(s['save.backup_interval'] || '3600')
+  backupInterval.value = sec > 0 ? Math.round(sec / 60) : 0
 }
 
 async function testConn(type: 'rest' | 'rcon') {
@@ -226,6 +238,8 @@ async function save() {
       payload['rcon.password'] = adminPwd.value
     }
     if (webPwd.value) payload['web.password'] = webPwd.value
+    // 备份间隔：分钟转秒
+    payload['save.backup_interval'] = String(backupInterval.value * 60)
     await api.saveSettings(payload)
     message.success('设置已保存')
     adminPwd.value = ''

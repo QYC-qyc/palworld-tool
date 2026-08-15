@@ -1,6 +1,8 @@
 package task
 
 import (
+	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -60,6 +62,11 @@ func SyncSavOnce() error {
 }
 
 func backupTask() {
+	// 游戏未启动时不备份（Level.sav 可能不存在或未更新）
+	if !isGameRunning() {
+		logger.Debugf("游戏服未运行，跳过本次备份")
+		return
+	}
 	path, err := tool.Backup()
 	if err != nil {
 		logger.Errorf("备份失败: %v", err)
@@ -67,6 +74,18 @@ func backupTask() {
 	}
 	_ = service.AddBackup(dbRef, database.Backup{Path: path})
 	logger.Infof("自动备份完成: %s", path)
+}
+
+// isGameRunning 检查游戏服进程是否在运行
+func isGameRunning() bool {
+	if runtime.GOOS == "windows" {
+		return false
+	}
+	out, err := exec.Command("pgrep", "-f", "PalServer-Linux-Shipping").Output()
+	if err != nil {
+		return false
+	}
+	return len(strings.TrimSpace(string(out))) > 0
 }
 
 func playerLogging(players []database.OnlinePlayer) {

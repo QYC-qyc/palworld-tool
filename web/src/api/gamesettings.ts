@@ -14,6 +14,9 @@ export interface ConfigField {
   options?: ConfigFieldOption[]
   group: string
   requires_restart: boolean
+  min?: number
+  max?: number
+  step?: number
 }
 
 export interface GameSettingsData {
