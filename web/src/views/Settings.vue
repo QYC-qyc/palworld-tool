@@ -278,52 +278,60 @@ async function doUpdate() {
       return
     }
 
-    // 轮询更新进度
+    // 轮询更新进度：下载阶段查 status，重启阶段查 health
     let elapsed = 0
-    let wasDown = false
+    let restartDetected = false
+    let healthOkCount = 0
     const pollTimer = setInterval(async () => {
       elapsed += 1
       try {
-        // 优先从后端获取下载进度
         const progResp = await fetch('/api/updater/status', {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (progResp.ok) {
           const prog = await progResp.json()
           if (prog.message) updateProgress.message = prog.message
-          if (typeof prog.percent === 'number') updateProgress.percent = prog.percent
-          if (prog.done) {
-            if (prog.error) {
+          if (typeof prog.percent === 'number' && prog.percent > 0) {
+            updateProgress.percent = prog.percent
+          }
+          if (prog.done && prog.error) {
+            clearInterval(pollTimer)
+            updating.value = false
+            message.error(prog.error)
+            return
+          }
+        }
+      } catch { /* status 不可用，服务可能正在重启 */ }
+
+      // health 检测：服务断开后再恢复即认为重启完成
+      try {
+        const healthResp = await fetch('/health')
+        if (healthResp.ok) {
+          if (restartDetected) {
+            healthOkCount++
+            // 连续2次health成功才确认（避免服务刚启动又崩了）
+            if (healthOkCount >= 2) {
               clearInterval(pollTimer)
-              updating.value = false
-              message.error(prog.error)
-              return
+              updateProgress.percent = 100
+              updateProgress.message = '更新完成，即将刷新...'
+              message.success('面板更新完成')
+              setTimeout(() => location.reload(), 2000)
             }
           }
         }
-      } catch { /* 后端可能正在重启，降级为 health 检测 */ }
-
-      // 检测服务是否重启
-      try {
-        const healthResp = await fetch('/health')
-        if (healthResp.ok && wasDown) {
-          clearInterval(pollTimer)
-          updateProgress.percent = 100
-          updateProgress.message = '更新完成，即将刷新...'
-          message.success('面板更新完成')
-          setTimeout(() => location.reload(), 2000)
-        }
       } catch {
-        wasDown = true
+        restartDetected = true
+        healthOkCount = 0
         updateProgress.message = '服务正在重启...'
+        updateProgress.percent = 98
       }
 
       if (elapsed > 180) {
         clearInterval(pollTimer)
         updating.value = false
-        message.error('更新超时，请检查服务器或手动刷新')
+        message.error('更新超时，请手动刷新页面')
       }
-    }, 1000)
+    }, 2000)
   } catch (e: any) {
     updating.value = false
     message.error(e.message || '更新失败')
