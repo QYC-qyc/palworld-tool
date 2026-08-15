@@ -103,7 +103,9 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.GET("/paldefender/status", pdAPI.status)
 		authGroup.POST("/paldefender/install", pdAPI.install)
 		authGroup.GET("/paldefender/install-status", pdAPI.installStatus)
+		authGroup.POST("/paldefender/uninstall", pdAPI.uninstall)
 		authGroup.POST("/paldefender/install-wine", pdAPI.installWine)
+		authGroup.POST("/paldefender/uninstall-wine", pdAPI.uninstallWine)
 		authGroup.GET("/paldefender/wine-status", pdAPI.wineInstallStatus)
 		authGroup.POST("/paldefender/verify", pdAPI.verify)
 

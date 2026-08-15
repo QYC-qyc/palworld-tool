@@ -32,37 +32,60 @@
       </n-descriptions>
     </n-card>
 
-    <n-card title="安装与配置" size="small">
+    <!-- Wine 管理 -->
+    <n-card title="Wine 运行环境" size="small">
       <n-space vertical>
-        <n-alert v-if="!status.wine_present" type="warning" :show-icon="false">
-          <template #header>需要安装 Wine</template>
-          <div style="margin-bottom:8px">PalDefender 需要 Wine 才能在 Linux 上运行。</div>
-          <n-space>
-            <n-button type="primary" size="small"
-              @click="installWine" :loading="wineInstalling">
-              一键安装 Wine
-            </n-button>
-            <n-button size="small" @click="copyWineCmd" quaternary>复制手动命令</n-button>
-          </n-space>
-        </n-alert>
-
         <n-space>
           <n-button @click="refreshStatus" :loading="loading">刷新状态</n-button>
+          <n-button
+            type="primary"
+            @click="installWine"
+            :loading="wineInstalling"
+          >
+            {{ status.wine_present ? '重新安装 / 更新 Wine' : '一键安装 Wine' }}
+          </n-button>
+          <n-popconfirm v-if="status.wine_present" @positive-click="uninstallWine">
+            <template #trigger>
+              <n-button type="error" ghost>卸载 Wine</n-button>
+            </template>
+            确定要卸载 Wine 吗？
+          </n-popconfirm>
+        </n-space>
+        <n-text depth="3" style="font-size:12px">
+          {{ status.wine_present
+            ? 'Wine 已就绪，可以安装 PalDefender。'
+            : 'PalDefender 需要 Wine 才能在 Linux 上运行。' }}
+        </n-text>
+      </n-space>
+    </n-card>
+
+    <!-- PalDefender 管理 -->
+    <n-card title="PalDefender 插件" size="small">
+      <n-space vertical>
+        <n-space>
           <n-button
             type="primary"
             @click="install"
             :loading="installing"
             :disabled="!status.wine_present"
           >
-            {{ status.d3d9_exists && status.pd_exists ? '重新安装 / 更新' : '下载并安装 PalDefender' }}
+            {{ status.d3d9_exists && status.pd_exists ? '更新 PalDefender' : '安装 PalDefender' }}
           </n-button>
+          <n-popconfirm
+            v-if="status.d3d9_exists || status.pd_exists"
+            @positive-click="uninstall"
+          >
+            <template #trigger>
+              <n-button type="error" ghost :disabled="!status.wine_present">卸载</n-button>
+            </template>
+            确定要卸载 PalDefender 吗？将删除 DLL 和配置目录。
+          </n-popconfirm>
         </n-space>
         <n-alert v-if="!status.win64_path" type="info" :show-icon="false" style="font-size:12px">
           未找到 Win64 目录，安装时会自动创建
         </n-alert>
-
         <n-text depth="3" style="font-size:12px">
-          安装后请通过 Wine 方式启动游戏服（而非原生 Linux 版 PalServer.sh），DLL 才会被加载。
+          安装后需通过 Wine 启动游戏服才能加载 DLL。
         </n-text>
       </n-space>
     </n-card>
@@ -103,7 +126,7 @@
 import { onMounted, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
-  NButton, NText, NModal, NProgress, useMessage,
+  NButton, NText, NModal, NProgress, NPopconfirm, useMessage,
 } from 'naive-ui'
 
 const message = useMessage()
@@ -112,7 +135,6 @@ const installing = ref(false)
 const wineInstalling = ref(false)
 const status = ref<any>({})
 
-// Wine 进度
 const showWineProgress = ref(false)
 const wineLog = ref('')
 const winePercent = ref(0)
@@ -120,7 +142,6 @@ const wineMessage = ref('')
 const wineDone = ref(false)
 const wineSuccess = ref(false)
 
-// PalDefender 进度
 const showPdProgress = ref(false)
 const pdPercent = ref(0)
 const pdMessage = ref('')
@@ -167,7 +188,6 @@ async function install() {
       return
     }
 
-    // 轮询进度
     const timer = setInterval(async () => {
       try {
         const r = await fetch('/api/paldefender/install-status', {
@@ -194,6 +214,25 @@ async function install() {
     pdError.value = e.message
     pdDone.value = true
     installing.value = false
+  }
+}
+
+async function uninstall() {
+  try {
+    const resp = await fetch('/api/paldefender/uninstall', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      body: JSON.stringify({ game_dir: '' }),
+    })
+    const data = await resp.json()
+    if (resp.ok && data.success) {
+      message.success(data.message || '已卸载')
+    } else {
+      message.error(data.error || '卸载失败')
+    }
+    await refreshStatus()
+  } catch (e: any) {
+    message.error(e.message)
   }
 }
 
@@ -242,9 +281,22 @@ async function installWine() {
   }
 }
 
-function copyWineCmd() {
-  const cmd = 'dpkg --add-architecture i386 && apt update && apt install -y wine64'
-  navigator.clipboard?.writeText(cmd).then(() => message.success('命令已复制'))
+async function uninstallWine() {
+  try {
+    const resp = await fetch('/api/paldefender/uninstall-wine', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token()}` },
+    })
+    const data = await resp.json()
+    if (resp.ok && data.success) {
+      message.success(data.message || 'Wine 已卸载')
+    } else {
+      message.error(data.error || '卸载失败')
+    }
+    await refreshStatus()
+  } catch (e: any) {
+    message.error(e.message)
+  }
 }
 
 onMounted(refreshStatus)

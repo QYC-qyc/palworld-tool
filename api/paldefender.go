@@ -209,6 +209,21 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"running": true, "message": "开始安装 PalDefender"})
 }
 
+// uninstallWine 卸载 Wine
+func (p *palDefenderAPI) uninstallWine(c *gin.Context) {
+	if runtime.GOOS != "linux" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "仅支持 Linux"})
+		return
+	}
+	cmd := exec.Command("apt-get", "remove", "-y", "wine64", "wine")
+	setSysProcAttr(cmd)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: fmt.Sprintf("卸载失败: %v: %s", err, string(out))})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Wine 已卸载"})
+}
+
 // installStatus 返回 PalDefender 安装进度
 func (p *palDefenderAPI) installStatus(c *gin.Context) {
 	pdTask.Lock()
@@ -398,6 +413,36 @@ func (p *palDefenderAPI) detectAt(gameDir string) pdStatus {
 	}
 
 	return st
+}
+
+// uninstall 删除 PalDefender 的 DLL 文件
+func (p *palDefenderAPI) uninstall(c *gin.Context) {
+	var req struct {
+		GameDir string `json:"game_dir"`
+	}
+	_ = c.ShouldBindJSON(&req)
+
+	st := p.detectAt(req.GameDir)
+	if st.Win64Path == "" {
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": "未找到安装目录，无需卸载"})
+		return
+	}
+
+	removed := []string{}
+	for _, name := range []string{palDefenderDLL1, palDefenderDLL2} {
+		path := filepath.Join(st.Win64Path, name)
+		if err := os.Remove(path); err == nil {
+			removed = append(removed, name)
+		}
+	}
+	// 删除 PalDefender 配置目录
+	pdDir := filepath.Join(st.Win64Path, "PalDefender")
+	_ = os.RemoveAll(pdDir)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": fmt.Sprintf("已卸载（删除 %s）", strings.Join(removed, ", ")),
+	})
 }
 
 func downloadFile(url, dst string) error {
