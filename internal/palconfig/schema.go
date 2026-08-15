@@ -200,18 +200,19 @@ func Schema() []Field {
 		boolField("bAutoResetGuildNoOnlinePlayers", "自动清理无人公会", "False", "公会长时间无人在线时自动解散", "多人与公会", false),
 		{Key: "AutoResetGuildTimeNoOnlinePlayers", Label: "无人公会解散时间(小时)", Type: TypeFloat, Default: "72.0",
 			Description: "公会所有成员离线多久后自动解散（小时）", Group: "多人与公会", Min: fmin(0), Step: fstep(1)},
+		// ---- 帕鲁随机化 ----
+		{Key: "RandomizerType", Label: "随机化模式", Type: TypeEnum, Default: "None",
+			Options: []FieldOption{opt("None", "无"), opt("Region", "按区域"), opt("All", "完全随机")},
+			Description: "野外帕鲁等级随机化方式", Group: "帕鲁"},
+		stringField("RandomizerSeed", "随机化种子", "", "随机化使用的种子，留空则随机", "帕鲁"),
 		boolField("bIsRandomizerPalLevelRandom", "帕鲁等级完全随机", "False",
-			"开启后野外帕鲁等级完全随机；关闭则在区域范围内随机", "多人与公会", false),
+			"开启后野外帕鲁等级完全随机；关闭则在区域范围内随机", "帕鲁", false),
 
 		// ---- 高级（1.0 正式版新增及较少使用的字段）----
 		boolField("bIsUseBackupSaveData", "启用世界备份", "True", "启用时自动备份存档（增加磁盘负载）", "服务器", false),
 		{Key: "LogFormatType", Label: "日志格式", Type: TypeEnum, Default: "Text",
 			Options: []FieldOption{opt("Text", "文本"), opt("Json", "JSON")},
 			Description: "服务器日志输出格式", Group: "服务器", RequiresRestart: true},
-		{Key: "RandomizerType", Label: "随机化模式", Type: TypeEnum, Default: "None",
-			Options: []FieldOption{opt("None", "无"), opt("Region", "按区域"), opt("All", "完全随机")},
-			Description: "野外帕鲁等级随机化方式", Group: "服务器"},
-		stringField("RandomizerSeed", "随机化种子", "", "随机化使用的种子，留空则随机", "服务器"),
 		boolField("bUseAuth", "启用平台认证", "True", "启用 Steam/Epic 平台认证，关闭后允许离线玩家加入", "服务器", true),
 		stringField("BanListURL", "封禁列表 URL", "https://api.palworldgame.com/api/banlist.txt",
 			"官方封禁列表地址", "服务器"),
@@ -284,15 +285,21 @@ func Schema() []Field {
 		Description: "玩家死亡时掉落的内容", Group: "多人与公会"}
 	fields = append(fields, deathPenalty)
 
-	// 给有 Min/Max 的字段在 Description 中追加范围提示
+	// 给每个字段追加 ini 键名和范围提示到 Description
 	for i := range fields {
+		// 追加 ini 键名
+		keyText := "[" + fields[i].Key + "]"
+		if !strings.Contains(fields[i].Description, fields[i].Key+"]") {
+			if fields[i].Description != "" {
+				fields[i].Description += " "
+			}
+			fields[i].Description += keyText
+		}
+		// 追加范围
 		if fields[i].Min != nil && fields[i].Max != nil {
 			rangeText := fmt.Sprintf("（范围：%g–%g）", *fields[i].Min, *fields[i].Max)
 			if !strings.Contains(fields[i].Description, "范围") {
-				if fields[i].Description != "" {
-					fields[i].Description += " "
-				}
-				fields[i].Description += rangeText
+				fields[i].Description += " " + rangeText
 			}
 		}
 	}
