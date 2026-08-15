@@ -190,6 +190,7 @@ func Schema() []Field {
 		boolField("bCanPickupOtherGuildDeathPenaltyDrop", "可拾取他公会死亡掉落", "False",
 			"允许拾取其他公会成员死亡惩罚掉落的物品", "多人与公会", false),
 		boolField("bEnableInvaderEnemy", "启用入侵事件", "True", "允许敌人/自卫队随机入侵据点", "战斗", false),
+		boolField("bAllowEnemyCampSpawnNearBaseCamp", "允许敌营靠近据点", "True", "允许敌方营地在玩家据点附近生成", "战斗", false),
 		boolField("bEnableFastTravel", "启用快速旅行", "True", "允许使用传送点快速旅行", "游戏设置", false),
 		boolField("bEnableFastTravelOnlyBaseCamp", "仅据点间快速旅行", "False", "限制快速旅行只能在据点（床）之间进行", "游戏设置", false),
 		boolField("bExistPlayerAfterLogout", "离线角色留在世界", "False", "玩家登出后角色仍停留在游戏世界中", "多人与公会", false),
