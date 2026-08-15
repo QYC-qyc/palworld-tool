@@ -97,7 +97,10 @@ onMounted(async () => {
     [-half, -half],
     [half, half],
   ]
-  L.imageOverlay('/map/world.webp', bounds).addTo(map)
+  // 世界地图底图（瓦片拼接）
+  L.imageOverlay('/map/worldmap.webp', bounds).addTo(map)
+  // 资源/树分布图叠加层
+  L.imageOverlay('/map/treemap.webp', bounds, { opacity: 0.6 }).addTo(map)
   map.fitBounds(bounds)
   map.setMaxBounds(bounds)
 
