@@ -82,6 +82,7 @@ const menuOptions = [
   { label: '游戏服', key: '/gameserver' },
   { label: '游戏配置', key: '/gamesettings' },
   { label: '玩家', key: '/players' },
+  { label: '玩家地图', key: '/playermap' },
   { label: '公会', key: '/guilds' },
   { label: '白名单', key: '/whitelist' },
   { label: '封禁', key: '/banlist' },

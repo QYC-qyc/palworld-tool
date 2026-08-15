@@ -15,6 +15,7 @@ const router = createRouter({
         { path: 'gameserver', name: 'gameserver', component: () => import('@/views/GameServer.vue') },
         { path: 'gamesettings', name: 'gamesettings', component: () => import('@/views/GameSettings.vue') },
         { path: 'players', name: 'players', component: () => import('@/views/Players.vue') },
+        { path: 'playermap', name: 'playermap', component: () => import('@/views/PlayerMap.vue') },
         { path: 'guilds', name: 'guilds', component: () => import('@/views/Guilds.vue') },
         { path: 'whitelist', name: 'whitelist', component: () => import('@/views/Whitelist.vue') },
         { path: 'banlist', name: 'banlist', component: () => import('@/views/Banlist.vue') },
