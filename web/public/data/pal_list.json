@@ -1,0 +1,1497 @@
+[
+  {
+    "id": "SheepBall",
+    "name": "棉悠悠",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SheepBall.png"
+  },
+  {
+    "id": "PinkCat",
+    "name": "捣蛋猫",
+    "icon": "https://lootlab.cn/palworld/dex/icons/PinkCat.png"
+  },
+  {
+    "id": "ChickenPal",
+    "name": "皮皮鸡",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ChickenPal.png"
+  },
+  {
+    "id": "Carbunclo",
+    "name": "翠叶鼠",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Carbunclo.png"
+  },
+  {
+    "id": "BluePlatypus",
+    "name": "冲浪鸭",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BluePlatypus.png"
+  },
+  {
+    "id": "BluePlatypus_Fire",
+    "name": "热浪鸭",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BluePlatypus_Fire.png"
+  },
+  {
+    "id": "CuteFox",
+    "name": "玉藻狐",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CuteFox.png"
+  },
+  {
+    "id": "FlyingManta",
+    "name": "鲁米儿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlyingManta.png"
+  },
+  {
+    "id": "FlyingManta_Thunder",
+    "name": "雷米儿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlyingManta_Thunder.png"
+  },
+  {
+    "id": "WoolFox",
+    "name": "米露菲",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WoolFox.png"
+  },
+  {
+    "id": "KendoFrog",
+    "name": "武道蛙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KendoFrog.png"
+  },
+  {
+    "id": "KendoFrog_Dark",
+    "name": "极道蛙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KendoFrog_Dark.png"
+  },
+  {
+    "id": "LeafMomonga",
+    "name": "达鼠泥",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LeafMomonga.png"
+  },
+  {
+    "id": "Ganesha",
+    "name": "壶小象",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Ganesha.png"
+  },
+  {
+    "id": "PlantSlime",
+    "name": "叶泥泥",
+    "icon": "https://lootlab.cn/palworld/dex/icons/PlantSlime.png"
+  },
+  {
+    "id": "SamuraiDog",
+    "name": "宗铭丸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SamuraiDog.png"
+  },
+  {
+    "id": "CloverFairy",
+    "name": "幸叶茸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CloverFairy.png"
+  },
+  {
+    "id": "Hedgehog",
+    "name": "电棘鼠",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Hedgehog.png"
+  },
+  {
+    "id": "Hedgehog_Ice",
+    "name": "冰刺鼠",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Hedgehog_Ice.png"
+  },
+  {
+    "id": "NegativeKoala",
+    "name": "瞅什魔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/NegativeKoala.png"
+  },
+  {
+    "id": "Penguin",
+    "name": "企丸丸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Penguin.png"
+  },
+  {
+    "id": "Penguin_Electric",
+    "name": "闪丸丸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Penguin_Electric.png"
+  },
+  {
+    "id": "CaptainPenguin",
+    "name": "企丸王",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CaptainPenguin.png"
+  },
+  {
+    "id": "CaptainPenguin_Black",
+    "name": "闪丸王",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CaptainPenguin_Black.png"
+  },
+  {
+    "id": "WizardOwl",
+    "name": "啼卡尔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WizardOwl.png"
+  },
+  {
+    "id": "Alpaca",
+    "name": "美露帕",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Alpaca.png"
+  },
+  {
+    "id": "KingAlpaca",
+    "name": "君王美露帕",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KingAlpaca.png"
+  },
+  {
+    "id": "KingAlpaca_Ice",
+    "name": "冰帝美露帕",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KingAlpaca_Ice.png"
+  },
+  {
+    "id": "DreamDemon",
+    "name": "寐魔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DreamDemon.png"
+  },
+  {
+    "id": "Monkey",
+    "name": "新叶猿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Monkey.png"
+  },
+  {
+    "id": "Monkey_Fire",
+    "name": "秋叶猿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Monkey_Fire.png"
+  },
+  {
+    "id": "NightFox",
+    "name": "露娜蒂",
+    "icon": "https://lootlab.cn/palworld/dex/icons/NightFox.png"
+  },
+  {
+    "id": "LavaGirl",
+    "name": "融焰娘",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LavaGirl.png"
+  },
+  {
+    "id": "FlameBambi",
+    "name": "燎火鹿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlameBambi.png"
+  },
+  {
+    "id": "Bastet",
+    "name": "喵丝特",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Bastet.png"
+  },
+  {
+    "id": "Bastet_Ice",
+    "name": "冰丝特",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Bastet_Ice.png"
+  },
+  {
+    "id": "Boar",
+    "name": "草莽猪",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Boar.png"
+  },
+  {
+    "id": "Kitsunebi",
+    "name": "火绒狐",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Kitsunebi.png"
+  },
+  {
+    "id": "Kitsunebi_Ice",
+    "name": "雪绒狐",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Kitsunebi_Ice.png"
+  },
+  {
+    "id": "NegativeOctopus",
+    "name": "勾魂鱿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/NegativeOctopus.png"
+  },
+  {
+    "id": "NegativeOctopus_Neutral",
+    "name": "蚀魂鱿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/NegativeOctopus_Neutral.png"
+  },
+  {
+    "id": "CuteMole",
+    "name": "遁地鼠",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CuteMole.png"
+  },
+  {
+    "id": "Deer",
+    "name": "紫霞鹿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Deer.png"
+  },
+  {
+    "id": "Deer_Ground",
+    "name": "祇岳鹿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Deer_Ground.png"
+  },
+  {
+    "id": "Garm",
+    "name": "猎狼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Garm.png"
+  },
+  {
+    "id": "BerryGoat",
+    "name": "灌木羊",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BerryGoat.png"
+  },
+  {
+    "id": "BerryGoat_Dark",
+    "name": "郁木羊",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BerryGoat_Dark.png"
+  },
+  {
+    "id": "MopBaby",
+    "name": "毛掸儿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MopBaby.png"
+  },
+  {
+    "id": "MopKing",
+    "name": "毛老爹",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MopKing.png"
+  },
+  {
+    "id": "TentacleTurtle",
+    "name": "盔盔仔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/TentacleTurtle.png"
+  },
+  {
+    "id": "TentacleTurtle_Ground",
+    "name": "金盔仔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/TentacleTurtle_Ground.png"
+  },
+  {
+    "id": "WindChimes",
+    "name": "吊缚灵",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WindChimes.png"
+  },
+  {
+    "id": "WindChimes_Ice",
+    "name": "冰缚灵",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WindChimes_Ice.png"
+  },
+  {
+    "id": "SweetsSheep",
+    "name": "棉花糖",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SweetsSheep.png"
+  },
+  {
+    "id": "SweetsSheep_Ground",
+    "name": "可可棉花糖",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SweetsSheep_Ground.png"
+  },
+  {
+    "id": "CowPal",
+    "name": "波霸牛",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CowPal.png"
+  },
+  {
+    "id": "BlueDragon",
+    "name": "碧海龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlueDragon.png"
+  },
+  {
+    "id": "BlueDragon_Ice",
+    "name": "碧月龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlueDragon_Ice.png"
+  },
+  {
+    "id": "ElecCat",
+    "name": "伏特喵",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ElecCat.png"
+  },
+  {
+    "id": "Kelpie",
+    "name": "水灵儿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Kelpie.png"
+  },
+  {
+    "id": "Kelpie_Fire",
+    "name": "火灵儿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Kelpie_Fire.png"
+  },
+  {
+    "id": "PinkRabbit",
+    "name": "姬小兔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/PinkRabbit.png"
+  },
+  {
+    "id": "PinkRabbit_Grass",
+    "name": "艾小兔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/PinkRabbit_Grass.png"
+  },
+  {
+    "id": "JellyfishFairy",
+    "name": "海月仙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/JellyfishFairy.png"
+  },
+  {
+    "id": "JellyfishGhost",
+    "name": "海月灵",
+    "icon": "https://lootlab.cn/palworld/dex/icons/JellyfishGhost.png"
+  },
+  {
+    "id": "ClioneTwins",
+    "name": "莉欧·莉涅",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ClioneTwins.png"
+  },
+  {
+    "id": "OctopusGirl",
+    "name": "墨沫姬",
+    "icon": "https://lootlab.cn/palworld/dex/icons/OctopusGirl.png"
+  },
+  {
+    "id": "OctopusGirl_Neutral",
+    "name": "梦沫姬",
+    "icon": "https://lootlab.cn/palworld/dex/icons/OctopusGirl_Neutral.png"
+  },
+  {
+    "id": "Eagle",
+    "name": "天擒鸟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Eagle.png"
+  },
+  {
+    "id": "GhostBlackCat",
+    "name": "念影喵",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GhostBlackCat.png"
+  },
+  {
+    "id": "HawkBird",
+    "name": "疾风隼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/HawkBird.png"
+  },
+  {
+    "id": "CatBat",
+    "name": "猫蝠怪",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CatBat.png"
+  },
+  {
+    "id": "ColorfulBird",
+    "name": "炸蛋鸟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ColorfulBird.png"
+  },
+  {
+    "id": "Kirin",
+    "name": "雷角马",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Kirin.png"
+  },
+  {
+    "id": "Kirin_Ice",
+    "name": "凌角马",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Kirin_Ice.png"
+  },
+  {
+    "id": "SharkKid",
+    "name": "鲨小子",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SharkKid.png"
+  },
+  {
+    "id": "SharkKid_Fire",
+    "name": "红小鲨",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SharkKid_Fire.png"
+  },
+  {
+    "id": "Werewolf",
+    "name": "月镰魔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Werewolf.png"
+  },
+  {
+    "id": "Werewolf_Ice",
+    "name": "霜镰魔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Werewolf_Ice.png"
+  },
+  {
+    "id": "DarkCrow",
+    "name": "黑鸦隐士",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DarkCrow.png"
+  },
+  {
+    "id": "FlameBuffalo",
+    "name": "炽焰牛",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlameBuffalo.png"
+  },
+  {
+    "id": "FluffyBird",
+    "name": "雪绵啾",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FluffyBird.png"
+  },
+  {
+    "id": "LittleBriarRose",
+    "name": "荆棘魔仙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LittleBriarRose.png"
+  },
+  {
+    "id": "CuteButterfly",
+    "name": "幻悦蝶",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CuteButterfly.png"
+  },
+  {
+    "id": "ElecPomeranian",
+    "name": "电汪汪",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ElecPomeranian.png"
+  },
+  {
+    "id": "FairyDragon",
+    "name": "精灵龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FairyDragon.png"
+  },
+  {
+    "id": "FairyDragon_Water",
+    "name": "水灵龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FairyDragon_Water.png"
+  },
+  {
+    "id": "BirdDragon",
+    "name": "烽歌龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BirdDragon.png"
+  },
+  {
+    "id": "BirdDragon_Ice",
+    "name": "霜歌龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BirdDragon_Ice.png"
+  },
+  {
+    "id": "CatVampire",
+    "name": "夜幕魔蝠",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CatVampire.png"
+  },
+  {
+    "id": "VioletFairy",
+    "name": "薇莉塔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/VioletFairy.png"
+  },
+  {
+    "id": "SoldierBee",
+    "name": "骑士蜂",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SoldierBee.png"
+  },
+  {
+    "id": "QueenBee",
+    "name": "女皇蜂",
+    "icon": "https://lootlab.cn/palworld/dex/icons/QueenBee.png"
+  },
+  {
+    "id": "PinkLizard",
+    "name": "博爱蜥",
+    "icon": "https://lootlab.cn/palworld/dex/icons/PinkLizard.png"
+  },
+  {
+    "id": "NaughtyCat",
+    "name": "笑魇猫",
+    "icon": "https://lootlab.cn/palworld/dex/icons/NaughtyCat.png"
+  },
+  {
+    "id": "PurpleSpider",
+    "name": "桃蛛娘",
+    "icon": "https://lootlab.cn/palworld/dex/icons/PurpleSpider.png"
+  },
+  {
+    "id": "IceSeal",
+    "name": "香草豹冰",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceSeal.png"
+  },
+  {
+    "id": "IceSeal_Ground",
+    "name": "巧克力豹冰",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceSeal_Ground.png"
+  },
+  {
+    "id": "LizardMan",
+    "name": "朋克蜥",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LizardMan.png"
+  },
+  {
+    "id": "LizardMan_Fire",
+    "name": "热血蜥",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LizardMan_Fire.png"
+  },
+  {
+    "id": "Gorilla",
+    "name": "铁拳猿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Gorilla.png"
+  },
+  {
+    "id": "Gorilla_Ground",
+    "name": "石掌猿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Gorilla_Ground.png"
+  },
+  {
+    "id": "Serpent",
+    "name": "滑水蛇",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Serpent.png"
+  },
+  {
+    "id": "Serpent_Ground",
+    "name": "流沙蛇",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Serpent_Ground.png"
+  },
+  {
+    "id": "RobinHood",
+    "name": "羽箭射手",
+    "icon": "https://lootlab.cn/palworld/dex/icons/RobinHood.png"
+  },
+  {
+    "id": "RobinHood_Ground",
+    "name": "山岳射手",
+    "icon": "https://lootlab.cn/palworld/dex/icons/RobinHood_Ground.png"
+  },
+  {
+    "id": "FlowerRabbit",
+    "name": "波娜兔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlowerRabbit.png"
+  },
+  {
+    "id": "FoxMage",
+    "name": "焰巫狐",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FoxMage.png"
+  },
+  {
+    "id": "FoxMage_Dark",
+    "name": "幽巫狐",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FoxMage_Dark.png"
+  },
+  {
+    "id": "CatMage",
+    "name": "暗巫猫",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CatMage.png"
+  },
+  {
+    "id": "CatMage_Fire",
+    "name": "炽巫猫",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CatMage_Fire.png"
+  },
+  {
+    "id": "HadesBird",
+    "name": "雷冥鸟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/HadesBird.png"
+  },
+  {
+    "id": "HadesBird_Electric",
+    "name": "雷鸣鸟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/HadesBird_Electric.png"
+  },
+  {
+    "id": "GrassMinotaur",
+    "name": "密林陶洛斯",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrassMinotaur.png"
+  },
+  {
+    "id": "GrassMinotaur_Ice",
+    "name": "冰峰陶洛斯",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrassMinotaur_Ice.png"
+  },
+  {
+    "id": "Mutant",
+    "name": "秘斯媞雅",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Mutant.png"
+  },
+  {
+    "id": "FengyunDeeper",
+    "name": "云海鹿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FengyunDeeper.png"
+  },
+  {
+    "id": "FengyunDeeper_Electric",
+    "name": "雷隐鹿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FengyunDeeper_Electric.png"
+  },
+  {
+    "id": "FlowerDinosaur",
+    "name": "花冠龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlowerDinosaur.png"
+  },
+  {
+    "id": "FlowerDinosaur_Electric",
+    "name": "雷冠龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlowerDinosaur_Electric.png"
+  },
+  {
+    "id": "Ronin",
+    "name": "浪刃武士",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Ronin.png"
+  },
+  {
+    "id": "Ronin_Dark",
+    "name": "鬼刃武士",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Ronin_Dark.png"
+  },
+  {
+    "id": "IceCrocodile",
+    "name": "肚肚鳄",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceCrocodile.png"
+  },
+  {
+    "id": "GrassMammoth",
+    "name": "森猛犸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrassMammoth.png"
+  },
+  {
+    "id": "GrassMammoth_Ice",
+    "name": "雪猛犸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrassMammoth_Ice.png"
+  },
+  {
+    "id": "StuffedShark",
+    "name": "布偶鲨",
+    "icon": "https://lootlab.cn/palworld/dex/icons/StuffedShark.png"
+  },
+  {
+    "id": "StuffedShark_Fire",
+    "name": "粉粉布偶鲨",
+    "icon": "https://lootlab.cn/palworld/dex/icons/StuffedShark_Fire.png"
+  },
+  {
+    "id": "FlowerDoll",
+    "name": "花丽娜",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlowerDoll.png"
+  },
+  {
+    "id": "FlowerDoll_Fire",
+    "name": "樱丽娜",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlowerDoll_Fire.png"
+  },
+  {
+    "id": "PandaGirl",
+    "name": "莉芳",
+    "icon": "https://lootlab.cn/palworld/dex/icons/PandaGirl.png"
+  },
+  {
+    "id": "Baphomet",
+    "name": "炎魔羊",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Baphomet.png"
+  },
+  {
+    "id": "Baphomet_Dark",
+    "name": "暗魔羊",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Baphomet_Dark.png"
+  },
+  {
+    "id": "RaijinDaughter",
+    "name": "雷鸣童子",
+    "icon": "https://lootlab.cn/palworld/dex/icons/RaijinDaughter.png"
+  },
+  {
+    "id": "RaijinDaughter_Water",
+    "name": "天阴童子",
+    "icon": "https://lootlab.cn/palworld/dex/icons/RaijinDaughter_Water.png"
+  },
+  {
+    "id": "FireKirin",
+    "name": "火麒麟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FireKirin.png"
+  },
+  {
+    "id": "FireKirin_Dark",
+    "name": "邪麒麟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FireKirin_Dark.png"
+  },
+  {
+    "id": "LazyDragon",
+    "name": "佩克龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LazyDragon.png"
+  },
+  {
+    "id": "LazyDragon_Electric",
+    "name": "派克龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LazyDragon_Electric.png"
+  },
+  {
+    "id": "IceFox",
+    "name": "吹雪狐",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceFox.png"
+  },
+  {
+    "id": "ThunderBird",
+    "name": "迅雷鸟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ThunderBird.png"
+  },
+  {
+    "id": "ThunderBird_Ice",
+    "name": "疾霜鸟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ThunderBird_Ice.png"
+  },
+  {
+    "id": "GhostAnglerfish",
+    "name": "冥灯鱼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GhostAnglerfish.png"
+  },
+  {
+    "id": "GhostAnglerfish_Fire",
+    "name": "炙灯鱼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GhostAnglerfish_Fire.png"
+  },
+  {
+    "id": "ThunderDog",
+    "name": "霹雳犬",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ThunderDog.png"
+  },
+  {
+    "id": "ThunderDog_Ice",
+    "name": "凛光犬",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ThunderDog_Ice.png"
+  },
+  {
+    "id": "DarkScorpion",
+    "name": "冥铠蝎",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DarkScorpion.png"
+  },
+  {
+    "id": "DarkScorpion_Ground",
+    "name": "金铠蝎",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DarkScorpion_Ground.png"
+  },
+  {
+    "id": "CactusDoll",
+    "name": "球抱苞",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CactusDoll.png"
+  },
+  {
+    "id": "CactusDoll_Dark",
+    "name": "妖抱苞",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CactusDoll_Dark.png"
+  },
+  {
+    "id": "IceDeer",
+    "name": "严冬鹿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceDeer.png"
+  },
+  {
+    "id": "GrassPanda",
+    "name": "叶胖达",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrassPanda.png"
+  },
+  {
+    "id": "GrassPanda_Electric",
+    "name": "雷胖达",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrassPanda_Electric.png"
+  },
+  {
+    "id": "WeaselDragon",
+    "name": "疾旋鼬",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WeaselDragon.png"
+  },
+  {
+    "id": "WeaselDragon_Fire",
+    "name": "桃旋鼬",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WeaselDragon_Fire.png"
+  },
+  {
+    "id": "RedArmorBird",
+    "name": "燧火鸟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/RedArmorBird.png"
+  },
+  {
+    "id": "VolcanoDragon",
+    "name": "流焰龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/VolcanoDragon.png"
+  },
+  {
+    "id": "VolcanoDragon_Ice",
+    "name": "川霜龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/VolcanoDragon_Ice.png"
+  },
+  {
+    "id": "TropicalOstrich",
+    "name": "咕咕桑葩",
+    "icon": "https://lootlab.cn/palworld/dex/icons/TropicalOstrich.png"
+  },
+  {
+    "id": "DrillGame",
+    "name": "碎岩龟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DrillGame.png"
+  },
+  {
+    "id": "SakuraSaurus",
+    "name": "连理龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SakuraSaurus.png"
+  },
+  {
+    "id": "SakuraSaurus_Water",
+    "name": "海誓龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SakuraSaurus_Water.png"
+  },
+  {
+    "id": "LazyCatfish",
+    "name": "趴趴鲶",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LazyCatfish.png"
+  },
+  {
+    "id": "LazyCatfish_Gold",
+    "name": "梆梆鲶",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LazyCatfish_Gold.png"
+  },
+  {
+    "id": "Plesiosaur",
+    "name": "梁叶龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Plesiosaur.png"
+  },
+  {
+    "id": "AmaterasuWolf",
+    "name": "苍焰狼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/AmaterasuWolf.png"
+  },
+  {
+    "id": "AmaterasuWolf_Dark",
+    "name": "幽焰狼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/AmaterasuWolf_Dark.png"
+  },
+  {
+    "id": "Manticore",
+    "name": "狱焰王",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Manticore.png"
+  },
+  {
+    "id": "Manticore_Dark",
+    "name": "狱阎王",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Manticore_Dark.png"
+  },
+  {
+    "id": "HerculesBeetle",
+    "name": "铠格力斯",
+    "icon": "https://lootlab.cn/palworld/dex/icons/HerculesBeetle.png"
+  },
+  {
+    "id": "HerculesBeetle_Ground",
+    "name": "格鲁力斯",
+    "icon": "https://lootlab.cn/palworld/dex/icons/HerculesBeetle_Ground.png"
+  },
+  {
+    "id": "SnowPeafowl",
+    "name": "白真雪雀",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SnowPeafowl.png"
+  },
+  {
+    "id": "DarkFlameFox",
+    "name": "紫狐娇",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DarkFlameFox.png"
+  },
+  {
+    "id": "WhiteMoth",
+    "name": "绸笠蛾",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WhiteMoth.png"
+  },
+  {
+    "id": "WhiteMoth_Neutral",
+    "name": "绢笠蛾",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WhiteMoth_Neutral.png"
+  },
+  {
+    "id": "GhostBeast",
+    "name": "噬魂兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GhostBeast.png"
+  },
+  {
+    "id": "MushroomDragon",
+    "name": "菇咚",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MushroomDragon.png"
+  },
+  {
+    "id": "MushroomDragon_Dark",
+    "name": "菇波",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MushroomDragon_Dark.png"
+  },
+  {
+    "id": "IceWitch",
+    "name": "冰姬灵",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceWitch.png"
+  },
+  {
+    "id": "MummyPal",
+    "name": "缚乃伊",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MummyPal.png"
+  },
+  {
+    "id": "Umihebi",
+    "name": "覆海龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Umihebi.png"
+  },
+  {
+    "id": "Umihebi_Fire",
+    "name": "腾炎龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Umihebi_Fire.png"
+  },
+  {
+    "id": "Suzaku",
+    "name": "朱雀",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Suzaku.png"
+  },
+  {
+    "id": "Suzaku_Water",
+    "name": "清雀",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Suzaku_Water.png"
+  },
+  {
+    "id": "FeatherOstrich",
+    "name": "战冠雀",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FeatherOstrich.png"
+  },
+  {
+    "id": "SkyDragon",
+    "name": "天羽龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SkyDragon.png"
+  },
+  {
+    "id": "SkyDragon_Grass",
+    "name": "翠羽龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SkyDragon_Grass.png"
+  },
+  {
+    "id": "LeafPrincess",
+    "name": "春彩娘",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LeafPrincess.png"
+  },
+  {
+    "id": "SmallArmadillo",
+    "name": "球犰",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SmallArmadillo.png"
+  },
+  {
+    "id": "GuardianDog",
+    "name": "八云犬",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GuardianDog.png"
+  },
+  {
+    "id": "SwordCutlassfish",
+    "name": "鞘刀鱼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SwordCutlassfish.png"
+  },
+  {
+    "id": "SwordCutlassfish_Fire",
+    "name": "炼刃鱼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SwordCutlassfish_Fire.png"
+  },
+  {
+    "id": "VolcanicMonster",
+    "name": "熔岩兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/VolcanicMonster.png"
+  },
+  {
+    "id": "VolcanicMonster_Ice",
+    "name": "寒霜兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/VolcanicMonster_Ice.png"
+  },
+  {
+    "id": "NightBlueHorse",
+    "name": "夜冥驹",
+    "icon": "https://lootlab.cn/palworld/dex/icons/NightBlueHorse.png"
+  },
+  {
+    "id": "NightBlueHorse_Neutral",
+    "name": "日耀驹",
+    "icon": "https://lootlab.cn/palworld/dex/icons/NightBlueHorse_Neutral.png"
+  },
+  {
+    "id": "RockBeast",
+    "name": "磐峰兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/RockBeast.png"
+  },
+  {
+    "id": "RockBeast_Ice",
+    "name": "寒峰兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/RockBeast_Ice.png"
+  },
+  {
+    "id": "WhiteTiger",
+    "name": "冰棘兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WhiteTiger.png"
+  },
+  {
+    "id": "WhiteTiger_Ground",
+    "name": "金棘兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WhiteTiger_Ground.png"
+  },
+  {
+    "id": "SmallYeti",
+    "name": "雪墩墩",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SmallYeti.png"
+  },
+  {
+    "id": "Yeti",
+    "name": "白绒雪怪",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Yeti.png"
+  },
+  {
+    "id": "Yeti_Grass",
+    "name": "绿苔绒怪",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Yeti_Grass.png"
+  },
+  {
+    "id": "CandleGhost",
+    "name": "恐炬灵",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CandleGhost.png"
+  },
+  {
+    "id": "VenusFlytrap",
+    "name": "颚莉丝",
+    "icon": "https://lootlab.cn/palworld/dex/icons/VenusFlytrap.png"
+  },
+  {
+    "id": "KingBahamut",
+    "name": "焰煌",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KingBahamut.png"
+  },
+  {
+    "id": "KingBahamut_Dragon",
+    "name": "殁殃",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KingBahamut_Dragon.png"
+  },
+  {
+    "id": "GrassGolem",
+    "name": "双心岩傀",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrassGolem.png"
+  },
+  {
+    "id": "GrassGolem_Dark",
+    "name": "咒心岩傀",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrassGolem_Dark.png"
+  },
+  {
+    "id": "Anubis",
+    "name": "阿努比斯",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Anubis.png"
+  },
+  {
+    "id": "Sekhmet",
+    "name": "塞赫麦特",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Sekhmet.png"
+  },
+  {
+    "id": "ScorpionMan",
+    "name": "蛊刺妖",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ScorpionMan.png"
+  },
+  {
+    "id": "ScorpionMan_Electric",
+    "name": "电针妖",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ScorpionMan_Electric.png"
+  },
+  {
+    "id": "CubeTurtle",
+    "name": "重岩龟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CubeTurtle.png"
+  },
+  {
+    "id": "CubeTurtle_Neutral",
+    "name": "净岩龟",
+    "icon": "https://lootlab.cn/palworld/dex/icons/CubeTurtle_Neutral.png"
+  },
+  {
+    "id": "BadCatgirl",
+    "name": "妮瞅莎",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BadCatgirl.png"
+  },
+  {
+    "id": "MimicDog",
+    "name": "旺财",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MimicDog.png"
+  },
+  {
+    "id": "DarkAlien",
+    "name": "杰诺贝达",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DarkAlien.png"
+  },
+  {
+    "id": "WhiteAlienDragon",
+    "name": "杰诺路达",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WhiteAlienDragon.png"
+  },
+  {
+    "id": "BlueberryFairy",
+    "name": "梅莉姆",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlueberryFairy.png"
+  },
+  {
+    "id": "GhostRabbit",
+    "name": "魅爱莉",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GhostRabbit.png"
+  },
+  {
+    "id": "GhostRabbit_Grass",
+    "name": "碧艾莉",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GhostRabbit_Grass.png"
+  },
+  {
+    "id": "BlackPuppy",
+    "name": "墨丸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlackPuppy.png"
+  },
+  {
+    "id": "BlackPuppy_Ice",
+    "name": "冬丸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlackPuppy_Ice.png"
+  },
+  {
+    "id": "MysteryMask",
+    "name": "面惧",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MysteryMask.png"
+  },
+  {
+    "id": "IceNarwhal",
+    "name": "凉晶鲸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceNarwhal.png"
+  },
+  {
+    "id": "IceNarwhal_Fire",
+    "name": "桃晶鲸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceNarwhal_Fire.png"
+  },
+  {
+    "id": "GrassRabbitMan",
+    "name": "踏春兔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrassRabbitMan.png"
+  },
+  {
+    "id": "GrimGirl",
+    "name": "幽恋娜",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GrimGirl.png"
+  },
+  {
+    "id": "GoldenHorse",
+    "name": "金驰兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GoldenHorse.png"
+  },
+  {
+    "id": "SifuDog",
+    "name": "汪宗师",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SifuDog.png"
+  },
+  {
+    "id": "SumoDog",
+    "name": "力士獒",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SumoDog.png"
+  },
+  {
+    "id": "WhiteDeer",
+    "name": "净世鹿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WhiteDeer.png"
+  },
+  {
+    "id": "WhiteDeer_Dark",
+    "name": "织夜鹿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WhiteDeer_Dark.png"
+  },
+  {
+    "id": "BlackMetalDragon",
+    "name": "魔渊龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlackMetalDragon.png"
+  },
+  {
+    "id": "WingGolem",
+    "name": "泰锋",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WingGolem.png"
+  },
+  {
+    "id": "WingGolem_Fire",
+    "name": "丹烽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WingGolem_Fire.png"
+  },
+  {
+    "id": "WhiteShieldDragon",
+    "name": "艾基鲁迦",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WhiteShieldDragon.png"
+  },
+  {
+    "id": "BlueThunderHorse",
+    "name": "驭雷马",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlueThunderHorse.png"
+  },
+  {
+    "id": "LongCat",
+    "name": "喵璐璐",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LongCat.png"
+  },
+  {
+    "id": "ElecSnail",
+    "name": "电涡蜗",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ElecSnail.png"
+  },
+  {
+    "id": "ElecSnail_Ground",
+    "name": "金涡蜗",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ElecSnail_Ground.png"
+  },
+  {
+    "id": "DandelionGirl",
+    "name": "蒲蒲飞芽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DandelionGirl.png"
+  },
+  {
+    "id": "BrownRabbit",
+    "name": "詹兔曼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BrownRabbit.png"
+  },
+  {
+    "id": "HoodGhost",
+    "name": "兜兜灵",
+    "icon": "https://lootlab.cn/palworld/dex/icons/HoodGhost.png"
+  },
+  {
+    "id": "ElecLizard",
+    "name": "电懒懒",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ElecLizard.png"
+  },
+  {
+    "id": "OniGhostGirl",
+    "name": "吓丝妮",
+    "icon": "https://lootlab.cn/palworld/dex/icons/OniGhostGirl.png"
+  },
+  {
+    "id": "KingSunfish",
+    "name": "曼波王",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KingSunfish.png"
+  },
+  {
+    "id": "KingSunfish_Thunder",
+    "name": "曼波皇",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KingSunfish_Thunder.png"
+  },
+  {
+    "id": "SleeveRabbit",
+    "name": "兔绣袖",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SleeveRabbit.png"
+  },
+  {
+    "id": "GhostDragon",
+    "name": "灵曦龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GhostDragon.png"
+  },
+  {
+    "id": "GhostDragon_Fire",
+    "name": "狱熙龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/GhostDragon_Fire.png"
+  },
+  {
+    "id": "ThunderFluffyBird",
+    "name": "雷云鹫",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ThunderFluffyBird.png"
+  },
+  {
+    "id": "RedFlowerBird",
+    "name": "大红呱",
+    "icon": "https://lootlab.cn/palworld/dex/icons/RedFlowerBird.png"
+  },
+  {
+    "id": "FoxExorcist",
+    "name": "昭炎狐",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FoxExorcist.png"
+  },
+  {
+    "id": "LotusDragon",
+    "name": "沁莲龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LotusDragon.png"
+  },
+  {
+    "id": "ClownRabbit",
+    "name": "拉比耶尔",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ClownRabbit.png"
+  },
+  {
+    "id": "ThiefBird",
+    "name": "盗影鸦",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ThiefBird.png"
+  },
+  {
+    "id": "SnakeGirl",
+    "name": "梅杜娜",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SnakeGirl.png"
+  },
+  {
+    "id": "MushroomLady",
+    "name": "红菇娘",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MushroomLady.png"
+  },
+  {
+    "id": "LanternButler",
+    "name": "妖焰灯",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LanternButler.png"
+  },
+  {
+    "id": "MoonChild",
+    "name": "缀夜星",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MoonChild.png"
+  },
+  {
+    "id": "MonochromeQueen",
+    "name": "墨罗娜",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MonochromeQueen.png"
+  },
+  {
+    "id": "KabukiMan",
+    "name": "燎火舞伶",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KabukiMan.png"
+  },
+  {
+    "id": "DomeArmorDragon",
+    "name": "磐甲龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DomeArmorDragon.png"
+  },
+  {
+    "id": "ElecPanda",
+    "name": "暴电熊",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ElecPanda.png"
+  },
+  {
+    "id": "LilyQueen",
+    "name": "百合女王",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LilyQueen.png"
+  },
+  {
+    "id": "LilyQueen_Dark",
+    "name": "黑月女王",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LilyQueen_Dark.png"
+  },
+  {
+    "id": "ThunderDragonMan",
+    "name": "波鲁杰克斯",
+    "icon": "https://lootlab.cn/palworld/dex/icons/ThunderDragonMan.png"
+  },
+  {
+    "id": "Horus",
+    "name": "荷鲁斯",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Horus.png"
+  },
+  {
+    "id": "Horus_Water",
+    "name": "伊西斯",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Horus_Water.png"
+  },
+  {
+    "id": "BlackGriffon",
+    "name": "异构格里芬",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlackGriffon.png"
+  },
+  {
+    "id": "MoonQueen",
+    "name": "辉月伊",
+    "icon": "https://lootlab.cn/palworld/dex/icons/MoonQueen.png"
+  },
+  {
+    "id": "SnowTigerBeastman",
+    "name": "霜牙王",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SnowTigerBeastman.png"
+  },
+  {
+    "id": "BlueSkyDragon",
+    "name": "霄龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlueSkyDragon.png"
+  },
+  {
+    "id": "Mothman",
+    "name": "暮尘蛾",
+    "icon": "https://lootlab.cn/palworld/dex/icons/Mothman.png"
+  },
+  {
+    "id": "FlowerPrince",
+    "name": "夜蔓爵",
+    "icon": "https://lootlab.cn/palworld/dex/icons/FlowerPrince.png"
+  },
+  {
+    "id": "NightLady",
+    "name": "贝菈诺娃",
+    "icon": "https://lootlab.cn/palworld/dex/icons/NightLady.png"
+  },
+  {
+    "id": "NightLady_Dark",
+    "name": "贝菈露洁",
+    "icon": "https://lootlab.cn/palworld/dex/icons/NightLady_Dark.png"
+  },
+  {
+    "id": "DarkMechaDragon",
+    "name": "杰诺多兰",
+    "icon": "https://lootlab.cn/palworld/dex/icons/DarkMechaDragon.png"
+  },
+  {
+    "id": "LegendDeer",
+    "name": "默世鹿",
+    "icon": "https://lootlab.cn/palworld/dex/icons/LegendDeer.png"
+  },
+  {
+    "id": "SaintCentaur",
+    "name": "圣光骑士",
+    "icon": "https://lootlab.cn/palworld/dex/icons/SaintCentaur.png"
+  },
+  {
+    "id": "BlackCentaur",
+    "name": "混沌骑士",
+    "icon": "https://lootlab.cn/palworld/dex/icons/BlackCentaur.png"
+  },
+  {
+    "id": "IceHorse",
+    "name": "唤冬兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceHorse.png"
+  },
+  {
+    "id": "IceHorse_Dark",
+    "name": "唤夜兽",
+    "icon": "https://lootlab.cn/palworld/dex/icons/IceHorse_Dark.png"
+  },
+  {
+    "id": "PoseidonOrca",
+    "name": "海皇鲸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/PoseidonOrca.png"
+  },
+  {
+    "id": "JetDragon",
+    "name": "空涡龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/JetDragon.png"
+  },
+  {
+    "id": "KingWhale",
+    "name": "奥沧鲸",
+    "icon": "https://lootlab.cn/palworld/dex/icons/KingWhale.png"
+  },
+  {
+    "id": "WorldTreeDragon",
+    "name": "枯星龙",
+    "icon": "https://lootlab.cn/palworld/dex/icons/WorldTreeDragon.png"
+  },
+  {
+    "id": "YakushimaMonster001",
+    "name": "绿史莱姆",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaMonster001.png"
+  },
+  {
+    "id": "YakushimaMonster001_Blue",
+    "name": "蓝史莱姆",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaMonster001_Blue.png"
+  },
+  {
+    "id": "YakushimaMonster001_Red",
+    "name": "红史莱姆",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaMonster001_Red.png"
+  },
+  {
+    "id": "YakushimaMonster001_Purple",
+    "name": "紫史莱姆",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaMonster001_Purple.png"
+  },
+  {
+    "id": "YakushimaMonster001_Pink",
+    "name": "夜明史莱姆",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaMonster001_Pink.png"
+  },
+  {
+    "id": "YakushimaMonster001_Rainbow",
+    "name": "彩虹史莱姆",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaMonster001_Rainbow.png"
+  },
+  {
+    "id": "YakushimaMonster002",
+    "name": "附魔剑",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaMonster002.png"
+  },
+  {
+    "id": "YakushimaMonster003",
+    "name": "洞穴蝙蝠",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaMonster003.png"
+  },
+  {
+    "id": "YakushimaMonster003_Purple",
+    "name": "夜明蝙蝠",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaMonster003_Purple.png"
+  },
+  {
+    "id": "YakushimaBoss001",
+    "name": "克苏鲁之眼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaBoss001.png"
+  },
+  {
+    "id": "YakushimaBoss001_Small",
+    "name": "恶魔眼",
+    "icon": "https://lootlab.cn/palworld/dex/icons/YakushimaBoss001_Small.png"
+  }
+]

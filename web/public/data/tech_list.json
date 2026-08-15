@@ -1,0 +1,2322 @@
+[
+  {
+    "id": "Torch",
+    "name": "携带火把",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Torch.png"
+  },
+  {
+    "id": "WorkBench",
+    "name": "原始的作业台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WorkBench.png"
+  },
+  {
+    "id": "Axe_Default",
+    "name": "石头斧",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Axe_Default.png"
+  },
+  {
+    "id": "Pickaxe_Default",
+    "name": "石制十字镐",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Pickaxe_Default.png"
+  },
+  {
+    "id": "Bat",
+    "name": "木棒",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Bat.png"
+  },
+  {
+    "id": "Campfire",
+    "name": "篝火",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Campfire.png"
+  },
+  {
+    "id": "SkinChange",
+    "name": "帕鲁装扮机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkinChange.png"
+  },
+  {
+    "id": "CapturePrism",
+    "name": "帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CapturePrism.png"
+  },
+  {
+    "id": "PalBoxV2",
+    "name": "帕鲁终端",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalBoxV2.png"
+  },
+  {
+    "id": "RepairBench",
+    "name": "修理台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/RepairBench.png"
+  },
+  {
+    "id": "Chest",
+    "name": "木箱",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Chest.png"
+  },
+  {
+    "id": "Wooden_foundation",
+    "name": "木质建筑套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Wooden_foundation.png"
+  },
+  {
+    "id": "Arrow",
+    "name": "箭",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Arrow.png"
+  },
+  {
+    "id": "GlobalPalStorage",
+    "name": "跨界帕鲁终端",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GlobalPalStorage.png"
+  },
+  {
+    "id": "Bow",
+    "name": "陈旧的弓",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Bow.png"
+  },
+  {
+    "id": "PlayerBed_02",
+    "name": "劣质的床",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PlayerBed_02.png"
+  },
+  {
+    "id": "Spear",
+    "name": "石头长矛",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Spear.png"
+  },
+  {
+    "id": "MedicalPalBed_02",
+    "name": "稻草帕鲁床",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MedicalPalBed_02.png"
+  },
+  {
+    "id": "Cloth",
+    "name": "布",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Cloth.png"
+  },
+  {
+    "id": "LeatherClothing",
+    "name": "布衣服",
+    "icon": "https://lootlab.cn/palworld/tech/icons/LeatherClothing.png"
+  },
+  {
+    "id": "Shield_01",
+    "name": "普通护盾",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shield_01.png"
+  },
+  {
+    "id": "PalFoodBox",
+    "name": "饲料箱",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalFoodBox.png"
+  },
+  {
+    "id": "TableSquare_Wood",
+    "name": "木制客厅家具套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/TableSquare_Wood.png"
+  },
+  {
+    "id": "Barrel_Wood",
+    "name": "木制酒吧收纳家具套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Barrel_Wood.png"
+  },
+  {
+    "id": "Counter_Wood",
+    "name": "木制酒吧家具套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Counter_Wood.png"
+  },
+  {
+    "id": "FarmBlockV2_Berries",
+    "name": "野莓园",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FarmBlockV2_Berries.png"
+  },
+  {
+    "id": "Glider_Old",
+    "name": "普通滑翔伞",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Glider_Old.png"
+  },
+  {
+    "id": "MonsterFarm",
+    "name": "家畜牧场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MonsterFarm.png"
+  },
+  {
+    "id": "Arrow_Fire",
+    "name": "火箭",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Arrow_Fire.png"
+  },
+  {
+    "id": "Plant01_Plant",
+    "name": "观叶植物套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Plant01_Plant.png"
+  },
+  {
+    "id": "Signboard",
+    "name": "告示牌",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Signboard.png"
+  },
+  {
+    "id": "TorchStand",
+    "name": "固定式火把",
+    "icon": "https://lootlab.cn/palworld/tech/icons/TorchStand.png"
+  },
+  {
+    "id": "WorkBench_SkillUnlock",
+    "name": "帕鲁装备制作台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WorkBench_SkillUnlock.png"
+  },
+  {
+    "id": "WallSignboard",
+    "name": "壁挂看板",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WallSignboard.png"
+  },
+  {
+    "id": "BaseCampBattleDirector",
+    "name": "警钟",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BaseCampBattleDirector.png"
+  },
+  {
+    "id": "Bat2",
+    "name": "棒球棒",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Bat2.png"
+  },
+  {
+    "id": "Ivy01",
+    "name": "挂墙观叶植物套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Ivy01.png"
+  },
+  {
+    "id": "StationDeforest2",
+    "name": "伐木场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/StationDeforest2.png"
+  },
+  {
+    "id": "BaseCampWorkHard",
+    "name": "监控台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BaseCampWorkHard.png"
+  },
+  {
+    "id": "DefenseWait",
+    "name": "沙袋",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DefenseWait.png"
+  },
+  {
+    "id": "StonePit",
+    "name": "采石场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/StonePit.png"
+  },
+  {
+    "id": "Light_FirePlace01",
+    "name": "壁炉套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Light_FirePlace01.png"
+  },
+  {
+    "id": "Trap_Noose",
+    "name": "套索陷阱",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Trap_Noose.png"
+  },
+  {
+    "id": "Arrow_Poison",
+    "name": "毒箭",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Arrow_Poison.png"
+  },
+  {
+    "id": "DefenseWall_Wood",
+    "name": "木制防御墙",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DefenseWall_Wood.png"
+  },
+  {
+    "id": "Crusher",
+    "name": "粉碎机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Crusher.png"
+  },
+  {
+    "id": "Wood_Gate",
+    "name": "木制大门",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Wood_Gate.png"
+  },
+  {
+    "id": "Rug01_Stone",
+    "name": "地毯套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Rug01_Stone.png"
+  },
+  {
+    "id": "AutoMealPouch_Tier1",
+    "name": "小饲料袋",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AutoMealPouch_Tier1.png"
+  },
+  {
+    "id": "Spa",
+    "name": "温泉",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Spa.png"
+  },
+  {
+    "id": "BuildableGoddessStatue",
+    "name": "力量石像",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BuildableGoddessStatue.png"
+  },
+  {
+    "id": "ClothArmorHeat",
+    "name": "热带地区民族服饰",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ClothArmorHeat.png"
+  },
+  {
+    "id": "ClothArmorCold",
+    "name": "寒冷地区民族服饰",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ClothArmorCold.png"
+  },
+  {
+    "id": "Shelf01_Stone",
+    "name": "古典收纳套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shelf01_Stone.png"
+  },
+  {
+    "id": "Trap_LegHold",
+    "name": "捕兽夹（小）",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Trap_LegHold.png"
+  },
+  {
+    "id": "Wooden_ladder",
+    "name": "梯子",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Wooden_ladder.png"
+  },
+  {
+    "id": "MachineParts",
+    "name": "钉子",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MachineParts.png"
+  },
+  {
+    "id": "FurHelmet",
+    "name": "羽毛发饰",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurHelmet.png"
+  },
+  {
+    "id": "Bow3",
+    "name": "三连弓",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Bow3.png"
+  },
+  {
+    "id": "BlastFurnace",
+    "name": "原始的炉子",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BlastFurnace.png"
+  },
+  {
+    "id": "HatchingPalEgg",
+    "name": "帕鲁蛋孵化器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/HatchingPalEgg.png"
+  },
+  {
+    "id": "Chair01_Stone",
+    "name": "古典椅子套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Chair01_Stone.png"
+  },
+  {
+    "id": "Hunter_Flag",
+    "name": "盗猎团旗帜套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Hunter_Flag.png"
+  },
+  {
+    "id": "Axe_Default",
+    "name": "金属斧头",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Axe_Default.png"
+  },
+  {
+    "id": "Pickaxe_Default",
+    "name": "金属十字镐",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Pickaxe_Default.png"
+  },
+  {
+    "id": "Factory_Hard_01",
+    "name": "优质作业台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Factory_Hard_01.png"
+  },
+  {
+    "id": "FurnitureTree01_Green",
+    "name": "仿真树木套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurnitureTree01_Green.png"
+  },
+  {
+    "id": "TableCircular_Wood_None",
+    "name": "整洁的桌子套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/TableCircular_Wood_None.png"
+  },
+  {
+    "id": "MeatCutterKnife",
+    "name": "切肉刀",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MeatCutterKnife.png"
+  },
+  {
+    "id": "MedicineFacility_01",
+    "name": "中世纪制药台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MedicineFacility_01.png"
+  },
+  {
+    "id": "FurArmor",
+    "name": "毛皮盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurArmor.png"
+  },
+  {
+    "id": "GrapplingGun",
+    "name": "爪钩枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GrapplingGun.png"
+  },
+  {
+    "id": "Shelf05_Stone",
+    "name": "古典收纳柜套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shelf05_Stone.png"
+  },
+  {
+    "id": "CoolerBox",
+    "name": "保冷箱",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CoolerBox.png"
+  },
+  {
+    "id": "BowGun",
+    "name": "十字弓",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BowGun.png"
+  },
+  {
+    "id": "Chest2",
+    "name": "金属箱",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Chest2.png"
+  },
+  {
+    "id": "Spear",
+    "name": "金属长矛",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Spear.png"
+  },
+  {
+    "id": "DamagedScarecrow",
+    "name": "受损的稻草人",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DamagedScarecrow.png"
+  },
+  {
+    "id": "Desk01_Stone",
+    "name": "古典书桌套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Desk01_Stone.png"
+  },
+  {
+    "id": "FurnitureTree01_Red",
+    "name": "仿真红叶树套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurnitureTree01_Red.png"
+  },
+  {
+    "id": "AutoMealPouch_Tier2",
+    "name": "普通饲料袋",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AutoMealPouch_Tier2.png"
+  },
+  {
+    "id": "PalSphere_Mega",
+    "name": "高级帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalSphere_Mega.png"
+  },
+  {
+    "id": "WallTorch",
+    "name": "壁挂火把",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WallTorch.png"
+  },
+  {
+    "id": "SphereFactory_Black_01",
+    "name": "帕鲁球制作台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereFactory_Black_01.png"
+  },
+  {
+    "id": "CharacterRankUp",
+    "name": "帕鲁浓缩机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CharacterRankUp.png"
+  },
+  {
+    "id": "Processed_Wood",
+    "name": "木板",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Processed_Wood.png"
+  },
+  {
+    "id": "FishingRod_1",
+    "name": "初级垂钓套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FishingRod_1.png"
+  },
+  {
+    "id": "FlourMill",
+    "name": "磨粉机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FlourMill.png"
+  },
+  {
+    "id": "DisplayCharacter",
+    "name": "观赏笼",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DisplayCharacter.png"
+  },
+  {
+    "id": "FarmBlockV2_wheet",
+    "name": "小麦园",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FarmBlockV2_wheet.png"
+  },
+  {
+    "id": "Lantern",
+    "name": "腰挂提灯",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Lantern.png"
+  },
+  {
+    "id": "BathTub_Stone",
+    "name": "古典浴室套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BathTub_Stone.png"
+  },
+  {
+    "id": "Mirror01_Stone",
+    "name": "古典镜子套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Mirror01_Stone.png"
+  },
+  {
+    "id": "FurnitureTree01_Yellow",
+    "name": "仿真黄叶树套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurnitureTree01_Yellow.png"
+  },
+  {
+    "id": "Shield_02",
+    "name": "高级护盾",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shield_02.png"
+  },
+  {
+    "id": "FurArmorHeat",
+    "name": "耐热毛皮盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurArmorHeat.png"
+  },
+  {
+    "id": "Unlock_Picking",
+    "name": "简易开锁工具",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Unlock_Picking.png"
+  },
+  {
+    "id": "Shelf01_Iron",
+    "name": "金属书架套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shelf01_Iron.png"
+  },
+  {
+    "id": "Piano01_Stone",
+    "name": "钢琴家具套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Piano01_Stone.png"
+  },
+  {
+    "id": "Headstone",
+    "name": "墓碑",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Headstone.png"
+  },
+  {
+    "id": "CookingStove",
+    "name": "料理锅",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CookingStove.png"
+  },
+  {
+    "id": "Heater",
+    "name": "取暖器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Heater.png"
+  },
+  {
+    "id": "BronzeSword",
+    "name": "原始的剑",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BronzeSword.png"
+  },
+  {
+    "id": "GrapplingGun",
+    "name": "高级爪钩枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GrapplingGun.png"
+  },
+  {
+    "id": "Curtain01_Wall_Stone",
+    "name": "古典高级家具套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Curtain01_Wall_Stone.png"
+  },
+  {
+    "id": "Toilet01_Stone",
+    "name": "厕所套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Toilet01_Stone.png"
+  },
+  {
+    "id": "Cooler",
+    "name": "降温器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Cooler.png"
+  },
+  {
+    "id": "Glider_Good",
+    "name": "高级滑翔伞",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Glider_Good.png"
+  },
+  {
+    "id": "FurArmorCold",
+    "name": "耐寒毛皮盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurArmorCold.png"
+  },
+  {
+    "id": "Accessory_Nonkilling",
+    "name": "慈悲戒指",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Accessory_Nonkilling.png"
+  },
+  {
+    "id": "Cement",
+    "name": "水泥",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Cement.png"
+  },
+  {
+    "id": "SphereModule_Heavy",
+    "name": "重量模块",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereModule_Heavy.png"
+  },
+  {
+    "id": "Lab",
+    "name": "帕鲁工作研究所",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Lab.png"
+  },
+  {
+    "id": "DefenseWall",
+    "name": "石制防御墙",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DefenseWall.png"
+  },
+  {
+    "id": "Stone_Gate",
+    "name": "石制大门",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Stone_Gate.png"
+  },
+  {
+    "id": "Stone_foundation",
+    "name": "石头建筑套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Stone_foundation.png"
+  },
+  {
+    "id": "BreedFarm",
+    "name": "配种牧场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BreedFarm.png"
+  },
+  {
+    "id": "Sofa01_Stone",
+    "name": "古典沙发套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Sofa01_Stone.png"
+  },
+  {
+    "id": "Believer_Flag",
+    "name": "帕鲁保护团体旗帜套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Believer_Flag.png"
+  },
+  {
+    "id": "ToolBoxV1",
+    "name": "大型工具箱",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ToolBoxV1.png"
+  },
+  {
+    "id": "PalSphere_Giga",
+    "name": "优质帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalSphere_Giga.png"
+  },
+  {
+    "id": "WeaponFactory_Dirty_01",
+    "name": "武器制作台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WeaponFactory_Dirty_01.png"
+  },
+  {
+    "id": "DimensionPalStorage",
+    "name": "帕鲁次元仓库",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DimensionPalStorage.png"
+  },
+  {
+    "id": "RoughBullet",
+    "name": "劣质弹药",
+    "icon": "https://lootlab.cn/palworld/tech/icons/RoughBullet.png"
+  },
+  {
+    "id": "Trap_LegHold",
+    "name": "捕兽夹（大）",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Trap_LegHold.png"
+  },
+  {
+    "id": "OlympicCauldron",
+    "name": "圣火台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/OlympicCauldron.png"
+  },
+  {
+    "id": "GunPowder2",
+    "name": "火药",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GunPowder2.png"
+  },
+  {
+    "id": "FarmBlockV2_tomato",
+    "name": "番茄园",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FarmBlockV2_tomato.png"
+  },
+  {
+    "id": "Musket",
+    "name": "鸟枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Musket.png"
+  },
+  {
+    "id": "TableDresser01_Stone",
+    "name": "古典式化妆台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/TableDresser01_Stone.png"
+  },
+  {
+    "id": "Clock01_Wall_Iron",
+    "name": "时钟套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Clock01_Wall_Iron.png"
+  },
+  {
+    "id": "FishingBait_2",
+    "name": "优质钓饵",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FishingBait_2.png"
+  },
+  {
+    "id": "Stool01_Iron",
+    "name": "金属桌椅套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Stool01_Iron.png"
+  },
+  {
+    "id": "ItemBooth",
+    "name": "跳蚤市场（道具）",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ItemBooth.png"
+  },
+  {
+    "id": "PalBooth",
+    "name": "跳蚤市场（帕鲁）",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalBooth.png"
+  },
+  {
+    "id": "Expedition",
+    "name": "帕鲁远征所",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Expedition.png"
+  },
+  {
+    "id": "ElecBaton",
+    "name": "电棍",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElecBaton.png"
+  },
+  {
+    "id": "Homeward",
+    "name": "归途雷云",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Homeward.png"
+  },
+  {
+    "id": "FurnitureTree01_Bamboo",
+    "name": "仿真竹子套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurnitureTree01_Bamboo.png"
+  },
+  {
+    "id": "Container01_Iron",
+    "name": "集装箱套組",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Container01_Iron.png"
+  },
+  {
+    "id": "SphereModule_Curve",
+    "name": "曲线模块",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereModule_Curve.png"
+  },
+  {
+    "id": "CopperArmor",
+    "name": "金属盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CopperArmor.png"
+  },
+  {
+    "id": "CopperHelmet",
+    "name": "金属头盔",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CopperHelmet.png"
+  },
+  {
+    "id": "Fountain",
+    "name": "喷泉",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Fountain.png"
+  },
+  {
+    "id": "AutoMealPouch_Tier3",
+    "name": "大饲料袋",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AutoMealPouch_Tier3.png"
+  },
+  {
+    "id": "WaterBuildKit",
+    "name": "水上建造套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WaterBuildKit.png"
+  },
+  {
+    "id": "Clinic",
+    "name": "诊疗所",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Clinic.png"
+  },
+  {
+    "id": "FlowerBed",
+    "name": "花坛",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FlowerBed.png"
+  },
+  {
+    "id": "MedicalPalBed_03",
+    "name": "松软帕鲁床",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MedicalPalBed_03.png"
+  },
+  {
+    "id": "PalMedicineBox",
+    "name": "药品柜",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalMedicineBox.png"
+  },
+  {
+    "id": "MakeshiftHandgun",
+    "name": "劣质手枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MakeshiftHandgun.png"
+  },
+  {
+    "id": "CopperPit",
+    "name": "金属采矿场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CopperPit.png"
+  },
+  {
+    "id": "PalDopingShot",
+    "name": "强化枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalDopingShot.png"
+  },
+  {
+    "id": "PalDopingShotBullet",
+    "name": "强化枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalDopingShotBullet.png"
+  },
+  {
+    "id": "FragGrenade",
+    "name": "破片手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade.png"
+  },
+  {
+    "id": "CopperArmorHeat",
+    "name": "耐热金属盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CopperArmorHeat.png"
+  },
+  {
+    "id": "FarmBlockV2_Lettuce",
+    "name": "生菜园",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FarmBlockV2_Lettuce.png"
+  },
+  {
+    "id": "Silo",
+    "name": "筒仓",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Silo.png"
+  },
+  {
+    "id": "Unlock_Picking_Tier2",
+    "name": "高级开锁工具",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Unlock_Picking_Tier2.png"
+  },
+  {
+    "id": "Light_FloorLamp01",
+    "name": "古典灯具套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Light_FloorLamp01.png"
+  },
+  {
+    "id": "ManualElectricGenerator",
+    "name": "人力发电机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ManualElectricGenerator.png"
+  },
+  {
+    "id": "Lamp",
+    "name": "固定式电灯",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Lamp.png"
+  },
+  {
+    "id": "DefenseBowGun",
+    "name": "固定式十字弓",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DefenseBowGun.png"
+  },
+  {
+    "id": "MakeshiftSubmachineGun",
+    "name": "破旧的冲锋枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MakeshiftSubmachineGun.png"
+  },
+  {
+    "id": "ElectricGenerator",
+    "name": "发电机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElectricGenerator.png"
+  },
+  {
+    "id": "SphereLauncher_Once",
+    "name": "单发型帕鲁球发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereLauncher_Once.png"
+  },
+  {
+    "id": "CeilingLamp",
+    "name": "天花板吊灯",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CeilingLamp.png"
+  },
+  {
+    "id": "FurnitureTree01_Tropical",
+    "name": "仿真热带树木套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurnitureTree01_Tropical.png"
+  },
+  {
+    "id": "CopperArmorCold",
+    "name": "耐寒金属盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CopperArmorCold.png"
+  },
+  {
+    "id": "FragGrenade_Elec",
+    "name": "电击手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade_Elec.png"
+  },
+  {
+    "id": "AdditionalInventory_001",
+    "name": "小型扩展背包",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AdditionalInventory_001.png"
+  },
+  {
+    "id": "PalSphere_Tera",
+    "name": "特级帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalSphere_Tera.png"
+  },
+  {
+    "id": "SphereFactory_Black_02",
+    "name": "帕鲁球流水线工厂",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereFactory_Black_02.png"
+  },
+  {
+    "id": "UnlockEquipmentSlot_Weapon_01",
+    "name": "额外武器套",
+    "icon": "https://lootlab.cn/palworld/tech/icons/UnlockEquipmentSlot_Weapon_01.png"
+  },
+  {
+    "id": "FireCult_Flag",
+    "name": "永炎同心会旗帜套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FireCult_Flag.png"
+  },
+  {
+    "id": "HandgunBullet",
+    "name": "手枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/HandgunBullet.png"
+  },
+  {
+    "id": "PlayerBed_03",
+    "name": "优质的床",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PlayerBed_03.png"
+  },
+  {
+    "id": "Stump",
+    "name": "树桩和斧头",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Stump.png"
+  },
+  {
+    "id": "HandGun_Default",
+    "name": "手枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/HandGun_Default.png"
+  },
+  {
+    "id": "BaseCampWorkHard02",
+    "name": "优质监控台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BaseCampWorkHard02.png"
+  },
+  {
+    "id": "Accessory_JumpPower_Increase",
+    "name": "反重力腰带",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Accessory_JumpPower_Increase.png"
+  },
+  {
+    "id": "Shield_03",
+    "name": "优质护盾",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shield_03.png"
+  },
+  {
+    "id": "FragGrenade_Ice",
+    "name": "冷冻手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade_Ice.png"
+  },
+  {
+    "id": "FishingRod_3",
+    "name": "中级钓竿（捣蛋猫）",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FishingRod_3.png"
+  },
+  {
+    "id": "FarmBlockV2_Potato",
+    "name": "土豆园",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FarmBlockV2_Potato.png"
+  },
+  {
+    "id": "Sword",
+    "name": "剑",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Sword.png"
+  },
+  {
+    "id": "Factory_Hard_02",
+    "name": "作业流水线工厂",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Factory_Hard_02.png"
+  },
+  {
+    "id": "Lantern_High",
+    "name": "强化腰挂提灯",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Lantern_High.png"
+  },
+  {
+    "id": "DefenseWall_Metal",
+    "name": "金属防御墙",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DefenseWall_Metal.png"
+  },
+  {
+    "id": "Metal_Gate",
+    "name": "金属大门",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Metal_Gate.png"
+  },
+  {
+    "id": "MakeshiftShotgun",
+    "name": "破旧的霰弹枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MakeshiftShotgun.png"
+  },
+  {
+    "id": "Trap_MineAttack",
+    "name": "地雷",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Trap_MineAttack.png"
+  },
+  {
+    "id": "MiningTool",
+    "name": "矿车",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MiningTool.png"
+  },
+  {
+    "id": "Metal_foundation",
+    "name": "金属建筑套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Metal_foundation.png"
+  },
+  {
+    "id": "Cake02",
+    "name": "蘑菇蛋糕",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Cake02.png"
+  },
+  {
+    "id": "YakushimaBlade",
+    "name": "彩虹猫之刃",
+    "icon": "https://lootlab.cn/palworld/tech/icons/YakushimaBlade.png"
+  },
+  {
+    "id": "Bio_Coolant",
+    "name": "极低温冷却介质",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Bio_Coolant.png"
+  },
+  {
+    "id": "FragGrenade_Fire",
+    "name": "烧夷手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade_Fire.png"
+  },
+  {
+    "id": "MakeshiftAssaultRifle",
+    "name": "破旧的突击步枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MakeshiftAssaultRifle.png"
+  },
+  {
+    "id": "FishingPond1",
+    "name": "垂钓池",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FishingPond1.png"
+  },
+  {
+    "id": "Spa2",
+    "name": "优质温泉",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Spa2.png"
+  },
+  {
+    "id": "SphereModule_Sniper",
+    "name": "狙击模块",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereModule_Sniper.png"
+  },
+  {
+    "id": "GrapplingGun",
+    "name": "优质爪钩枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GrapplingGun.png"
+  },
+  {
+    "id": "FarmBlockV2_Carrot",
+    "name": "胡萝卜园",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FarmBlockV2_Carrot.png"
+  },
+  {
+    "id": "Cauldron",
+    "name": "魔女之釜",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Cauldron.png"
+  },
+  {
+    "id": "PalHealingGrenade",
+    "name": "帕鲁恢复手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalHealingGrenade.png"
+  },
+  {
+    "id": "BaseCampWorkerExtraStation",
+    "name": "帕鲁终端控制台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BaseCampWorkerExtraStation.png"
+  },
+  {
+    "id": "WeaponFactory_Dirty_02",
+    "name": "武器流水线工厂",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WeaponFactory_Dirty_02.png"
+  },
+  {
+    "id": "Octavia001_Armor",
+    "name": "ULTRAKILL 联动套组1",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Octavia001_Armor.png"
+  },
+  {
+    "id": "Trap_MineElecShock",
+    "name": "电击地雷",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Trap_MineElecShock.png"
+  },
+  {
+    "id": "Polymer",
+    "name": "聚合物",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Polymer.png"
+  },
+  {
+    "id": "Snowman",
+    "name": "雪人",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Snowman.png"
+  },
+  {
+    "id": "FragGrenade_Water",
+    "name": "水流手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade_Water.png"
+  },
+  {
+    "id": "OldRevolver",
+    "name": "古旧左轮手枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/OldRevolver.png"
+  },
+  {
+    "id": "Altar",
+    "name": "召唤的祭坛",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Altar.png"
+  },
+  {
+    "id": "Barrel01_Iron",
+    "name": "铁桶套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Barrel01_Iron.png"
+  },
+  {
+    "id": "Axe_Default",
+    "name": "精炼金属斧头",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Axe_Default.png"
+  },
+  {
+    "id": "Pickaxe_Default",
+    "name": "精炼金属十字镐",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Pickaxe_Default.png"
+  },
+  {
+    "id": "Spear",
+    "name": "精炼金属长矛",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Spear.png"
+  },
+  {
+    "id": "BlastFurnace2",
+    "name": "改善后的炉子",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BlastFurnace2.png"
+  },
+  {
+    "id": "Accessory_TalentChecker",
+    "name": "伯乐眼镜",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Accessory_TalentChecker.png"
+  },
+  {
+    "id": "TableSide01_Iron",
+    "name": "铁木桌椅套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/TableSide01_Iron.png"
+  },
+  {
+    "id": "CarbonFiber",
+    "name": "碳纤维",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CarbonFiber.png"
+  },
+  {
+    "id": "ElectronicCircuit",
+    "name": "电路板",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElectronicCircuit.png"
+  },
+  {
+    "id": "FragGrenade_Leaf",
+    "name": "草木手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade_Leaf.png"
+  },
+  {
+    "id": "PalSphere_Master",
+    "name": "大师帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalSphere_Master.png"
+  },
+  {
+    "id": "SphereFactory_Black_03",
+    "name": "帕鲁球流水线工厂II",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereFactory_Black_03.png"
+  },
+  {
+    "id": "Accessory_AirDash1",
+    "name": "空中冲刺靴",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Accessory_AirDash1.png"
+  },
+  {
+    "id": "Cloth",
+    "name": "优质的布",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Cloth.png"
+  },
+  {
+    "id": "MedicalPalBed_04",
+    "name": "大型帕鲁床",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MedicalPalBed_04.png"
+  },
+  {
+    "id": "FarmBlockV2_Onion",
+    "name": "洋葱园",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FarmBlockV2_Onion.png"
+  },
+  {
+    "id": "RifleBullet",
+    "name": "步枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/RifleBullet.png"
+  },
+  {
+    "id": "SingleShotRifle",
+    "name": "单发步枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SingleShotRifle.png"
+  },
+  {
+    "id": "AutoMealPouch_Tier4",
+    "name": "巨大饲料袋",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AutoMealPouch_Tier4.png"
+  },
+  {
+    "id": "ElectricHatchingPalEgg",
+    "name": "电能帕鲁蛋孵化器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElectricHatchingPalEgg.png"
+  },
+  {
+    "id": "FurnitureTree01_Desert",
+    "name": "仿真沙漠树木套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurnitureTree01_Desert.png"
+  },
+  {
+    "id": "CableCoil01_Iron",
+    "name": "户外家具套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CableCoil01_Iron.png"
+  },
+  {
+    "id": "EnergyStorage_Electric",
+    "name": "蓄电器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/EnergyStorage_Electric.png"
+  },
+  {
+    "id": "Corrosive_Solvent",
+    "name": "腐蚀溶剂",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Corrosive_Solvent.png"
+  },
+  {
+    "id": "IronArmor",
+    "name": "精炼金属盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/IronArmor.png"
+  },
+  {
+    "id": "IronHelmet",
+    "name": "精炼金属头盔",
+    "icon": "https://lootlab.cn/palworld/tech/icons/IronHelmet.png"
+  },
+  {
+    "id": "SubmachineGun",
+    "name": "冲锋枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SubmachineGun.png"
+  },
+  {
+    "id": "CoalPit",
+    "name": "石炭采矿场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CoalPit.png"
+  },
+  {
+    "id": "Sofa01_Iron",
+    "name": "皮质椅子套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Sofa01_Iron.png"
+  },
+  {
+    "id": "FishingBait_3",
+    "name": "奢华钓饵",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FishingBait_3.png"
+  },
+  {
+    "id": "FragGrenade_Ground",
+    "name": "大地手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade_Ground.png"
+  },
+  {
+    "id": "Trap_MineFreeze",
+    "name": "结冰地雷",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Trap_MineFreeze.png"
+  },
+  {
+    "id": "Refrigerator",
+    "name": "冰箱",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Refrigerator.png"
+  },
+  {
+    "id": "Launcher_Meteor",
+    "name": "陨石发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Launcher_Meteor.png"
+  },
+  {
+    "id": "OperatingTable",
+    "name": "帕鲁手术台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/OperatingTable.png"
+  },
+  {
+    "id": "SphereLauncher",
+    "name": "扩散型帕鲁球发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereLauncher.png"
+  },
+  {
+    "id": "Police_Flag",
+    "name": "自卫队旗帜套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Police_Flag.png"
+  },
+  {
+    "id": "ShotGunBullet",
+    "name": "霰弹枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ShotGunBullet.png"
+  },
+  {
+    "id": "DoubleBarrelShotgun",
+    "name": "双管霰弹枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DoubleBarrelShotgun.png"
+  },
+  {
+    "id": "Chest3",
+    "name": "精炼金属箱",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Chest3.png"
+  },
+  {
+    "id": "SphereModule_Curve2",
+    "name": "滑球模块",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereModule_Curve2.png"
+  },
+  {
+    "id": "CopperPit_2",
+    "name": "金属采矿场Ⅱ",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CopperPit_2.png"
+  },
+  {
+    "id": "FragGrenade_Dark",
+    "name": "暗黑手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade_Dark.png"
+  },
+  {
+    "id": "Glider_Super",
+    "name": "优质滑翔伞",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Glider_Super.png"
+  },
+  {
+    "id": "Bat3",
+    "name": "金属球棒",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Bat3.png"
+  },
+  {
+    "id": "DefenseMachinegun",
+    "name": "固定式机关枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DefenseMachinegun.png"
+  },
+  {
+    "id": "IronArmorHeat",
+    "name": "耐热精炼金属盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/IronArmorHeat.png"
+  },
+  {
+    "id": "Accessory_JumpCount_Increase1",
+    "name": "二段跳靴",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Accessory_JumpCount_Increase1.png"
+  },
+  {
+    "id": "SanityDecrease1",
+    "name": "α波发生器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SanityDecrease1.png"
+  },
+  {
+    "id": "ElectricHeater",
+    "name": "电气取暖器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElectricHeater.png"
+  },
+  {
+    "id": "ElectricKitchen",
+    "name": "电气厨房",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElectricKitchen.png"
+  },
+  {
+    "id": "SemiAutoRifle",
+    "name": "半自动步枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SemiAutoRifle.png"
+  },
+  {
+    "id": "IronArmorCold",
+    "name": "耐寒精炼金属盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/IronArmorCold.png"
+  },
+  {
+    "id": "GuildChest",
+    "name": "公会箱子",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GuildChest.png"
+  },
+  {
+    "id": "ReinforcedArrow",
+    "name": "强化箭矢",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ReinforcedArrow.png"
+  },
+  {
+    "id": "FragGrenade_Dragon",
+    "name": "龙击手榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade_Dragon.png"
+  },
+  {
+    "id": "CompoundBow",
+    "name": "复合弓",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CompoundBow.png"
+  },
+  {
+    "id": "ElectricCooler",
+    "name": "电气降温器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElectricCooler.png"
+  },
+  {
+    "id": "Factory_Hard_03",
+    "name": "作业流水线工厂 II",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Factory_Hard_03.png"
+  },
+  {
+    "id": "HighGrade_Processed_Wood",
+    "name": "优质木板",
+    "icon": "https://lootlab.cn/palworld/tech/icons/HighGrade_Processed_Wood.png"
+  },
+  {
+    "id": "AdditionalInventory_002",
+    "name": "中型扩展背包",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AdditionalInventory_002.png"
+  },
+  {
+    "id": "MedicineFacility_02",
+    "name": "电气制药台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MedicineFacility_02.png"
+  },
+  {
+    "id": "Shield_04",
+    "name": "特级护盾",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shield_04.png"
+  },
+  {
+    "id": "ShotGun_Default",
+    "name": "泵动式霰弹枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ShotGun_Default.png"
+  },
+  {
+    "id": "StationDeforest3",
+    "name": "伐木场Ⅱ",
+    "icon": "https://lootlab.cn/palworld/tech/icons/StationDeforest3.png"
+  },
+  {
+    "id": "Bio_Battery",
+    "name": "生化电池",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Bio_Battery.png"
+  },
+  {
+    "id": "Katana",
+    "name": "太刀",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Katana.png"
+  },
+  {
+    "id": "Axe_Steal",
+    "name": "帕鲁金属斧",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Axe_Steal.png"
+  },
+  {
+    "id": "Pickaxe_Steal",
+    "name": "帕鲁金属十字镐",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Pickaxe_Steal.png"
+  },
+  {
+    "id": "BlastFurnace3",
+    "name": "电气炉",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BlastFurnace3.png"
+  },
+  {
+    "id": "PalSphere_Legend",
+    "name": "传奇帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalSphere_Legend.png"
+  },
+  {
+    "id": "AssaultRifleBullet",
+    "name": "突击步枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AssaultRifleBullet.png"
+  },
+  {
+    "id": "Glass_foundation",
+    "name": "玻璃建筑套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Glass_foundation.png"
+  },
+  {
+    "id": "FishingRod_5",
+    "name": "高级钓竿（企丸丸）",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FishingRod_5.png"
+  },
+  {
+    "id": "AssaultRifle_Default",
+    "name": "突击步枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AssaultRifle_Default.png"
+  },
+  {
+    "id": "CompositeDesk",
+    "name": "制图桌",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CompositeDesk.png"
+  },
+  {
+    "id": "InkBullet",
+    "name": "印花枪套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/InkBullet.png"
+  },
+  {
+    "id": "GoalSoccer_Iron",
+    "name": "娱乐家具套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GoalSoccer_Iron.png"
+  },
+  {
+    "id": "Light_LightPole01",
+    "name": "街灯套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Light_LightPole01.png"
+  },
+  {
+    "id": "LargeLamp",
+    "name": "大型固定式灯具",
+    "icon": "https://lootlab.cn/palworld/tech/icons/LargeLamp.png"
+  },
+  {
+    "id": "WorkSpeedIncrease1",
+    "name": "β波发生器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WorkSpeedIncrease1.png"
+  },
+  {
+    "id": "StealArmor",
+    "name": "帕鲁金属盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/StealArmor.png"
+  },
+  {
+    "id": "StealHelmet",
+    "name": "帕鲁金属头盔",
+    "icon": "https://lootlab.cn/palworld/tech/icons/StealHelmet.png"
+  },
+  {
+    "id": "SulfurPit",
+    "name": "硫磺采矿场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SulfurPit.png"
+  },
+  {
+    "id": "SignExit_Ceiling_Iron",
+    "name": "紧急出口标志套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SignExit_Ceiling_Iron.png"
+  },
+  {
+    "id": "LargeCeilingLamp",
+    "name": "大型天花板吊灯",
+    "icon": "https://lootlab.cn/palworld/tech/icons/LargeCeilingLamp.png"
+  },
+  {
+    "id": "SemiAutoShotgun",
+    "name": "半自动霰弹枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SemiAutoShotgun.png"
+  },
+  {
+    "id": "Cake03",
+    "name": "蔬菜蛋糕",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Cake03.png"
+  },
+  {
+    "id": "AutoMealPouch_Tier5",
+    "name": "特大饲料袋",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AutoMealPouch_Tier5.png"
+  },
+  {
+    "id": "WeaponFactory_Dirty_03",
+    "name": "武器流水线工厂II",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WeaponFactory_Dirty_03.png"
+  },
+  {
+    "id": "TrafficCone01_Iron",
+    "name": "交通标志套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/TrafficCone01_Iron.png"
+  },
+  {
+    "id": "TransmissionTower",
+    "name": "输电塔",
+    "icon": "https://lootlab.cn/palworld/tech/icons/TransmissionTower.png"
+  },
+  {
+    "id": "SphereModule_Sniper2",
+    "name": "狙击模块Ⅱ",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereModule_Sniper2.png"
+  },
+  {
+    "id": "StealArmorHeat",
+    "name": "耐热帕鲁金属盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/StealArmorHeat.png"
+  },
+  {
+    "id": "MultiHatchingPalEgg",
+    "name": "大型帕鲁蛋孵化器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MultiHatchingPalEgg.png"
+  },
+  {
+    "id": "TrafficBarricade01_Iron",
+    "name": "路障套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/TrafficBarricade01_Iron.png"
+  },
+  {
+    "id": "FurnitureTree01_Snow",
+    "name": "仿真积雪树木套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurnitureTree01_Snow.png"
+  },
+  {
+    "id": "TrafficSign01_Iron",
+    "name": "道路标志套装",
+    "icon": "https://lootlab.cn/palworld/tech/icons/TrafficSign01_Iron.png"
+  },
+  {
+    "id": "JapaneseStyle_foundation",
+    "name": "和风建筑套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/JapaneseStyle_foundation.png"
+  },
+  {
+    "id": "BaseCampItemDispenser",
+    "name": "道具存取机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BaseCampItemDispenser.png"
+  },
+  {
+    "id": "HugeKitchen",
+    "name": "大型厨房",
+    "icon": "https://lootlab.cn/palworld/tech/icons/HugeKitchen.png"
+  },
+  {
+    "id": "GrapplingGun",
+    "name": "特级爪钩枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GrapplingGun.png"
+  },
+  {
+    "id": "Scientist_Flag",
+    "name": "基因研究部队旗帜套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Scientist_Flag.png"
+  },
+  {
+    "id": "Computer",
+    "name": "电脑",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Computer.png"
+  },
+  {
+    "id": "OilPump",
+    "name": "原油提炼机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/OilPump.png"
+  },
+  {
+    "id": "Plastic",
+    "name": "塑钢",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Plastic.png"
+  },
+  {
+    "id": "DefenseMissile",
+    "name": "固定式导弹发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DefenseMissile.png"
+  },
+  {
+    "id": "StealArmorCold",
+    "name": "耐寒帕鲁金属盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/StealArmorCold.png"
+  },
+  {
+    "id": "ElectricGenerator_Large",
+    "name": "大型发电机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElectricGenerator_Large.png"
+  },
+  {
+    "id": "LaserBullet",
+    "name": "能量盒",
+    "icon": "https://lootlab.cn/palworld/tech/icons/LaserBullet.png"
+  },
+  {
+    "id": "CoolerPalFoodBox",
+    "name": "低温保鲜饲料箱",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CoolerPalFoodBox.png"
+  },
+  {
+    "id": "PlasticHelmet",
+    "name": "塑钢头盔",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PlasticHelmet.png"
+  },
+  {
+    "id": "LaserRifle",
+    "name": "激光步枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/LaserRifle.png"
+  },
+  {
+    "id": "PlasticArmor",
+    "name": "塑钢盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PlasticArmor.png"
+  },
+  {
+    "id": "PalSphere_Ultimate",
+    "name": "究极帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalSphere_Ultimate.png"
+  },
+  {
+    "id": "OilPump02",
+    "name": "原油提炼机 高压型",
+    "icon": "https://lootlab.cn/palworld/tech/icons/OilPump02.png"
+  },
+  {
+    "id": "FlamethrowerBullet",
+    "name": "火焰喷射器燃料",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FlamethrowerBullet.png"
+  },
+  {
+    "id": "FishingBait_3_A",
+    "name": "魅惑钓饵",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FishingBait_3_A.png"
+  },
+  {
+    "id": "Glider_Legendary",
+    "name": "特级滑翔伞",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Glider_Legendary.png"
+  },
+  {
+    "id": "FlameThrower",
+    "name": "火焰喷射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FlameThrower.png"
+  },
+  {
+    "id": "QuartzPit",
+    "name": "纯水晶采矿场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/QuartzPit.png"
+  },
+  {
+    "id": "GrenadeBullet",
+    "name": "榴弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GrenadeBullet.png"
+  },
+  {
+    "id": "FragGrenade_Super",
+    "name": "破片手榴弹Mk2",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FragGrenade_Super.png"
+  },
+  {
+    "id": "AdditionalInventory_003",
+    "name": "大型扩展背包",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AdditionalInventory_003.png"
+  },
+  {
+    "id": "GrenadeLauncher",
+    "name": "榴弹发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GrenadeLauncher.png"
+  },
+  {
+    "id": "PlasticArmorHeat",
+    "name": "耐热塑钢盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PlasticArmorHeat.png"
+  },
+  {
+    "id": "Unlock_Picking_Tier3",
+    "name": "专家开锁工具",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Unlock_Picking_Tier3.png"
+  },
+  {
+    "id": "GatlingBullet",
+    "name": "加特林子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GatlingBullet.png"
+  },
+  {
+    "id": "IceCrusher",
+    "name": "冷冻粉碎机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/IceCrusher.png"
+  },
+  {
+    "id": "LaserMiningTool",
+    "name": "多功能等离子切割器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/LaserMiningTool.png"
+  },
+  {
+    "id": "PlasticArmorCold",
+    "name": "耐寒塑钢盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PlasticArmorCold.png"
+  },
+  {
+    "id": "GatlingGun",
+    "name": "加特林机枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GatlingGun.png"
+  },
+  {
+    "id": "UnlockEquipmentSlot_Weapon_02",
+    "name": "额外武器套2",
+    "icon": "https://lootlab.cn/palworld/tech/icons/UnlockEquipmentSlot_Weapon_02.png"
+  },
+  {
+    "id": "Ninja_Flag",
+    "name": "月花众旗帜套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Ninja_Flag.png"
+  },
+  {
+    "id": "Byobu",
+    "name": "和风家具套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Byobu.png"
+  },
+  {
+    "id": "Spear_ForestBoss",
+    "name": "莉莉之矛",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Spear_ForestBoss.png"
+  },
+  {
+    "id": "Shield_05",
+    "name": "超级护盾",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shield_05.png"
+  },
+  {
+    "id": "PlasticArmorWeight",
+    "name": "轻便塑钢盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PlasticArmorWeight.png"
+  },
+  {
+    "id": "HomingSphereLauncher",
+    "name": "自动追踪帕鲁球发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/HomingSphereLauncher.png"
+  },
+  {
+    "id": "FurnitureTree01_Cherry",
+    "name": "仿真樱花树套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FurnitureTree01_Cherry.png"
+  },
+  {
+    "id": "MissileBullet",
+    "name": "导弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MissileBullet.png"
+  },
+  {
+    "id": "GuidedMissileLauncher",
+    "name": "追踪导弹发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GuidedMissileLauncher.png"
+  },
+  {
+    "id": "DismantlingConveyor",
+    "name": "帕鲁解体传送带",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DismantlingConveyor.png"
+  },
+  {
+    "id": "MedicalPalBed_05",
+    "name": "高等文明帕鲁胶囊",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MedicalPalBed_05.png"
+  },
+  {
+    "id": "Octavia002_Armor",
+    "name": "ULTRAKILL 联动套组2",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Octavia002_Armor.png"
+  },
+  {
+    "id": "SFArrow",
+    "name": "卓越箭矢",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SFArrow.png"
+  },
+  {
+    "id": "SFBow",
+    "name": "卓越弓",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SFBow.png"
+  },
+  {
+    "id": "BeamSword",
+    "name": "光剑",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BeamSword.png"
+  },
+  {
+    "id": "AdditionalInventory_004",
+    "name": "巨大扩展背包",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AdditionalInventory_004.png"
+  },
+  {
+    "id": "StainlessSteel",
+    "name": "六棱晶锭",
+    "icon": "https://lootlab.cn/palworld/tech/icons/StainlessSteel.png"
+  },
+  {
+    "id": "MetalDetector",
+    "name": "金属探测器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MetalDetector.png"
+  },
+  {
+    "id": "SphereFactory_Black_04",
+    "name": "高等文明帕鲁球工厂",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereFactory_Black_04.png"
+  },
+  {
+    "id": "PalSphere_Exotic",
+    "name": "超限帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalSphere_Exotic.png"
+  },
+  {
+    "id": "BlastFurnace4",
+    "name": "巨大熔炉",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BlastFurnace4.png"
+  },
+  {
+    "id": "MultiElectricHatchingPalEgg",
+    "name": "大型电能帕鲁蛋孵化器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MultiElectricHatchingPalEgg.png"
+  },
+  {
+    "id": "LaserGatlingBullet",
+    "name": "加特林激光能量盒",
+    "icon": "https://lootlab.cn/palworld/tech/icons/LaserGatlingBullet.png"
+  },
+  {
+    "id": "Thermal_Core",
+    "name": "超高热核心",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Thermal_Core.png"
+  },
+  {
+    "id": "ItemChest_04",
+    "name": "高等文明箱子",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ItemChest_04.png"
+  },
+  {
+    "id": "SFArmor",
+    "name": "六棱晶盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SFArmor.png"
+  },
+  {
+    "id": "LaserGatlingGun",
+    "name": "激光加特林",
+    "icon": "https://lootlab.cn/palworld/tech/icons/LaserGatlingGun.png"
+  },
+  {
+    "id": "DarkIsland_Flag",
+    "name": "天坠之民旗帜套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DarkIsland_Flag.png"
+  },
+  {
+    "id": "Cake04",
+    "name": "豪华蔬菜蛋糕",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Cake04.png"
+  },
+  {
+    "id": "Shield_SF",
+    "name": "卓越护盾",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shield_SF.png"
+  },
+  {
+    "id": "SFHelmet",
+    "name": "六棱晶头盔",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SFHelmet.png"
+  },
+  {
+    "id": "EnergyLauncherBullet",
+    "name": "电浆能量盒",
+    "icon": "https://lootlab.cn/palworld/tech/icons/EnergyLauncherBullet.png"
+  },
+  {
+    "id": "Potion_Extreme",
+    "name": "至高恢复药",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Potion_Extreme.png"
+  },
+  {
+    "id": "PalRevive",
+    "name": "复活药",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalRevive.png"
+  },
+  {
+    "id": "MedicineFacility_03",
+    "name": "高等文明制药台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MedicineFacility_03.png"
+  },
+  {
+    "id": "EnergyRocketLauncher",
+    "name": "等离子炮",
+    "icon": "https://lootlab.cn/palworld/tech/icons/EnergyRocketLauncher.png"
+  },
+  {
+    "id": "Accessory_AirDash2",
+    "name": "空中二段冲刺靴",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Accessory_AirDash2.png"
+  },
+  {
+    "id": "SF_foundation",
+    "name": "未来风建筑套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SF_foundation.png"
+  },
+  {
+    "id": "ManganeseIngot",
+    "name": "珊瑚锭",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ManganeseIngot.png"
+  },
+  {
+    "id": "Salvage_TreasureBoxKey02",
+    "name": "强力渔用磁铁",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Salvage_TreasureBoxKey02.png"
+  },
+  {
+    "id": "Factory_Hard_04",
+    "name": "高等文明作业工厂",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Factory_Hard_04.png"
+  },
+  {
+    "id": "CrystalPit",
+    "name": "六棱晶矿采矿场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/CrystalPit.png"
+  },
+  {
+    "id": "EnergyShotgunBullet",
+    "name": "能量霰弹枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/EnergyShotgunBullet.png"
+  },
+  {
+    "id": "PalDopingShot_2",
+    "name": "高级强化枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalDopingShot_2.png"
+  },
+  {
+    "id": "WeaponFactory_Dirty_04",
+    "name": "高等文明武器工厂",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WeaponFactory_Dirty_04.png"
+  },
+  {
+    "id": "EnergyShotgun",
+    "name": "能量霰弹枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/EnergyShotgun.png"
+  },
+  {
+    "id": "SFArmorHeat",
+    "name": "耐热六棱晶盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SFArmorHeat.png"
+  },
+  {
+    "id": "GrapplingGun",
+    "name": "超级爪钩枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GrapplingGun.png"
+  },
+  {
+    "id": "IceHorseStatue",
+    "name": "唤冬兽雕像",
+    "icon": "https://lootlab.cn/palworld/tech/icons/IceHorseStatue.png"
+  },
+  {
+    "id": "OverheatRifleBullet",
+    "name": "过热步枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/OverheatRifleBullet.png"
+  },
+  {
+    "id": "Spa3",
+    "name": "和风温泉",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Spa3.png"
+  },
+  {
+    "id": "SFArmorCold",
+    "name": "耐寒六棱晶盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SFArmorCold.png"
+  },
+  {
+    "id": "OverheatRifle",
+    "name": "过热步枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/OverheatRifle.png"
+  },
+  {
+    "id": "ChargeLaserRifleBullet",
+    "name": "充能步枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ChargeLaserRifleBullet.png"
+  },
+  {
+    "id": "ExplosiveBullet",
+    "name": "火箭弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ExplosiveBullet.png"
+  },
+  {
+    "id": "ChargeLaserRifle",
+    "name": "充能步枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ChargeLaserRifle.png"
+  },
+  {
+    "id": "SFArmorWeight",
+    "name": "轻便六棱晶盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SFArmorWeight.png"
+  },
+  {
+    "id": "Launcher_Default",
+    "name": "火箭发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Launcher_Default.png"
+  },
+  {
+    "id": "Accessory_AirDash3",
+    "name": "空中三段冲刺靴",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Accessory_AirDash3.png"
+  },
+  {
+    "id": "SkyislandIngot",
+    "name": "烈阳金属锭",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyislandIngot.png"
+  },
+  {
+    "id": "AncientBlastFurnace",
+    "name": "古代文明炉",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientBlastFurnace.png"
+  },
+  {
+    "id": "SkyBowArrow",
+    "name": "机械弓箭矢",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyBowArrow.png"
+  },
+  {
+    "id": "Ancient_foundation",
+    "name": "古代文明建筑套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Ancient_foundation.png"
+  },
+  {
+    "id": "AIcore",
+    "name": "AI核心",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AIcore.png"
+  },
+  {
+    "id": "SkyBow",
+    "name": "机械弓",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyBow.png"
+  },
+  {
+    "id": "AncientWorkBench",
+    "name": "古代文明工作台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientWorkBench.png"
+  },
+  {
+    "id": "PalSphere_Ancient_1",
+    "name": "烈阳帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalSphere_Ancient_1.png"
+  },
+  {
+    "id": "SkySubmachineGunBullet",
+    "name": "战斗冲锋枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkySubmachineGunBullet.png"
+  },
+  {
+    "id": "SkySubmachineGun",
+    "name": "战斗冲锋枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkySubmachineGun.png"
+  },
+  {
+    "id": "Spear_ForestBoss2",
+    "name": "强化莉莉之矛",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Spear_ForestBoss2.png"
+  },
+  {
+    "id": "AncientArmor",
+    "name": "远古盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientArmor.png"
+  },
+  {
+    "id": "AncientHelmet",
+    "name": "远古头盔",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientHelmet.png"
+  },
+  {
+    "id": "SkyShotgunBullet",
+    "name": "原型霰弹枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyShotgunBullet.png"
+  },
+  {
+    "id": "FishingPond2",
+    "name": "大型垂钓池",
+    "icon": "https://lootlab.cn/palworld/tech/icons/FishingPond2.png"
+  },
+  {
+    "id": "SkyShotgun",
+    "name": "原型霰弹枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyShotgun.png"
+  },
+  {
+    "id": "SphereModule_Homing",
+    "name": "追踪模块",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SphereModule_Homing.png"
+  },
+  {
+    "id": "JetDragonStatue",
+    "name": "空涡龙雕像",
+    "icon": "https://lootlab.cn/palworld/tech/icons/JetDragonStatue.png"
+  },
+  {
+    "id": "SkyAssaultRifleBullet",
+    "name": "重型突击步枪子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyAssaultRifleBullet.png"
+  },
+  {
+    "id": "AncientCookingStove",
+    "name": "古代文明厨房",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientCookingStove.png"
+  },
+  {
+    "id": "SkyAssaultRifle",
+    "name": "重型突击步枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyAssaultRifle.png"
+  },
+  {
+    "id": "Accessory_JumpCount_Increase2",
+    "name": "三段跳靴",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Accessory_JumpCount_Increase2.png"
+  },
+  {
+    "id": "SkyIsland_Flag",
+    "name": "苍天的盟约旗帜套组",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyIsland_Flag.png"
+  },
+  {
+    "id": "Farm_SkillFruits",
+    "name": "技能果树园",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Farm_SkillFruits.png"
+  },
+  {
+    "id": "BaseCampWorkHard03",
+    "name": "古代文明监控台",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BaseCampWorkHard03.png"
+  },
+  {
+    "id": "Shield_07",
+    "name": "远古护盾",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Shield_07.png"
+  },
+  {
+    "id": "SkyGrenadeLauncherBullet",
+    "name": "战术榴弹发射器子弹",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyGrenadeLauncherBullet.png"
+  },
+  {
+    "id": "SkyGrenadeLauncher",
+    "name": "战术榴弹发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyGrenadeLauncher.png"
+  },
+  {
+    "id": "SkyIslandOrePit",
+    "name": "烈阳金属采矿场",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyIslandOrePit.png"
+  },
+  {
+    "id": "Ancient_MedicalPalBed",
+    "name": "古代文明帕鲁床",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Ancient_MedicalPalBed.png"
+  },
+  {
+    "id": "Ancient_Clinic",
+    "name": "古代文明诊疗所",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Ancient_Clinic.png"
+  },
+  {
+    "id": "Factory_Money",
+    "name": "金币制造工厂",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Factory_Money.png"
+  },
+  {
+    "id": "SkyBeamSword",
+    "name": "高出力光剑",
+    "icon": "https://lootlab.cn/palworld/tech/icons/SkyBeamSword.png"
+  },
+  {
+    "id": "AncientRelicRecycler",
+    "name": "古代文明遗物转换器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientRelicRecycler.png"
+  },
+  {
+    "id": "WorldTreeIngot",
+    "name": "帕鲁树晶锭",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WorldTreeIngot.png"
+  },
+  {
+    "id": "Cake05",
+    "name": "特制蛋糕",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Cake05.png"
+  },
+  {
+    "id": "PalSphere_Ancient_2",
+    "name": "远古帕鲁球",
+    "icon": "https://lootlab.cn/palworld/tech/icons/PalSphere_Ancient_2.png"
+  },
+  {
+    "id": "WidePenetrateShotgunBullet",
+    "name": "散射光束枪弹药",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WidePenetrateShotgunBullet.png"
+  },
+  {
+    "id": "AncientElectricGenerator",
+    "name": "古代文明发电机",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientElectricGenerator.png"
+  },
+  {
+    "id": "WidePenetrateShotgun",
+    "name": "散射光束枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WidePenetrateShotgun.png"
+  },
+  {
+    "id": "AncientArmorHeat",
+    "name": "耐热远古盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientArmorHeat.png"
+  },
+  {
+    "id": "Ancient_Spa",
+    "name": "古代文明温泉",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Ancient_Spa.png"
+  },
+  {
+    "id": "GasMask",
+    "name": "防腐雾面具",
+    "icon": "https://lootlab.cn/palworld/tech/icons/GasMask.png"
+  },
+  {
+    "id": "Accessory_ExplosionResist",
+    "name": "防爆内衣",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Accessory_ExplosionResist.png"
+  },
+  {
+    "id": "MultiElectricHatchingPalEggWithBreed",
+    "name": "古代文明配种器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/MultiElectricHatchingPalEggWithBreed.png"
+  },
+  {
+    "id": "DroneLauncher",
+    "name": "无人机发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/DroneLauncher.png"
+  },
+  {
+    "id": "AncientArmorCold",
+    "name": "耐寒远古盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientArmorCold.png"
+  },
+  {
+    "id": "ElectricArcAssaultRifleBullet",
+    "name": "等离子步枪弹药",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElectricArcAssaultRifleBullet.png"
+  },
+  {
+    "id": "AncientFarmBlock",
+    "name": "古代文明栽培器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientFarmBlock.png"
+  },
+  {
+    "id": "AncientMultiProduct",
+    "name": "古代文明物质生成器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientMultiProduct.png"
+  },
+  {
+    "id": "ElectricArcAssaultRifle",
+    "name": "等离子步枪",
+    "icon": "https://lootlab.cn/palworld/tech/icons/ElectricArcAssaultRifle.png"
+  },
+  {
+    "id": "Supplement",
+    "name": "营养剂",
+    "icon": "https://lootlab.cn/palworld/tech/icons/Supplement.png"
+  },
+  {
+    "id": "AncientArmorWeight",
+    "name": "轻便远古盔甲",
+    "icon": "https://lootlab.cn/palworld/tech/icons/AncientArmorWeight.png"
+  },
+  {
+    "id": "BeamLauncherBullet",
+    "name": "光束炮发射器弹药",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BeamLauncherBullet.png"
+  },
+  {
+    "id": "BeamLauncher",
+    "name": "光束炮发射器",
+    "icon": "https://lootlab.cn/palworld/tech/icons/BeamLauncher.png"
+  },
+  {
+    "id": "WingGlider_Fuel",
+    "name": "飞翼能量单元",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WingGlider_Fuel.png"
+  },
+  {
+    "id": "WingGlider",
+    "name": "飞翼背包",
+    "icon": "https://lootlab.cn/palworld/tech/icons/WingGlider.png"
+  }
+]

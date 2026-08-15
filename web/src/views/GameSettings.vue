@@ -53,6 +53,13 @@
                     :step="f.step ?? 0.1"
                     @update:value="(v: number | null) => { form[f.key] = String(v ?? 0); markCustom(f.key) }"
                     style="width:100%" />
+                  <!-- 禁用科技列表（多选） -->
+                  <n-select v-else-if="f.key === 'DenyTechnologyList'"
+                    :value="parseTechList(form[f.key])"
+                    :options="techOptions"
+                    multiple filterable
+                    max-tag-count="responsive"
+                    @update:value="(v: string[]) => { form[f.key] = formatTechList(v); markCustom(f.key) }" />
                   <!-- 字符串 -->
                   <n-input v-else v-model:value="form[f.key]"
                     :type="isSecret(f.key) ? 'password' : 'text'"
@@ -98,6 +105,19 @@ const data = ref<GameSettingsData | null>(null)
 const iniPath = ref('')
 const form = reactive<Record<string, string>>({})
 const saving = ref(false)
+const techOptions = ref<{label: string, value: string}[]>([])
+
+// 加载科技列表
+fetch('/data/tech_list.json').then(r => r.json()).then((data: any[]) => {
+  techOptions.value = data.map(t => ({ label: t.name, value: t.id }))
+}).catch(() => {})
+
+function parseTechList(v: string): string[] {
+  return (v || '').replace(/[()]/g, '').split(',').map(s => s.trim()).filter(Boolean)
+}
+function formatTechList(v: string[]): string {
+  return '(' + v.join(',') + ')'
+}
 
 const groups = computed(() => {
   const s = new Set<string>()
