@@ -2,4321 +2,4321 @@
   {
     "id": "Money",
     "name": "金币",
-    "icon": "https://lootlab.cn/palworld/items/icons/Money.png"
+    "icon": "/icons/items/Money.png"
   },
   {
     "id": "CapturePrism",
     "name": "帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/CapturePrism.png"
+    "icon": "/icons/items/CapturePrism.png"
   },
   {
     "id": "PalSphere_Mega",
     "name": "高级帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Mega.png"
+    "icon": "/icons/items/PalSphere_Mega.png"
   },
   {
     "id": "PalSphere_Giga",
     "name": "优质帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Giga.png"
+    "icon": "/icons/items/PalSphere_Giga.png"
   },
   {
     "id": "PalSphere_Tera",
     "name": "特级帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Tera.png"
+    "icon": "/icons/items/PalSphere_Tera.png"
   },
   {
     "id": "PalSphere_Master",
     "name": "大师帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Master.png"
+    "icon": "/icons/items/PalSphere_Master.png"
   },
   {
     "id": "PalSphere_Legend",
     "name": "传奇帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Legend.png"
+    "icon": "/icons/items/PalSphere_Legend.png"
   },
   {
     "id": "PalSphere_Ultimate",
     "name": "究极帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Ultimate.png"
+    "icon": "/icons/items/PalSphere_Ultimate.png"
   },
   {
     "id": "PalSphere_Exotic",
     "name": "超限帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Exotic.png"
+    "icon": "/icons/items/PalSphere_Exotic.png"
   },
   {
     "id": "PalSphere_Ancient_1",
     "name": "烈阳帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Ancient_1.png"
+    "icon": "/icons/items/PalSphere_Ancient_1.png"
   },
   {
     "id": "PalSphere_Ancient_2",
     "name": "远古帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Ancient_2.png"
+    "icon": "/icons/items/PalSphere_Ancient_2.png"
   },
   {
     "id": "Arrow",
     "name": "箭",
-    "icon": "https://lootlab.cn/palworld/items/icons/Arrow.png"
+    "icon": "/icons/items/Arrow.png"
   },
   {
     "id": "Arrow_Poison",
     "name": "毒箭",
-    "icon": "https://lootlab.cn/palworld/items/icons/Arrow_Poison.png"
+    "icon": "/icons/items/Arrow_Poison.png"
   },
   {
     "id": "Arrow_Fire",
     "name": "火箭",
-    "icon": "https://lootlab.cn/palworld/items/icons/Arrow_Fire.png"
+    "icon": "/icons/items/Arrow_Fire.png"
   },
   {
     "id": "ReinforcedArrow",
     "name": "强化箭矢",
-    "icon": "https://lootlab.cn/palworld/items/icons/ReinforcedArrow.png"
+    "icon": "/icons/items/ReinforcedArrow.png"
   },
   {
     "id": "SFArrow",
     "name": "卓越箭矢",
-    "icon": "https://lootlab.cn/palworld/items/icons/SFArrow.png"
+    "icon": "/icons/items/SFArrow.png"
   },
   {
     "id": "RoughBullet",
     "name": "劣质弹药",
-    "icon": "https://lootlab.cn/palworld/items/icons/RoughBullet.png"
+    "icon": "/icons/items/RoughBullet.png"
   },
   {
     "id": "HandgunBullet",
     "name": "手枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/HandgunBullet.png"
+    "icon": "/icons/items/HandgunBullet.png"
   },
   {
     "id": "RifleBullet",
     "name": "步枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/RifleBullet.png"
+    "icon": "/icons/items/RifleBullet.png"
   },
   {
     "id": "ShotgunBullet",
     "name": "霰弹枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/ShotgunBullet.png"
+    "icon": "/icons/items/ShotgunBullet.png"
   },
   {
     "id": "AssaultRifleBullet",
     "name": "突击步枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/AssaultRifleBullet.png"
+    "icon": "/icons/items/AssaultRifleBullet.png"
   },
   {
     "id": "ExplosiveBullet",
     "name": "火箭弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/ExplosiveBullet.png"
+    "icon": "/icons/items/ExplosiveBullet.png"
   },
   {
     "id": "InkBullet",
     "name": "印花墨水",
-    "icon": "https://lootlab.cn/palworld/items/icons/InkBullet.png"
+    "icon": "/icons/items/InkBullet.png"
   },
   {
     "id": "FlamethrowerBullet",
     "name": "火焰喷射器燃料",
-    "icon": "https://lootlab.cn/palworld/items/icons/FlamethrowerBullet.png"
+    "icon": "/icons/items/FlamethrowerBullet.png"
   },
   {
     "id": "MissileBullet",
     "name": "导弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/MissileBullet.png"
+    "icon": "/icons/items/MissileBullet.png"
   },
   {
     "id": "GrenadeBullet",
     "name": "榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/GrenadeBullet.png"
+    "icon": "/icons/items/GrenadeBullet.png"
   },
   {
     "id": "GatlingBullet",
     "name": "加特林子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/GatlingBullet.png"
+    "icon": "/icons/items/GatlingBullet.png"
   },
   {
     "id": "MeteorBullet",
     "name": "陨石弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/MeteorBullet.png"
+    "icon": "/icons/items/MeteorBullet.png"
   },
   {
     "id": "LaserBullet",
     "name": "能量盒",
-    "icon": "https://lootlab.cn/palworld/items/icons/LaserBullet.png"
+    "icon": "/icons/items/LaserBullet.png"
   },
   {
     "id": "EnergyLauncherBullet",
     "name": "电浆能量盒",
-    "icon": "https://lootlab.cn/palworld/items/icons/EnergyLauncherBullet.png"
+    "icon": "/icons/items/EnergyLauncherBullet.png"
   },
   {
     "id": "LaserGatlingBullet",
     "name": "加特林激光能量盒",
-    "icon": "https://lootlab.cn/palworld/items/icons/LaserGatlingBullet.png"
+    "icon": "/icons/items/LaserGatlingBullet.png"
   },
   {
     "id": "ChargeLaserRifleBullet",
     "name": "充能步枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/ChargeLaserRifleBullet.png"
+    "icon": "/icons/items/ChargeLaserRifleBullet.png"
   },
   {
     "id": "OverheatRifleBullet",
     "name": "过热步枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/OverheatRifleBullet.png"
+    "icon": "/icons/items/OverheatRifleBullet.png"
   },
   {
     "id": "EnergyShotgunBullet",
     "name": "能量霰弹枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/EnergyShotgunBullet.png"
+    "icon": "/icons/items/EnergyShotgunBullet.png"
   },
   {
     "id": "PalDopingShotBullet",
     "name": "强化枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalDopingShotBullet.png"
+    "icon": "/icons/items/PalDopingShotBullet.png"
   },
   {
     "id": "WidePenetrateShotgunBullet",
     "name": "散射光束枪弹药",
-    "icon": "https://lootlab.cn/palworld/items/icons/WidePenetrateShotgunBullet.png"
+    "icon": "/icons/items/WidePenetrateShotgunBullet.png"
   },
   {
     "id": "ElectricArcAssaultRifleBullet",
     "name": "等离子步枪弹药",
-    "icon": "https://lootlab.cn/palworld/items/icons/ElectricArcAssaultRifleBullet.png"
+    "icon": "/icons/items/ElectricArcAssaultRifleBullet.png"
   },
   {
     "id": "BeamLauncherBullet",
     "name": "光束炮发射器弹药",
-    "icon": "https://lootlab.cn/palworld/items/icons/BeamLauncherBullet.png"
+    "icon": "/icons/items/BeamLauncherBullet.png"
   },
   {
     "id": "SkyBowArrow",
     "name": "机械弓箭矢",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyBowArrow.png"
+    "icon": "/icons/items/SkyBowArrow.png"
   },
   {
     "id": "SkySubmachineGunBullet",
     "name": "战斗冲锋枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkySubmachineGunBullet.png"
+    "icon": "/icons/items/SkySubmachineGunBullet.png"
   },
   {
     "id": "SkyShotgunBullet",
     "name": "原型霰弹枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyShotgunBullet.png"
+    "icon": "/icons/items/SkyShotgunBullet.png"
   },
   {
     "id": "SkyAssaultRifleBullet",
     "name": "重型突击步枪子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyAssaultRifleBullet.png"
+    "icon": "/icons/items/SkyAssaultRifleBullet.png"
   },
   {
     "id": "SkyGrenadeLauncherBullet",
     "name": "战术榴弹发射器子弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyGrenadeLauncherBullet.png"
+    "icon": "/icons/items/SkyGrenadeLauncherBullet.png"
   },
   {
     "id": "WingGlider_Fuel",
     "name": "飞翼能量单元",
-    "icon": "https://lootlab.cn/palworld/items/icons/WingGlider_Fuel.png"
+    "icon": "/icons/items/WingGlider_Fuel.png"
   },
   {
     "id": "FishingBait_1",
     "name": "简陋钓饵",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingBait_1.png"
+    "icon": "/icons/items/FishingBait_1.png"
   },
   {
     "id": "FishingBait_2",
     "name": "优质钓饵",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingBait_2.png"
+    "icon": "/icons/items/FishingBait_2.png"
   },
   {
     "id": "FishingBait_3",
     "name": "奢华钓饵",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingBait_3.png"
+    "icon": "/icons/items/FishingBait_3.png"
   },
   {
     "id": "FishingBait_1_A",
     "name": "新手钓饵",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingBait_1_A.png"
+    "icon": "/icons/items/FishingBait_1_A.png"
   },
   {
     "id": "FishingBait_1_B",
     "name": "甜味钓饵",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingBait_1_B.png"
+    "icon": "/icons/items/FishingBait_1_B.png"
   },
   {
     "id": "FishingBait_2_A",
     "name": "幸运钓饵",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingBait_2_A.png"
+    "icon": "/icons/items/FishingBait_2_A.png"
   },
   {
     "id": "FishingBait_2_B",
     "name": "快钩钓饵",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingBait_2_B.png"
+    "icon": "/icons/items/FishingBait_2_B.png"
   },
   {
     "id": "FishingBait_3_A",
     "name": "魅惑钓饵",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingBait_3_A.png"
+    "icon": "/icons/items/FishingBait_3_A.png"
   },
   {
     "id": "FishingBait_3_B",
     "name": "高风险钓饵",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingBait_3_B.png"
+    "icon": "/icons/items/FishingBait_3_B.png"
   },
   {
     "id": "Bat",
     "name": "木棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bat.png"
+    "icon": "/icons/items/Bat.png"
   },
   {
     "id": "Torch",
     "name": "携带火把",
-    "icon": "https://lootlab.cn/palworld/items/icons/Torch.png"
+    "icon": "/icons/items/Torch.png"
   },
   {
     "id": "Bat2",
     "name": "棒球棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bat2.png"
+    "icon": "/icons/items/Bat2.png"
   },
   {
     "id": "Bat3",
     "name": "金属球棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bat3.png"
+    "icon": "/icons/items/Bat3.png"
   },
   {
     "id": "Axe_Default",
     "name": "石头斧",
-    "icon": "https://lootlab.cn/palworld/items/icons/Axe_Default.png"
+    "icon": "/icons/items/Axe_Default.png"
   },
   {
     "id": "Axe_Steal",
     "name": "帕鲁金属斧",
-    "icon": "https://lootlab.cn/palworld/items/icons/Axe_Steal.png"
+    "icon": "/icons/items/Axe_Steal.png"
   },
   {
     "id": "PickAxe_Default",
     "name": "石制十字镐",
-    "icon": "https://lootlab.cn/palworld/items/icons/PickAxe_Default.png"
+    "icon": "/icons/items/PickAxe_Default.png"
   },
   {
     "id": "Pickaxe_Steal",
     "name": "帕鲁金属十字镐",
-    "icon": "https://lootlab.cn/palworld/items/icons/Pickaxe_Steal.png"
+    "icon": "/icons/items/Pickaxe_Steal.png"
   },
   {
     "id": "LaserMiningTool",
     "name": "多功能等离子切割器",
-    "icon": "https://lootlab.cn/palworld/items/icons/LaserMiningTool.png"
+    "icon": "/icons/items/LaserMiningTool.png"
   },
   {
     "id": "Spear",
     "name": "石头长矛",
-    "icon": "https://lootlab.cn/palworld/items/icons/Spear.png"
+    "icon": "/icons/items/Spear.png"
   },
   {
     "id": "Spear_QueenBee",
     "name": "女皇蜂之杖",
-    "icon": "https://lootlab.cn/palworld/items/icons/Spear_QueenBee.png"
+    "icon": "/icons/items/Spear_QueenBee.png"
   },
   {
     "id": "Spear_SoldierBee",
     "name": "骑士蜂之矛",
-    "icon": "https://lootlab.cn/palworld/items/icons/Spear_SoldierBee.png"
+    "icon": "/icons/items/Spear_SoldierBee.png"
   },
   {
     "id": "Spear_ForestBoss",
     "name": "莉莉之矛",
-    "icon": "https://lootlab.cn/palworld/items/icons/Spear_ForestBoss.png"
+    "icon": "/icons/items/Spear_ForestBoss.png"
   },
   {
     "id": "Spear_ForestBoss2",
     "name": "强化莉莉之矛",
-    "icon": "https://lootlab.cn/palworld/items/icons/Spear_ForestBoss2.png"
+    "icon": "/icons/items/Spear_ForestBoss2.png"
   },
   {
     "id": "BronzeSword",
     "name": "原始的剑",
-    "icon": "https://lootlab.cn/palworld/items/icons/BronzeSword.png"
+    "icon": "/icons/items/BronzeSword.png"
   },
   {
     "id": "Sword",
     "name": "剑",
-    "icon": "https://lootlab.cn/palworld/items/icons/Sword.png"
+    "icon": "/icons/items/Sword.png"
   },
   {
     "id": "Katana",
     "name": "太刀",
-    "icon": "https://lootlab.cn/palworld/items/icons/Katana.png"
+    "icon": "/icons/items/Katana.png"
   },
   {
     "id": "BeamSword",
     "name": "光剑",
-    "icon": "https://lootlab.cn/palworld/items/icons/BeamSword.png"
+    "icon": "/icons/items/BeamSword.png"
   },
   {
     "id": "SkyBeamSword",
     "name": "高出力光剑",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyBeamSword.png"
+    "icon": "/icons/items/SkyBeamSword.png"
   },
   {
     "id": "MeatCutterKnife",
     "name": "切肉刀",
-    "icon": "https://lootlab.cn/palworld/items/icons/MeatCutterKnife.png"
+    "icon": "/icons/items/MeatCutterKnife.png"
   },
   {
     "id": "ElecBaton",
     "name": "电棍",
-    "icon": "https://lootlab.cn/palworld/items/icons/ElecBaton.png"
+    "icon": "/icons/items/ElecBaton.png"
   },
   {
     "id": "MetalDetector",
     "name": "金属探测器",
-    "icon": "https://lootlab.cn/palworld/items/icons/MetalDetector.png"
+    "icon": "/icons/items/MetalDetector.png"
   },
   {
     "id": "Bow",
     "name": "陈旧的弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bow.png"
+    "icon": "/icons/items/Bow.png"
   },
   {
     "id": "Bow_Poison",
     "name": "毒之弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bow_Poison.png"
+    "icon": "/icons/items/Bow_Poison.png"
   },
   {
     "id": "Bow_Fire",
     "name": "火之弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bow_Fire.png"
+    "icon": "/icons/items/Bow_Fire.png"
   },
   {
     "id": "Bow3",
     "name": "三连弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bow3.png"
+    "icon": "/icons/items/Bow3.png"
   },
   {
     "id": "BowGun",
     "name": "十字弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/BowGun.png"
+    "icon": "/icons/items/BowGun.png"
   },
   {
     "id": "BowGun_Poison",
     "name": "毒箭十字弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/BowGun_Poison.png"
+    "icon": "/icons/items/BowGun_Poison.png"
   },
   {
     "id": "BowGun_Fire",
     "name": "火箭十字弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/BowGun_Fire.png"
+    "icon": "/icons/items/BowGun_Fire.png"
   },
   {
     "id": "CompoundBow",
     "name": "复合弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/CompoundBow.png"
+    "icon": "/icons/items/CompoundBow.png"
   },
   {
     "id": "SFBow",
     "name": "卓越弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/SFBow.png"
+    "icon": "/icons/items/SFBow.png"
   },
   {
     "id": "SkyBow",
     "name": "机械弓",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyBow.png"
+    "icon": "/icons/items/SkyBow.png"
   },
   {
     "id": "MakeshiftHandgun",
     "name": "劣质手枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/MakeshiftHandgun.png"
+    "icon": "/icons/items/MakeshiftHandgun.png"
   },
   {
     "id": "HandGun_Default",
     "name": "手枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/HandGun_Default.png"
+    "icon": "/icons/items/HandGun_Default.png"
   },
   {
     "id": "DecalGun",
     "name": "印花枪1",
-    "icon": "https://lootlab.cn/palworld/items/icons/DecalGun.png"
+    "icon": "/icons/items/DecalGun.png"
   },
   {
     "id": "OldRevolver",
     "name": "古旧左轮手枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/OldRevolver.png"
+    "icon": "/icons/items/OldRevolver.png"
   },
   {
     "id": "PalDopingShot",
     "name": "强化枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalDopingShot.png"
+    "icon": "/icons/items/PalDopingShot.png"
   },
   {
     "id": "PalDopingShot_2",
     "name": "高级强化枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalDopingShot_2.png"
+    "icon": "/icons/items/PalDopingShot_2.png"
   },
   {
     "id": "GrapplingGun",
     "name": "爪钩枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/GrapplingGun.png"
+    "icon": "/icons/items/GrapplingGun.png"
   },
   {
     "id": "MakeshiftShotgun",
     "name": "破旧的霰弹枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/MakeshiftShotgun.png"
+    "icon": "/icons/items/MakeshiftShotgun.png"
   },
   {
     "id": "DoubleBarrelShotgun",
     "name": "双管霰弹枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/DoubleBarrelShotgun.png"
+    "icon": "/icons/items/DoubleBarrelShotgun.png"
   },
   {
     "id": "ShotGun_Default",
     "name": "泵动式霰弹枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/ShotGun_Default.png"
+    "icon": "/icons/items/ShotGun_Default.png"
   },
   {
     "id": "SemiAutoShotgun",
     "name": "半自动霰弹枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SemiAutoShotgun.png"
+    "icon": "/icons/items/SemiAutoShotgun.png"
   },
   {
     "id": "EnergyShotgun",
     "name": "能量霰弹枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/EnergyShotgun.png"
+    "icon": "/icons/items/EnergyShotgun.png"
   },
   {
     "id": "SkyShotgun",
     "name": "原型霰弹枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyShotgun.png"
+    "icon": "/icons/items/SkyShotgun.png"
   },
   {
     "id": "WidePenetrateShotgun",
     "name": "散射光束枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/WidePenetrateShotgun.png"
+    "icon": "/icons/items/WidePenetrateShotgun.png"
   },
   {
     "id": "Musket",
     "name": "鸟枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/Musket.png"
+    "icon": "/icons/items/Musket.png"
   },
   {
     "id": "SingleShotRifle",
     "name": "单发步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SingleShotRifle.png"
+    "icon": "/icons/items/SingleShotRifle.png"
   },
   {
     "id": "SemiAutoRifle",
     "name": "半自动步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SemiAutoRifle.png"
+    "icon": "/icons/items/SemiAutoRifle.png"
   },
   {
     "id": "MakeshiftAssaultRifle",
     "name": "破旧的突击步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/MakeshiftAssaultRifle.png"
+    "icon": "/icons/items/MakeshiftAssaultRifle.png"
   },
   {
     "id": "AssaultRifle_Default",
     "name": "突击步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/AssaultRifle_Default.png"
+    "icon": "/icons/items/AssaultRifle_Default.png"
   },
   {
     "id": "SkyAssaultRifle",
     "name": "重型突击步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyAssaultRifle.png"
+    "icon": "/icons/items/SkyAssaultRifle.png"
   },
   {
     "id": "ElectricArcAssaultRifle",
     "name": "等离子步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/ElectricArcAssaultRifle.png"
+    "icon": "/icons/items/ElectricArcAssaultRifle.png"
   },
   {
     "id": "MakeshiftSubmachineGun",
     "name": "破旧的冲锋枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/MakeshiftSubmachineGun.png"
+    "icon": "/icons/items/MakeshiftSubmachineGun.png"
   },
   {
     "id": "SubmachineGun",
     "name": "冲锋枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SubmachineGun.png"
+    "icon": "/icons/items/SubmachineGun.png"
   },
   {
     "id": "SkySubmachineGun",
     "name": "战斗冲锋枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkySubmachineGun.png"
+    "icon": "/icons/items/SkySubmachineGun.png"
   },
   {
     "id": "Launcher_Default",
     "name": "火箭发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/Launcher_Default.png"
+    "icon": "/icons/items/Launcher_Default.png"
   },
   {
     "id": "Launcher_Meteor",
     "name": "陨石发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/Launcher_Meteor.png"
+    "icon": "/icons/items/Launcher_Meteor.png"
   },
   {
     "id": "SphereLauncher_Once",
     "name": "单发型帕鲁球发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/SphereLauncher_Once.png"
+    "icon": "/icons/items/SphereLauncher_Once.png"
   },
   {
     "id": "SphereLauncher",
     "name": "扩散型帕鲁球发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/SphereLauncher.png"
+    "icon": "/icons/items/SphereLauncher.png"
   },
   {
     "id": "HomingSphereLauncher",
     "name": "自动追踪帕鲁球发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/HomingSphereLauncher.png"
+    "icon": "/icons/items/HomingSphereLauncher.png"
   },
   {
     "id": "LaserRifle",
     "name": "激光步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/LaserRifle.png"
+    "icon": "/icons/items/LaserRifle.png"
   },
   {
     "id": "ChargeLaserRifle",
     "name": "充能步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/ChargeLaserRifle.png"
+    "icon": "/icons/items/ChargeLaserRifle.png"
   },
   {
     "id": "OverheatRifle",
     "name": "过热步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/OverheatRifle.png"
+    "icon": "/icons/items/OverheatRifle.png"
   },
   {
     "id": "FlameThrower",
     "name": "火焰喷射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/FlameThrower.png"
+    "icon": "/icons/items/FlameThrower.png"
   },
   {
     "id": "GatlingGun",
     "name": "加特林机枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/GatlingGun.png"
+    "icon": "/icons/items/GatlingGun.png"
   },
   {
     "id": "LaserGatlingGun",
     "name": "激光加特林",
-    "icon": "https://lootlab.cn/palworld/items/icons/LaserGatlingGun.png"
+    "icon": "/icons/items/LaserGatlingGun.png"
   },
   {
     "id": "GrenadeLauncher",
     "name": "榴弹发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/GrenadeLauncher.png"
+    "icon": "/icons/items/GrenadeLauncher.png"
   },
   {
     "id": "SkyGrenadeLauncher",
     "name": "战术榴弹发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyGrenadeLauncher.png"
+    "icon": "/icons/items/SkyGrenadeLauncher.png"
   },
   {
     "id": "GuidedMissileLauncher",
     "name": "追踪导弹发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/GuidedMissileLauncher.png"
+    "icon": "/icons/items/GuidedMissileLauncher.png"
   },
   {
     "id": "MultiGuidedMissileLauncher",
     "name": "多联装追踪导弹发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/MultiGuidedMissileLauncher.png"
+    "icon": "/icons/items/MultiGuidedMissileLauncher.png"
   },
   {
     "id": "EnergyRocketLauncher",
     "name": "等离子炮",
-    "icon": "https://lootlab.cn/palworld/items/icons/EnergyRocketLauncher.png"
+    "icon": "/icons/items/EnergyRocketLauncher.png"
   },
   {
     "id": "BeamLauncher",
     "name": "光束炮发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/BeamLauncher.png"
+    "icon": "/icons/items/BeamLauncher.png"
   },
   {
     "id": "DroneLauncher",
     "name": "无人机发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/DroneLauncher.png"
+    "icon": "/icons/items/DroneLauncher.png"
   },
   {
     "id": "YakushimaBlade004",
     "name": "断钢剑",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaBlade004.png"
+    "icon": "/icons/items/YakushimaBlade004.png"
   },
   {
     "id": "YakushimaBlade002",
     "name": "泰拉刃",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaBlade002.png"
+    "icon": "/icons/items/YakushimaBlade002.png"
   },
   {
     "id": "YakushimaGun001",
     "name": "星旋机枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaGun001.png"
+    "icon": "/icons/items/YakushimaGun001.png"
   },
   {
     "id": "YakushimaLantern001",
     "name": "夜光",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaLantern001.png"
+    "icon": "/icons/items/YakushimaLantern001.png"
   },
   {
     "id": "YakushimaBlade003",
     "name": "泰拉棱镜",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaBlade003.png"
+    "icon": "/icons/items/YakushimaBlade003.png"
   },
   {
     "id": "YakushimaBlade",
     "name": "彩虹猫之刃",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaBlade.png"
+    "icon": "/icons/items/YakushimaBlade.png"
   },
   {
     "id": "YakushimaBlade005",
     "name": "传奇彩虹猫之刃",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaBlade005.png"
+    "icon": "/icons/items/YakushimaBlade005.png"
   },
   {
     "id": "OctaviaRevolver",
     "name": "神射左轮手枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/OctaviaRevolver.png"
+    "icon": "/icons/items/OctaviaRevolver.png"
   },
   {
     "id": "OctaviaShotgun",
     "name": "核心喷射霰弹枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/OctaviaShotgun.png"
+    "icon": "/icons/items/OctaviaShotgun.png"
   },
   {
     "id": "FishingRod_1",
     "name": "初级钓竿（疾旋鼬）",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingRod_1.png"
+    "icon": "/icons/items/FishingRod_1.png"
   },
   {
     "id": "FishingRod_2",
     "name": "初级钓竿（叶泥泥）",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingRod_2.png"
+    "icon": "/icons/items/FishingRod_2.png"
   },
   {
     "id": "FishingRod_3",
     "name": "中级钓竿（捣蛋猫）",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingRod_3.png"
+    "icon": "/icons/items/FishingRod_3.png"
   },
   {
     "id": "FishingRod_4",
     "name": "中级钓竿（武道蛙）",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingRod_4.png"
+    "icon": "/icons/items/FishingRod_4.png"
   },
   {
     "id": "FishingRod_5",
     "name": "高级钓竿（企丸丸）",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingRod_5.png"
+    "icon": "/icons/items/FishingRod_5.png"
   },
   {
     "id": "FishingRod_6",
     "name": "高级钓竿（瞅什魔）",
-    "icon": "https://lootlab.cn/palworld/items/icons/FishingRod_6.png"
+    "icon": "/icons/items/FishingRod_6.png"
   },
   {
     "id": "FragGrenade",
     "name": "破片手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade.png"
+    "icon": "/icons/items/FragGrenade.png"
   },
   {
     "id": "FragGrenade_Elec",
     "name": "电击手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade_Elec.png"
+    "icon": "/icons/items/FragGrenade_Elec.png"
   },
   {
     "id": "FragGrenade_Ice",
     "name": "冷冻手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade_Ice.png"
+    "icon": "/icons/items/FragGrenade_Ice.png"
   },
   {
     "id": "FragGrenade_Fire",
     "name": "烧夷手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade_Fire.png"
+    "icon": "/icons/items/FragGrenade_Fire.png"
   },
   {
     "id": "FragGrenade_Water",
     "name": "水流手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade_Water.png"
+    "icon": "/icons/items/FragGrenade_Water.png"
   },
   {
     "id": "FragGrenade_Leaf",
     "name": "草木手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade_Leaf.png"
+    "icon": "/icons/items/FragGrenade_Leaf.png"
   },
   {
     "id": "FragGrenade_Ground",
     "name": "大地手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade_Ground.png"
+    "icon": "/icons/items/FragGrenade_Ground.png"
   },
   {
     "id": "FragGrenade_Dark",
     "name": "暗黑手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade_Dark.png"
+    "icon": "/icons/items/FragGrenade_Dark.png"
   },
   {
     "id": "FragGrenade_Dragon",
     "name": "龙击手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade_Dragon.png"
+    "icon": "/icons/items/FragGrenade_Dragon.png"
   },
   {
     "id": "FragGrenade_Super",
     "name": "破片手榴弹Mk2",
-    "icon": "https://lootlab.cn/palworld/items/icons/FragGrenade_Super.png"
+    "icon": "/icons/items/FragGrenade_Super.png"
   },
   {
     "id": "PalHealingGrenade",
     "name": "帕鲁恢复手榴弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalHealingGrenade.png"
+    "icon": "/icons/items/PalHealingGrenade.png"
   },
   {
     "id": "Shield_01",
     "name": "普通护盾",
-    "icon": "https://lootlab.cn/palworld/items/icons/Shield_01.png"
+    "icon": "/icons/items/Shield_01.png"
   },
   {
     "id": "Shield_02",
     "name": "高级护盾",
-    "icon": "https://lootlab.cn/palworld/items/icons/Shield_02.png"
+    "icon": "/icons/items/Shield_02.png"
   },
   {
     "id": "Shield_03",
     "name": "优质护盾",
-    "icon": "https://lootlab.cn/palworld/items/icons/Shield_03.png"
+    "icon": "/icons/items/Shield_03.png"
   },
   {
     "id": "Shield_04",
     "name": "特级护盾",
-    "icon": "https://lootlab.cn/palworld/items/icons/Shield_04.png"
+    "icon": "/icons/items/Shield_04.png"
   },
   {
     "id": "Shield_05",
     "name": "超级护盾",
-    "icon": "https://lootlab.cn/palworld/items/icons/Shield_05.png"
+    "icon": "/icons/items/Shield_05.png"
   },
   {
     "id": "Shield_SF",
     "name": "卓越护盾",
-    "icon": "https://lootlab.cn/palworld/items/icons/Shield_SF.png"
+    "icon": "/icons/items/Shield_SF.png"
   },
   {
     "id": "Shield_07",
     "name": "远古护盾",
-    "icon": "https://lootlab.cn/palworld/items/icons/Shield_07.png"
+    "icon": "/icons/items/Shield_07.png"
   },
   {
     "id": "LeatherClothing",
     "name": "布衣服",
-    "icon": "https://lootlab.cn/palworld/items/icons/LeatherClothing.png"
+    "icon": "/icons/items/LeatherClothing.png"
   },
   {
     "id": "ClothArmorHeat",
     "name": "热带地区民族服饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/ClothArmorHeat.png"
+    "icon": "/icons/items/ClothArmorHeat.png"
   },
   {
     "id": "ClothArmorCold",
     "name": "寒冷地区民族服饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/ClothArmorCold.png"
+    "icon": "/icons/items/ClothArmorCold.png"
   },
   {
     "id": "FurArmor",
     "name": "毛皮盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/FurArmor.png"
+    "icon": "/icons/items/FurArmor.png"
   },
   {
     "id": "FurArmorHeat",
     "name": "耐热毛皮盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/FurArmorHeat.png"
+    "icon": "/icons/items/FurArmorHeat.png"
   },
   {
     "id": "FurArmorCold",
     "name": "耐寒毛皮盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/FurArmorCold.png"
+    "icon": "/icons/items/FurArmorCold.png"
   },
   {
     "id": "CopperArmor",
     "name": "金属盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/CopperArmor.png"
+    "icon": "/icons/items/CopperArmor.png"
   },
   {
     "id": "CopperArmorHeat",
     "name": "耐热金属盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/CopperArmorHeat.png"
+    "icon": "/icons/items/CopperArmorHeat.png"
   },
   {
     "id": "CopperArmorCold",
     "name": "耐寒金属盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/CopperArmorCold.png"
+    "icon": "/icons/items/CopperArmorCold.png"
   },
   {
     "id": "IronArmor",
     "name": "精炼金属盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/IronArmor.png"
+    "icon": "/icons/items/IronArmor.png"
   },
   {
     "id": "IronArmorHeat",
     "name": "耐热精炼金属盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/IronArmorHeat.png"
+    "icon": "/icons/items/IronArmorHeat.png"
   },
   {
     "id": "IronArmorCold",
     "name": "耐寒精炼金属盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/IronArmorCold.png"
+    "icon": "/icons/items/IronArmorCold.png"
   },
   {
     "id": "StealArmor",
     "name": "帕鲁金属盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/StealArmor.png"
+    "icon": "/icons/items/StealArmor.png"
   },
   {
     "id": "StealArmorHeat",
     "name": "耐热帕鲁金属盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/StealArmorHeat.png"
+    "icon": "/icons/items/StealArmorHeat.png"
   },
   {
     "id": "StealArmorCold",
     "name": "耐寒帕鲁金属盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/StealArmorCold.png"
+    "icon": "/icons/items/StealArmorCold.png"
   },
   {
     "id": "PlasticArmor",
     "name": "塑钢盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/PlasticArmor.png"
+    "icon": "/icons/items/PlasticArmor.png"
   },
   {
     "id": "PlasticArmorHeat",
     "name": "耐热塑钢盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/PlasticArmorHeat.png"
+    "icon": "/icons/items/PlasticArmorHeat.png"
   },
   {
     "id": "PlasticArmorCold",
     "name": "耐寒塑钢盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/PlasticArmorCold.png"
+    "icon": "/icons/items/PlasticArmorCold.png"
   },
   {
     "id": "PlasticArmorWeight",
     "name": "轻便塑钢盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/PlasticArmorWeight.png"
+    "icon": "/icons/items/PlasticArmorWeight.png"
   },
   {
     "id": "SFArmor",
     "name": "六棱晶盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/SFArmor.png"
+    "icon": "/icons/items/SFArmor.png"
   },
   {
     "id": "SFArmorHeat",
     "name": "耐热六棱晶盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/SFArmorHeat.png"
+    "icon": "/icons/items/SFArmorHeat.png"
   },
   {
     "id": "SFArmorCold",
     "name": "耐寒六棱晶盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/SFArmorCold.png"
+    "icon": "/icons/items/SFArmorCold.png"
   },
   {
     "id": "SFArmorWeight",
     "name": "轻便六棱晶盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/SFArmorWeight.png"
+    "icon": "/icons/items/SFArmorWeight.png"
   },
   {
     "id": "AncientArmor",
     "name": "远古盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/AncientArmor.png"
+    "icon": "/icons/items/AncientArmor.png"
   },
   {
     "id": "AncientArmorHeat",
     "name": "耐热远古盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/AncientArmorHeat.png"
+    "icon": "/icons/items/AncientArmorHeat.png"
   },
   {
     "id": "AncientArmorCold",
     "name": "耐寒远古盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/AncientArmorCold.png"
+    "icon": "/icons/items/AncientArmorCold.png"
   },
   {
     "id": "AncientArmorWeight",
     "name": "轻便远古盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/AncientArmorWeight.png"
+    "icon": "/icons/items/AncientArmorWeight.png"
   },
   {
     "id": "Kigurumi001_Armor",
     "name": "瞅什魔玩偶装",
-    "icon": "https://lootlab.cn/palworld/items/icons/Kigurumi001_Armor.png"
+    "icon": "/icons/items/Kigurumi001_Armor.png"
   },
   {
     "id": "YakushimaArmor001",
     "name": "神圣板甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaArmor001.png"
+    "icon": "/icons/items/YakushimaArmor001.png"
   },
   {
     "id": "Octavia001_Armor",
     "name": "V1盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/Octavia001_Armor.png"
+    "icon": "/icons/items/Octavia001_Armor.png"
   },
   {
     "id": "Octavia002_Armor",
     "name": "V2盔甲",
-    "icon": "https://lootlab.cn/palworld/items/icons/Octavia002_Armor.png"
+    "icon": "/icons/items/Octavia002_Armor.png"
   },
   {
     "id": "FurHelmet",
     "name": "羽毛发饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/FurHelmet.png"
+    "icon": "/icons/items/FurHelmet.png"
   },
   {
     "id": "CopperHelmet",
     "name": "金属头盔",
-    "icon": "https://lootlab.cn/palworld/items/icons/CopperHelmet.png"
+    "icon": "/icons/items/CopperHelmet.png"
   },
   {
     "id": "IronHelmet",
     "name": "精炼金属头盔",
-    "icon": "https://lootlab.cn/palworld/items/icons/IronHelmet.png"
+    "icon": "/icons/items/IronHelmet.png"
   },
   {
     "id": "StealHelmet",
     "name": "帕鲁金属头盔",
-    "icon": "https://lootlab.cn/palworld/items/icons/StealHelmet.png"
+    "icon": "/icons/items/StealHelmet.png"
   },
   {
     "id": "PlasticHelmet",
     "name": "塑钢头盔",
-    "icon": "https://lootlab.cn/palworld/items/icons/PlasticHelmet.png"
+    "icon": "/icons/items/PlasticHelmet.png"
   },
   {
     "id": "SFHelmet",
     "name": "六棱晶头盔",
-    "icon": "https://lootlab.cn/palworld/items/icons/SFHelmet.png"
+    "icon": "/icons/items/SFHelmet.png"
   },
   {
     "id": "AncientHelmet",
     "name": "远古头盔",
-    "icon": "https://lootlab.cn/palworld/items/icons/AncientHelmet.png"
+    "icon": "/icons/items/AncientHelmet.png"
   },
   {
     "id": "YakushimaHeadEquip001",
     "name": "神圣面具",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaHeadEquip001.png"
+    "icon": "/icons/items/YakushimaHeadEquip001.png"
   },
   {
     "id": "YakushimaHeadEquip003",
     "name": "神圣头盔",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaHeadEquip003.png"
+    "icon": "/icons/items/YakushimaHeadEquip003.png"
   },
   {
     "id": "YakushimaHeadEquip002",
     "name": "神圣头饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaHeadEquip002.png"
+    "icon": "/icons/items/YakushimaHeadEquip002.png"
   },
   {
     "id": "YakushimaHeadEquip004",
     "name": "神圣兜帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaHeadEquip004.png"
+    "icon": "/icons/items/YakushimaHeadEquip004.png"
   },
   {
     "id": "Head001",
     "name": "王冠",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head001.png"
+    "icon": "/icons/items/Head001.png"
   },
   {
     "id": "Head002",
     "name": "金冠",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head002.png"
+    "icon": "/icons/items/Head002.png"
   },
   {
     "id": "Head003",
     "name": "长耳发箍",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head003.png"
+    "icon": "/icons/items/Head003.png"
   },
   {
     "id": "Head004",
     "name": "魔女帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head004.png"
+    "icon": "/icons/items/Head004.png"
   },
   {
     "id": "Head005",
     "name": "费多拉帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head005.png"
+    "icon": "/icons/items/Head005.png"
   },
   {
     "id": "Head006",
     "name": "安全帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head006.png"
+    "icon": "/icons/items/Head006.png"
   },
   {
     "id": "Head007",
     "name": "大礼帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head007.png"
+    "icon": "/icons/items/Head007.png"
   },
   {
     "id": "Head008",
     "name": "三角帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head008.png"
+    "icon": "/icons/items/Head008.png"
   },
   {
     "id": "Head009",
     "name": "探险帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head009.png"
+    "icon": "/icons/items/Head009.png"
   },
   {
     "id": "Head010",
     "name": "学士帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head010.png"
+    "icon": "/icons/items/Head010.png"
   },
   {
     "id": "Head011",
     "name": "农夫帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head011.png"
+    "icon": "/icons/items/Head011.png"
   },
   {
     "id": "Head012",
     "name": "圆顶礼帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head012.png"
+    "icon": "/icons/items/Head012.png"
   },
   {
     "id": "Head013",
     "name": "炸蛋鸟帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head013.png"
+    "icon": "/icons/items/Head013.png"
   },
   {
     "id": "Head014",
     "name": "笑脸炸蛋鸟帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head014.png"
+    "icon": "/icons/items/Head014.png"
   },
   {
     "id": "Head015",
     "name": "叶泥泥帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head015.png"
+    "icon": "/icons/items/Head015.png"
   },
   {
     "id": "Head016",
     "name": "企丸王帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head016.png"
+    "icon": "/icons/items/Head016.png"
   },
   {
     "id": "Head017",
     "name": "暗巫猫帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/Head017.png"
+    "icon": "/icons/items/Head017.png"
   },
   {
     "id": "HeadEquip023",
     "name": "百合女王的发饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip023.png"
+    "icon": "/icons/items/HeadEquip023.png"
   },
   {
     "id": "HeadEquip024",
     "name": "绸笠蛾帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip024.png"
+    "icon": "/icons/items/HeadEquip024.png"
   },
   {
     "id": "HeadEquip025",
     "name": "朋克蜥的兜帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip025.png"
+    "icon": "/icons/items/HeadEquip025.png"
   },
   {
     "id": "HeadEquip026",
     "name": "勾魂鱿帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip026.png"
+    "icon": "/icons/items/HeadEquip026.png"
   },
   {
     "id": "HeadEquip027",
     "name": "黑鸦隐士帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip027.png"
+    "icon": "/icons/items/HeadEquip027.png"
   },
   {
     "id": "HeadEquip028",
     "name": "姬小兔的发饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip028.png"
+    "icon": "/icons/items/HeadEquip028.png"
   },
   {
     "id": "HeadEquip029",
     "name": "棉悠悠头套",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip029.png"
+    "icon": "/icons/items/HeadEquip029.png"
   },
   {
     "id": "HeadEquip030",
     "name": "趴趴鲶头套",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip030.png"
+    "icon": "/icons/items/HeadEquip030.png"
   },
   {
     "id": "HeadEquip031",
     "name": "毛掸儿帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip031.png"
+    "icon": "/icons/items/HeadEquip031.png"
   },
   {
     "id": "HeadEquip032",
     "name": "雷鸣童子帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip032.png"
+    "icon": "/icons/items/HeadEquip032.png"
   },
   {
     "id": "HeadEquip033",
     "name": "捣蛋猫帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip033.png"
+    "icon": "/icons/items/HeadEquip033.png"
   },
   {
     "id": "HeadEquip050",
     "name": "达鼠泥的发饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip050.png"
+    "icon": "/icons/items/HeadEquip050.png"
   },
   {
     "id": "HeadEquip053",
     "name": "海月仙帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip053.png"
+    "icon": "/icons/items/HeadEquip053.png"
   },
   {
     "id": "HeadEquip054",
     "name": "盔盔仔帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip054.png"
+    "icon": "/icons/items/HeadEquip054.png"
   },
   {
     "id": "HeadEquip051",
     "name": "君王美露帕的发饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip051.png"
+    "icon": "/icons/items/HeadEquip051.png"
   },
   {
     "id": "HeadEquip052",
     "name": "墨沫姬帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip052.png"
+    "icon": "/icons/items/HeadEquip052.png"
   },
   {
     "id": "HeadEquip055",
     "name": "武道蛙帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip055.png"
+    "icon": "/icons/items/HeadEquip055.png"
   },
   {
     "id": "HeadEquip056",
     "name": "皮皮鸡帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip056.png"
+    "icon": "/icons/items/HeadEquip056.png"
   },
   {
     "id": "HeadEquip057",
     "name": "夜蔓爵帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip057.png"
+    "icon": "/icons/items/HeadEquip057.png"
   },
   {
     "id": "HeadEquip058",
     "name": "菇咚帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip058.png"
+    "icon": "/icons/items/HeadEquip058.png"
   },
   {
     "id": "HeadEquip059",
     "name": "冥灯鱼的发饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip059.png"
+    "icon": "/icons/items/HeadEquip059.png"
   },
   {
     "id": "HeadEquip060",
     "name": "冰姬灵帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip060.png"
+    "icon": "/icons/items/HeadEquip060.png"
   },
   {
     "id": "HeadEquip061",
     "name": "幽恋娜帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip061.png"
+    "icon": "/icons/items/HeadEquip061.png"
   },
   {
     "id": "HeadEquip062",
     "name": "桃蛛娘帽",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip062.png"
+    "icon": "/icons/items/HeadEquip062.png"
   },
   {
     "id": "HeadEquip001_purple",
     "name": "魔女之冠",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip001_purple.png"
+    "icon": "/icons/items/HeadEquip001_purple.png"
   },
   {
     "id": "HeadEquip041",
     "name": "霸王之角",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip041.png"
+    "icon": "/icons/items/HeadEquip041.png"
   },
   {
     "id": "HeadEquip044",
     "name": "杰诺多兰头套",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip044.png"
+    "icon": "/icons/items/HeadEquip044.png"
   },
   {
     "id": "YakushimaHeadEquip005",
     "name": "月亮领主面具",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaHeadEquip005.png"
+    "icon": "/icons/items/YakushimaHeadEquip005.png"
   },
   {
     "id": "HeadEquip046",
     "name": "救赎王冠",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip046.png"
+    "icon": "/icons/items/HeadEquip046.png"
   },
   {
     "id": "GYM_Head_Grass",
     "name": "佐伊的帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/GYM_Head_Grass.png"
+    "icon": "/icons/items/GYM_Head_Grass.png"
   },
   {
     "id": "GYM_Head_Forest",
     "name": "莉莉的帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/GYM_Head_Forest.png"
+    "icon": "/icons/items/GYM_Head_Forest.png"
   },
   {
     "id": "GYM_Head_Electric",
     "name": "阿克塞尔的帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/GYM_Head_Electric.png"
+    "icon": "/icons/items/GYM_Head_Electric.png"
   },
   {
     "id": "GYM_Head_Desert",
     "name": "马库斯的帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/GYM_Head_Desert.png"
+    "icon": "/icons/items/GYM_Head_Desert.png"
   },
   {
     "id": "GYM_Head_Snow",
     "name": "维克托的帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/GYM_Head_Snow.png"
+    "icon": "/icons/items/GYM_Head_Snow.png"
   },
   {
     "id": "GYM_Head_Sakurajima",
     "name": "纱夜的帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/GYM_Head_Sakurajima.png"
+    "icon": "/icons/items/GYM_Head_Sakurajima.png"
   },
   {
     "id": "GYM_Head_Viking",
     "name": "比约恩的帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/GYM_Head_Viking.png"
+    "icon": "/icons/items/GYM_Head_Viking.png"
   },
   {
     "id": "HeadEquip048",
     "name": "苍璃的帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip048.png"
+    "icon": "/icons/items/HeadEquip048.png"
   },
   {
     "id": "HeadEquip049",
     "name": "泽娜拉的帽子",
-    "icon": "https://lootlab.cn/palworld/items/icons/HeadEquip049.png"
+    "icon": "/icons/items/HeadEquip049.png"
   },
   {
     "id": "Kigurumi001_Helmet",
     "name": "瞅什魔头套",
-    "icon": "https://lootlab.cn/palworld/items/icons/Kigurumi001_Helmet.png"
+    "icon": "/icons/items/Kigurumi001_Helmet.png"
   },
   {
     "id": "YakushimaHeadEquip006",
     "name": "克苏鲁之眼面具",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaHeadEquip006.png"
+    "icon": "/icons/items/YakushimaHeadEquip006.png"
   },
   {
     "id": "Accessory_HP",
     "name": "生命吊坠",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_HP.png"
+    "icon": "/icons/items/Accessory_HP.png"
   },
   {
     "id": "Accessory_AT",
     "name": "攻击吊坠",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_AT.png"
+    "icon": "/icons/items/Accessory_AT.png"
   },
   {
     "id": "Accessory_defense",
     "name": "防御吊坠",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_defense.png"
+    "icon": "/icons/items/Accessory_defense.png"
   },
   {
     "id": "Accessory_WorkSpeed",
     "name": "勤劳吊坠",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_WorkSpeed.png"
+    "icon": "/icons/items/Accessory_WorkSpeed.png"
   },
   {
     "id": "Accessory_HeatResist",
     "name": "耐热内衣",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_HeatResist.png"
+    "icon": "/icons/items/Accessory_HeatResist.png"
   },
   {
     "id": "Accessory_CoolResist",
     "name": "防寒内衣",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_CoolResist.png"
+    "icon": "/icons/items/Accessory_CoolResist.png"
   },
   {
     "id": "Accessory_HeatColdResist",
     "name": "耐热防寒内衣",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_HeatColdResist.png"
+    "icon": "/icons/items/Accessory_HeatColdResist.png"
   },
   {
     "id": "Accessory_ExplosionResist",
     "name": "防爆内衣",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_ExplosionResist.png"
+    "icon": "/icons/items/Accessory_ExplosionResist.png"
   },
   {
     "id": "GasMask",
     "name": "防腐雾面具",
-    "icon": "https://lootlab.cn/palworld/items/icons/GasMask.png"
+    "icon": "/icons/items/GasMask.png"
   },
   {
     "id": "Accessory_NormalResist",
     "name": "无属性抵抗戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_NormalResist.png"
+    "icon": "/icons/items/Accessory_NormalResist.png"
   },
   {
     "id": "Accessory_FireResist",
     "name": "炎属性抵抗戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_FireResist.png"
+    "icon": "/icons/items/Accessory_FireResist.png"
   },
   {
     "id": "Accessory_AquaResist",
     "name": "水属性抵抗戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_AquaResist.png"
+    "icon": "/icons/items/Accessory_AquaResist.png"
   },
   {
     "id": "Accessory_ThunderResist",
     "name": "雷属性抵抗戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_ThunderResist.png"
+    "icon": "/icons/items/Accessory_ThunderResist.png"
   },
   {
     "id": "Accessory_LeafResist",
     "name": "草属性抵抗戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_LeafResist.png"
+    "icon": "/icons/items/Accessory_LeafResist.png"
   },
   {
     "id": "Accessory_IceResist",
     "name": "冰属性抵抗戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_IceResist.png"
+    "icon": "/icons/items/Accessory_IceResist.png"
   },
   {
     "id": "Accessory_EarthResist",
     "name": "地属性抵抗戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_EarthResist.png"
+    "icon": "/icons/items/Accessory_EarthResist.png"
   },
   {
     "id": "Accessory_DarkResist",
     "name": "暗属性抵抗戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_DarkResist.png"
+    "icon": "/icons/items/Accessory_DarkResist.png"
   },
   {
     "id": "Accessory_DragonResist",
     "name": "龙属性抵抗戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_DragonResist.png"
+    "icon": "/icons/items/Accessory_DragonResist.png"
   },
   {
     "id": "Accessory_Nonkilling",
     "name": "慈悲戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Nonkilling.png"
+    "icon": "/icons/items/Accessory_Nonkilling.png"
   },
   {
     "id": "Accessory_TalentChecker",
     "name": "伯乐眼镜",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_TalentChecker.png"
+    "icon": "/icons/items/Accessory_TalentChecker.png"
   },
   {
     "id": "Accessory_MaxWeightUp",
     "name": "搬运工戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_MaxWeightUp.png"
+    "icon": "/icons/items/Accessory_MaxWeightUp.png"
   },
   {
     "id": "Accessory_JumpPower_Increase",
     "name": "反重力腰带",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_JumpPower_Increase.png"
+    "icon": "/icons/items/Accessory_JumpPower_Increase.png"
   },
   {
     "id": "Accessory_JumpCount_Increase1",
     "name": "二段跳靴",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_JumpCount_Increase1.png"
+    "icon": "/icons/items/Accessory_JumpCount_Increase1.png"
   },
   {
     "id": "Accessory_JumpCount_Increase2",
     "name": "三段跳靴",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_JumpCount_Increase2.png"
+    "icon": "/icons/items/Accessory_JumpCount_Increase2.png"
   },
   {
     "id": "Accessory_JumpCount_Increase3",
     "name": "四段跳靴",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_JumpCount_Increase3.png"
+    "icon": "/icons/items/Accessory_JumpCount_Increase3.png"
   },
   {
     "id": "Accessory_AirDash1",
     "name": "空中冲刺靴",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_AirDash1.png"
+    "icon": "/icons/items/Accessory_AirDash1.png"
   },
   {
     "id": "Accessory_AirDash2",
     "name": "空中二段冲刺靴",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_AirDash2.png"
+    "icon": "/icons/items/Accessory_AirDash2.png"
   },
   {
     "id": "Accessory_AirDash3",
     "name": "空中三段冲刺靴",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_AirDash3.png"
+    "icon": "/icons/items/Accessory_AirDash3.png"
   },
   {
     "id": "Accessory_Otomo_ElementBoost_Normal",
     "name": "无属性助威哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_ElementBoost_Normal.png"
+    "icon": "/icons/items/Accessory_Otomo_ElementBoost_Normal.png"
   },
   {
     "id": "Accessory_Otomo_ElementBoost_Fire",
     "name": "火属性助威哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_ElementBoost_Fire.png"
+    "icon": "/icons/items/Accessory_Otomo_ElementBoost_Fire.png"
   },
   {
     "id": "Accessory_Otomo_ElementBoost_Water",
     "name": "水属性助威哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_ElementBoost_Water.png"
+    "icon": "/icons/items/Accessory_Otomo_ElementBoost_Water.png"
   },
   {
     "id": "Accessory_Otomo_ElementBoost_Electricity",
     "name": "雷属性助威哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_ElementBoost_Electricity.png"
+    "icon": "/icons/items/Accessory_Otomo_ElementBoost_Electricity.png"
   },
   {
     "id": "Accessory_Otomo_ElementBoost_Leaf",
     "name": "草属性助威哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_ElementBoost_Leaf.png"
+    "icon": "/icons/items/Accessory_Otomo_ElementBoost_Leaf.png"
   },
   {
     "id": "Accessory_Otomo_ElementBoost_Ice",
     "name": "冰属性助威哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_ElementBoost_Ice.png"
+    "icon": "/icons/items/Accessory_Otomo_ElementBoost_Ice.png"
   },
   {
     "id": "Accessory_Otomo_ElementBoost_Earth",
     "name": "地属性助威哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_ElementBoost_Earth.png"
+    "icon": "/icons/items/Accessory_Otomo_ElementBoost_Earth.png"
   },
   {
     "id": "Accessory_Otomo_ElementBoost_Dark",
     "name": "暗属性助威哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_ElementBoost_Dark.png"
+    "icon": "/icons/items/Accessory_Otomo_ElementBoost_Dark.png"
   },
   {
     "id": "Accessory_Otomo_ElementBoost_Dragon",
     "name": "龙属性助威哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_ElementBoost_Dragon.png"
+    "icon": "/icons/items/Accessory_Otomo_ElementBoost_Dragon.png"
   },
   {
     "id": "Accessory_Otomo_Attack_up",
     "name": "攻击支援哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Attack_up.png"
+    "icon": "/icons/items/Accessory_Otomo_Attack_up.png"
   },
   {
     "id": "Accessory_Otomo_Defense_up",
     "name": "防御支援哨子",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Defense_up.png"
+    "icon": "/icons/items/Accessory_Otomo_Defense_up.png"
   },
   {
     "id": "Accessory_Otomo_Exp_up",
     "name": "成长促进铃",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Exp_up.png"
+    "icon": "/icons/items/Accessory_Otomo_Exp_up.png"
   },
   {
     "id": "Accessory_PPAT_1",
     "name": "汪宗师徽章",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_PPAT_1.png"
+    "icon": "/icons/items/Accessory_PPAT_1.png"
   },
   {
     "id": "Accessory_PPDF_1",
     "name": "艾基鲁迦徽章",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_PPDF_1.png"
+    "icon": "/icons/items/Accessory_PPDF_1.png"
   },
   {
     "id": "Accessory_HeatFire_1",
     "name": "熔岩兽护身符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_HeatFire_1.png"
+    "icon": "/icons/items/Accessory_HeatFire_1.png"
   },
   {
     "id": "Accessory_ColdIce_1",
     "name": "白绒雪怪护身符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_ColdIce_1.png"
+    "icon": "/icons/items/Accessory_ColdIce_1.png"
   },
   {
     "id": "Accessory_HCMW_1",
     "name": "流浪商人护身符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_HCMW_1.png"
+    "icon": "/icons/items/Accessory_HCMW_1.png"
   },
   {
     "id": "Accessory_HCHP_1",
     "name": "先遣队护身符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_HCHP_1.png"
+    "icon": "/icons/items/Accessory_HCHP_1.png"
   },
   {
     "id": "Accessory_DFHP_1",
     "name": "格鲁力斯腰带",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_DFHP_1.png"
+    "icon": "/icons/items/Accessory_DFHP_1.png"
   },
   {
     "id": "Accessory_WKMC_1",
     "name": "岛民的工具腰带",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_WKMC_1.png"
+    "icon": "/icons/items/Accessory_WKMC_1.png"
   },
   {
     "id": "Otomo_ATNormal_ElementBoost_1",
     "name": "圣天指挥棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_ATNormal_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_ATNormal_ElementBoost_1.png"
   },
   {
     "id": "Otomo_ATFire_ElementBoost_1",
     "name": "炎帝指挥棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_ATFire_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_ATFire_ElementBoost_1.png"
   },
   {
     "id": "Otomo_ATWater_ElementBoost_1",
     "name": "海皇指挥棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_ATWater_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_ATWater_ElementBoost_1.png"
   },
   {
     "id": "Otomo_ATElectricity_ElementBoost_1",
     "name": "雷帝指挥棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_ATElectricity_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_ATElectricity_ElementBoost_1.png"
   },
   {
     "id": "Otomo_ATLeaf_ElementBoost_1",
     "name": "精灵王指挥棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_ATLeaf_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_ATLeaf_ElementBoost_1.png"
   },
   {
     "id": "Otomo_ATIce_ElementBoost_1",
     "name": "冰帝指挥棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_ATIce_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_ATIce_ElementBoost_1.png"
   },
   {
     "id": "Otomo_ATEarth_ElementBoost_1",
     "name": "岩帝指挥棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_ATEarth_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_ATEarth_ElementBoost_1.png"
   },
   {
     "id": "Otomo_ATDark_ElementBoost_1",
     "name": "冥王指挥棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_ATDark_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_ATDark_ElementBoost_1.png"
   },
   {
     "id": "Otomo_ATDragon_ElementBoost_1",
     "name": "神龙指挥棒",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_ATDragon_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_ATDragon_ElementBoost_1.png"
   },
   {
     "id": "Accessory_NonkChecker_1",
     "name": "帕鲁驯养师眼镜",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_NonkChecker_1.png"
+    "icon": "/icons/items/Accessory_NonkChecker_1.png"
   },
   {
     "id": "Accessory_JumpAir_1",
     "name": "空中漫步者 Mk-Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_JumpAir_1.png"
+    "icon": "/icons/items/Accessory_JumpAir_1.png"
   },
   {
     "id": "Accessory_JumpAir_2",
     "name": "空中漫步者 Mk-Ⅱ",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_JumpAir_2.png"
+    "icon": "/icons/items/Accessory_JumpAir_2.png"
   },
   {
     "id": "Accessory_SuperJumpAir_1",
     "name": "空中漫步者 Mk-Ⅲ",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_SuperJumpAir_1.png"
+    "icon": "/icons/items/Accessory_SuperJumpAir_1.png"
   },
   {
     "id": "Accessory_SuperJumpAir_2",
     "name": "空中漫步者 Mk-EX",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_SuperJumpAir_2.png"
+    "icon": "/icons/items/Accessory_SuperJumpAir_2.png"
   },
   {
     "id": "Otomo_DFNormal_ElementBoost_1",
     "name": "默世鹿神符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_DFNormal_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_DFNormal_ElementBoost_1.png"
   },
   {
     "id": "Otomo_DFFire_ElementBoost_1",
     "name": "焰煌神符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_DFFire_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_DFFire_ElementBoost_1.png"
   },
   {
     "id": "Otomo_DFWater_ElementBoost_1",
     "name": "海皇鲸神符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_DFWater_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_DFWater_ElementBoost_1.png"
   },
   {
     "id": "Otomo_DFElectricity_ElementBoost_1",
     "name": "波鲁杰克斯神符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_DFElectricity_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_DFElectricity_ElementBoost_1.png"
   },
   {
     "id": "Otomo_DFLeaf_ElementBoost_1",
     "name": "百合女王神符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_DFLeaf_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_DFLeaf_ElementBoost_1.png"
   },
   {
     "id": "Otomo_DFIce_ElementBoost_1",
     "name": "唤冬兽神符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_DFIce_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_DFIce_ElementBoost_1.png"
   },
   {
     "id": "Otomo_DFEarth_ElementBoost_1",
     "name": "阿努比斯神符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_DFEarth_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_DFEarth_ElementBoost_1.png"
   },
   {
     "id": "Otomo_DFDark_ElementBoost_1",
     "name": "黑月女王神符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_DFDark_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_DFDark_ElementBoost_1.png"
   },
   {
     "id": "Otomo_DFDragon_ElementBoost_1",
     "name": "空涡龙神符",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_DFDragon_ElementBoost_1.png"
+    "icon": "/icons/items/Otomo_DFDragon_ElementBoost_1.png"
   },
   {
     "id": "Accessory_Otomo_Fire_1",
     "name": "狱焰王指环",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Fire_1.png"
+    "icon": "/icons/items/Accessory_Otomo_Fire_1.png"
   },
   {
     "id": "Accessory_Otomo_Water_1",
     "name": "伊西斯指环",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Water_1.png"
+    "icon": "/icons/items/Accessory_Otomo_Water_1.png"
   },
   {
     "id": "Accessory_Otomo_Electricity_1",
     "name": "雷隐鹿指环",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Electricity_1.png"
+    "icon": "/icons/items/Accessory_Otomo_Electricity_1.png"
   },
   {
     "id": "Accessory_Otomo_Earth_1",
     "name": "金铠蝎指环",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Earth_1.png"
+    "icon": "/icons/items/Accessory_Otomo_Earth_1.png"
   },
   {
     "id": "Accessory_Otomo_Leaf_1",
     "name": "薇莉塔指环",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Leaf_1.png"
+    "icon": "/icons/items/Accessory_Otomo_Leaf_1.png"
   },
   {
     "id": "Accessory_Otomo_Dark_1",
     "name": "暗巫猫指环",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Dark_1.png"
+    "icon": "/icons/items/Accessory_Otomo_Dark_1.png"
   },
   {
     "id": "Accessory_Otomo_Dargon_1",
     "name": "精灵龙指环",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Dargon_1.png"
+    "icon": "/icons/items/Accessory_Otomo_Dargon_1.png"
   },
   {
     "id": "Accessory_Otomo_Ice_1",
     "name": "冰棘兽指环",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Ice_1.png"
+    "icon": "/icons/items/Accessory_Otomo_Ice_1.png"
   },
   {
     "id": "Accessory_Otomo_Fire_2",
     "name": "荷鲁斯指环",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Otomo_Fire_2.png"
+    "icon": "/icons/items/Accessory_Otomo_Fire_2.png"
   },
   {
     "id": "Otomo_PalConfidence_Increase_1",
     "name": "信赖戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Otomo_PalConfidence_Increase_1.png"
+    "icon": "/icons/items/Otomo_PalConfidence_Increase_1.png"
   },
   {
     "id": "Accessory_Avoid_1",
     "name": "幻影戒指",
-    "icon": "https://lootlab.cn/palworld/items/icons/Accessory_Avoid_1.png"
+    "icon": "/icons/items/Accessory_Avoid_1.png"
   },
   {
     "id": "Glider_Old",
     "name": "普通滑翔伞",
-    "icon": "https://lootlab.cn/palworld/items/icons/Glider_Old.png"
+    "icon": "/icons/items/Glider_Old.png"
   },
   {
     "id": "Glider_Good",
     "name": "高级滑翔伞",
-    "icon": "https://lootlab.cn/palworld/items/icons/Glider_Good.png"
+    "icon": "/icons/items/Glider_Good.png"
   },
   {
     "id": "Glider_Super",
     "name": "优质滑翔伞",
-    "icon": "https://lootlab.cn/palworld/items/icons/Glider_Super.png"
+    "icon": "/icons/items/Glider_Super.png"
   },
   {
     "id": "Glider_Legendary",
     "name": "特级滑翔伞",
-    "icon": "https://lootlab.cn/palworld/items/icons/Glider_Legendary.png"
+    "icon": "/icons/items/Glider_Legendary.png"
   },
   {
     "id": "WingGlider",
     "name": "飞翼背包",
-    "icon": "https://lootlab.cn/palworld/items/icons/WingGlider.png"
+    "icon": "/icons/items/WingGlider.png"
   },
   {
     "id": "Cake",
     "name": "蛋糕",
-    "icon": "https://lootlab.cn/palworld/items/icons/Cake.png"
+    "icon": "/icons/items/Cake.png"
   },
   {
     "id": "Cake02",
     "name": "蘑菇蛋糕",
-    "icon": "https://lootlab.cn/palworld/items/icons/Cake02.png"
+    "icon": "/icons/items/Cake02.png"
   },
   {
     "id": "Cake03",
     "name": "蔬菜蛋糕",
-    "icon": "https://lootlab.cn/palworld/items/icons/Cake03.png"
+    "icon": "/icons/items/Cake03.png"
   },
   {
     "id": "Cake04",
     "name": "豪华蔬菜蛋糕",
-    "icon": "https://lootlab.cn/palworld/items/icons/Cake04.png"
+    "icon": "/icons/items/Cake04.png"
   },
   {
     "id": "Cake05",
     "name": "特制蛋糕",
-    "icon": "https://lootlab.cn/palworld/items/icons/Cake05.png"
+    "icon": "/icons/items/Cake05.png"
   },
   {
     "id": "Curry",
     "name": "森猛犸咖喱",
-    "icon": "https://lootlab.cn/palworld/items/icons/Curry.png"
+    "icon": "/icons/items/Curry.png"
   },
   {
     "id": "Yakisoba",
     "name": "连理炒面",
-    "icon": "https://lootlab.cn/palworld/items/icons/Yakisoba.png"
+    "icon": "/icons/items/Yakisoba.png"
   },
   {
     "id": "BLT",
     "name": "卷饼",
-    "icon": "https://lootlab.cn/palworld/items/icons/BLT.png"
+    "icon": "/icons/items/BLT.png"
   },
   {
     "id": "Hamburger",
     "name": "汉堡",
-    "icon": "https://lootlab.cn/palworld/items/icons/Hamburger.png"
+    "icon": "/icons/items/Hamburger.png"
   },
   {
     "id": "Cheeseburger_2",
     "name": "波霸牛芝士汉堡",
-    "icon": "https://lootlab.cn/palworld/items/icons/Cheeseburger_2.png"
+    "icon": "/icons/items/Cheeseburger_2.png"
   },
   {
     "id": "BakedMeat_IceDeer",
     "name": "严冬鹿炙烤肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_IceDeer.png"
+    "icon": "/icons/items/BakedMeat_IceDeer.png"
   },
   {
     "id": "BakedMeat_SakuraSaurus",
     "name": "连理龙带骨烤肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_SakuraSaurus.png"
+    "icon": "/icons/items/BakedMeat_SakuraSaurus.png"
   },
   {
     "id": "BakedMeat_GrassMammoth",
     "name": "森猛犸巨兽烤排",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_GrassMammoth.png"
+    "icon": "/icons/items/BakedMeat_GrassMammoth.png"
   },
   {
     "id": "MushroomStew",
     "name": "炖蘑菇",
-    "icon": "https://lootlab.cn/palworld/items/icons/MushroomStew.png"
+    "icon": "/icons/items/MushroomStew.png"
   },
   {
     "id": "DeerStew",
     "name": "紫霞鹿肉炖菜",
-    "icon": "https://lootlab.cn/palworld/items/icons/DeerStew.png"
+    "icon": "/icons/items/DeerStew.png"
   },
   {
     "id": "OctopusGirl_Takoyaki2",
     "name": "海鲜意面",
-    "icon": "https://lootlab.cn/palworld/items/icons/OctopusGirl_Takoyaki2.png"
+    "icon": "/icons/items/OctopusGirl_Takoyaki2.png"
   },
   {
     "id": "MeatSauce",
     "name": "肉酱",
-    "icon": "https://lootlab.cn/palworld/items/icons/MeatSauce.png"
+    "icon": "/icons/items/MeatSauce.png"
   },
   {
     "id": "Pizza",
     "name": "披萨",
-    "icon": "https://lootlab.cn/palworld/items/icons/Pizza.png"
+    "icon": "/icons/items/Pizza.png"
   },
   {
     "id": "Quiche",
     "name": "蘑菇乳蛋饼",
-    "icon": "https://lootlab.cn/palworld/items/icons/Quiche.png"
+    "icon": "/icons/items/Quiche.png"
   },
   {
     "id": "Meat_SakuraSaurus",
     "name": "连理龙的恐龙肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_SakuraSaurus.png"
+    "icon": "/icons/items/Meat_SakuraSaurus.png"
   },
   {
     "id": "Meat_GrassMammoth",
     "name": "森猛犸的巨兽肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_GrassMammoth.png"
+    "icon": "/icons/items/Meat_GrassMammoth.png"
   },
   {
     "id": "DeerLocoMoco",
     "name": "夏威夷紫霞鹿汉堡饭",
-    "icon": "https://lootlab.cn/palworld/items/icons/DeerLocoMoco.png"
+    "icon": "/icons/items/DeerLocoMoco.png"
   },
   {
     "id": "Chowder",
     "name": "趴趴鲶杂烩",
-    "icon": "https://lootlab.cn/palworld/items/icons/Chowder.png"
+    "icon": "/icons/items/Chowder.png"
   },
   {
     "id": "BaconEggs",
     "name": "草莽猪培根蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/BaconEggs.png"
+    "icon": "/icons/items/BaconEggs.png"
   },
   {
     "id": "Hamburger_2",
     "name": "波霸牛汉堡",
-    "icon": "https://lootlab.cn/palworld/items/icons/Hamburger_2.png"
+    "icon": "/icons/items/Hamburger_2.png"
   },
   {
     "id": "MeatAndPotatoes",
     "name": "土豆炖天擒鸟肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/MeatAndPotatoes.png"
+    "icon": "/icons/items/MeatAndPotatoes.png"
   },
   {
     "id": "GenghisKhan",
     "name": "棉悠悠成吉思汗烤肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/GenghisKhan.png"
+    "icon": "/icons/items/GenghisKhan.png"
   },
   {
     "id": "Minestrone",
     "name": "意大利杂菜汤",
-    "icon": "https://lootlab.cn/palworld/items/icons/Minestrone.png"
+    "icon": "/icons/items/Minestrone.png"
   },
   {
     "id": "HotDog_2",
     "name": "草莽猪热狗",
-    "icon": "https://lootlab.cn/palworld/items/icons/HotDog_2.png"
+    "icon": "/icons/items/HotDog_2.png"
   },
   {
     "id": "StewedIceDeer",
     "name": "严冬鹿肉炖菜",
-    "icon": "https://lootlab.cn/palworld/items/icons/StewedIceDeer.png"
+    "icon": "/icons/items/StewedIceDeer.png"
   },
   {
     "id": "Carbonara",
     "name": "奶油培根意面",
-    "icon": "https://lootlab.cn/palworld/items/icons/Carbonara.png"
+    "icon": "/icons/items/Carbonara.png"
   },
   {
     "id": "Gyoza",
     "name": "草莽猪肉水饺",
-    "icon": "https://lootlab.cn/palworld/items/icons/Gyoza.png"
+    "icon": "/icons/items/Gyoza.png"
   },
   {
     "id": "SpringRolls",
     "name": "春卷",
-    "icon": "https://lootlab.cn/palworld/items/icons/SpringRolls.png"
+    "icon": "/icons/items/SpringRolls.png"
   },
   {
     "id": "Gratin",
     "name": "法式焗菜",
-    "icon": "https://lootlab.cn/palworld/items/icons/Gratin.png"
+    "icon": "/icons/items/Gratin.png"
   },
   {
     "id": "FriedChicken",
     "name": "炸皮皮鸡肉块",
-    "icon": "https://lootlab.cn/palworld/items/icons/FriedChicken.png"
+    "icon": "/icons/items/FriedChicken.png"
   },
   {
     "id": "FriedKelpie",
     "name": "炸水灵儿",
-    "icon": "https://lootlab.cn/palworld/items/icons/FriedKelpie.png"
+    "icon": "/icons/items/FriedKelpie.png"
   },
   {
     "id": "HotDog",
     "name": "热狗",
-    "icon": "https://lootlab.cn/palworld/items/icons/HotDog.png"
+    "icon": "/icons/items/HotDog.png"
   },
   {
     "id": "Seafood_Salada",
     "name": "海鲜沙拉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Seafood_Salada.png"
+    "icon": "/icons/items/Seafood_Salada.png"
   },
   {
     "id": "GrilledSheepHerbs",
     "name": "棉悠悠香草烤肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/GrilledSheepHerbs.png"
+    "icon": "/icons/items/GrilledSheepHerbs.png"
   },
   {
     "id": "ChickenSaute",
     "name": "嫩煎皮皮鸡",
-    "icon": "https://lootlab.cn/palworld/items/icons/ChickenSaute.png"
+    "icon": "/icons/items/ChickenSaute.png"
   },
   {
     "id": "Eaglestew",
     "name": "炖煮天擒鸟肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Eaglestew.png"
+    "icon": "/icons/items/Eaglestew.png"
   },
   {
     "id": "GrilledSwordCutlassFish",
     "name": "盐烤鞘刀鱼",
-    "icon": "https://lootlab.cn/palworld/items/icons/GrilledSwordCutlassFish.png"
+    "icon": "/icons/items/GrilledSwordCutlassFish.png"
   },
   {
     "id": "FriedVegetables",
     "name": "炒蔬菜",
-    "icon": "https://lootlab.cn/palworld/items/icons/FriedVegetables.png"
+    "icon": "/icons/items/FriedVegetables.png"
   },
   {
     "id": "BakedMeat_IceCrocodile",
     "name": "肚肚鳄肉排",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_IceCrocodile.png"
+    "icon": "/icons/items/BakedMeat_IceCrocodile.png"
   },
   {
     "id": "Salad",
     "name": "沙拉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Salad.png"
+    "icon": "/icons/items/Salad.png"
   },
   {
     "id": "Meat_SwordCutlassFish",
     "name": "鞘刀鱼排",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_SwordCutlassFish.png"
+    "icon": "/icons/items/Meat_SwordCutlassFish.png"
   },
   {
     "id": "BakedMeat_BerryGoat",
     "name": "灌木羊香草烤肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_BerryGoat.png"
+    "icon": "/icons/items/BakedMeat_BerryGoat.png"
   },
   {
     "id": "BakedMeat_CowPal",
     "name": "波霸牛牛排",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_CowPal.png"
+    "icon": "/icons/items/BakedMeat_CowPal.png"
   },
   {
     "id": "OctopusGirl_Takoyaki",
     "name": "墨沫姬的章鱼烧",
-    "icon": "https://lootlab.cn/palworld/items/icons/OctopusGirl_Takoyaki.png"
+    "icon": "/icons/items/OctopusGirl_Takoyaki.png"
   },
   {
     "id": "BakedMeat_LazyCatfish",
     "name": "蒲烧趴趴鲶",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_LazyCatfish.png"
+    "icon": "/icons/items/BakedMeat_LazyCatfish.png"
   },
   {
     "id": "BakedMeat_Deer",
     "name": "紫霞鹿炙烤肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_Deer.png"
+    "icon": "/icons/items/BakedMeat_Deer.png"
   },
   {
     "id": "Omelet",
     "name": "欧姆蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/Omelet.png"
+    "icon": "/icons/items/Omelet.png"
   },
   {
     "id": "Meat_IceDeer",
     "name": "严冬鹿的鹿肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_IceDeer.png"
+    "icon": "/icons/items/Meat_IceDeer.png"
   },
   {
     "id": "MarinatedMushrooms",
     "name": "腌蘑菇",
-    "icon": "https://lootlab.cn/palworld/items/icons/MarinatedMushrooms.png"
+    "icon": "/icons/items/MarinatedMushrooms.png"
   },
   {
     "id": "BakedMeat_Boar",
     "name": "草莽猪烤全猪",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_Boar.png"
+    "icon": "/icons/items/BakedMeat_Boar.png"
   },
   {
     "id": "JellyfishGhost_jelly",
     "name": "海月灵的水灵果冻",
-    "icon": "https://lootlab.cn/palworld/items/icons/JellyfishGhost_jelly.png"
+    "icon": "/icons/items/JellyfishGhost_jelly.png"
   },
   {
     "id": "JellyfishFairy_jelly",
     "name": "海月仙的晶仙果冻",
-    "icon": "https://lootlab.cn/palworld/items/icons/JellyfishFairy_jelly.png"
+    "icon": "/icons/items/JellyfishFairy_jelly.png"
   },
   {
     "id": "Meat_BerryGoat",
     "name": "灌木羊的香草肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_BerryGoat.png"
+    "icon": "/icons/items/Meat_BerryGoat.png"
   },
   {
     "id": "Meat_CowPal",
     "name": "波霸牛的牛肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_CowPal.png"
+    "icon": "/icons/items/Meat_CowPal.png"
   },
   {
     "id": "StirFriedVegetables",
     "name": "炒青菜",
-    "icon": "https://lootlab.cn/palworld/items/icons/StirFriedVegetables.png"
+    "icon": "/icons/items/StirFriedVegetables.png"
   },
   {
     "id": "MushroomSoup",
     "name": "蘑菇汤",
-    "icon": "https://lootlab.cn/palworld/items/icons/MushroomSoup.png"
+    "icon": "/icons/items/MushroomSoup.png"
   },
   {
     "id": "BakedMeat_SheepBall",
     "name": "棉悠悠羊肉烤串",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_SheepBall.png"
+    "icon": "/icons/items/BakedMeat_SheepBall.png"
   },
   {
     "id": "JamBun",
     "name": "果酱面包",
-    "icon": "https://lootlab.cn/palworld/items/icons/JamBun.png"
+    "icon": "/icons/items/JamBun.png"
   },
   {
     "id": "Meat_LazyCatfish",
     "name": "趴趴鲶的鱼肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_LazyCatfish.png"
+    "icon": "/icons/items/Meat_LazyCatfish.png"
   },
   {
     "id": "Meat_Deer",
     "name": "紫霞鹿的鹿肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_Deer.png"
+    "icon": "/icons/items/Meat_Deer.png"
   },
   {
     "id": "BakedMeat_ChickenPal",
     "name": "烤皮皮鸡",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_ChickenPal.png"
+    "icon": "/icons/items/BakedMeat_ChickenPal.png"
   },
   {
     "id": "BakedMeat_Kelpie",
     "name": "水灵儿炭烤肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_Kelpie.png"
+    "icon": "/icons/items/BakedMeat_Kelpie.png"
   },
   {
     "id": "BakedMeat_Eagle",
     "name": "烤天擒鸟肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMeat_Eagle.png"
+    "icon": "/icons/items/BakedMeat_Eagle.png"
   },
   {
     "id": "Meat_Boar",
     "name": "草莽猪的猪肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_Boar.png"
+    "icon": "/icons/items/Meat_Boar.png"
   },
   {
     "id": "Pancake",
     "name": "松饼",
-    "icon": "https://lootlab.cn/palworld/items/icons/Pancake.png"
+    "icon": "/icons/items/Pancake.png"
   },
   {
     "id": "Meat_IceCrocodile",
     "name": "肚肚鳄的鳄鱼肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_IceCrocodile.png"
+    "icon": "/icons/items/Meat_IceCrocodile.png"
   },
   {
     "id": "Meat_OctopusGirl",
     "name": "墨沫姬的章鱼足",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_OctopusGirl.png"
+    "icon": "/icons/items/Meat_OctopusGirl.png"
   },
   {
     "id": "Meat_SheepBall",
     "name": "棉悠悠的羊肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_SheepBall.png"
+    "icon": "/icons/items/Meat_SheepBall.png"
   },
   {
     "id": "Meat_JellyfishGhost",
     "name": "海月灵的水母伞",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_JellyfishGhost.png"
+    "icon": "/icons/items/Meat_JellyfishGhost.png"
   },
   {
     "id": "Meat_ChickenPal",
     "name": "皮皮鸡的鸡肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_ChickenPal.png"
+    "icon": "/icons/items/Meat_ChickenPal.png"
   },
   {
     "id": "Meat_Kelpie",
     "name": "水灵儿的鱼肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_Kelpie.png"
+    "icon": "/icons/items/Meat_Kelpie.png"
   },
   {
     "id": "Meat_Eagle",
     "name": "天擒鸟的鸟肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_Eagle.png"
+    "icon": "/icons/items/Meat_Eagle.png"
   },
   {
     "id": "PotatoChips",
     "name": "炸薯条",
-    "icon": "https://lootlab.cn/palworld/items/icons/PotatoChips.png"
+    "icon": "/icons/items/PotatoChips.png"
   },
   {
     "id": "Meat_JellyfishFairy",
     "name": "海月仙的水母伞",
-    "icon": "https://lootlab.cn/palworld/items/icons/Meat_JellyfishFairy.png"
+    "icon": "/icons/items/Meat_JellyfishFairy.png"
   },
   {
     "id": "Pan",
     "name": "面包",
-    "icon": "https://lootlab.cn/palworld/items/icons/Pan.png"
+    "icon": "/icons/items/Pan.png"
   },
   {
     "id": "FriedEggs",
     "name": "荷包蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/FriedEggs.png"
+    "icon": "/icons/items/FriedEggs.png"
   },
   {
     "id": "Baked_Berries",
     "name": "烤野莓",
-    "icon": "https://lootlab.cn/palworld/items/icons/Baked_Berries.png"
+    "icon": "/icons/items/Baked_Berries.png"
   },
   {
     "id": "BakedMushroom",
     "name": "烤蘑菇",
-    "icon": "https://lootlab.cn/palworld/items/icons/BakedMushroom.png"
+    "icon": "/icons/items/BakedMushroom.png"
   },
   {
     "id": "Egg",
     "name": "蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/Egg.png"
+    "icon": "/icons/items/Egg.png"
   },
   {
     "id": "HotMilk",
     "name": "热牛奶",
-    "icon": "https://lootlab.cn/palworld/items/icons/HotMilk.png"
+    "icon": "/icons/items/HotMilk.png"
   },
   {
     "id": "Berries",
     "name": "红色野莓",
-    "icon": "https://lootlab.cn/palworld/items/icons/Berries.png"
+    "icon": "/icons/items/Berries.png"
   },
   {
     "id": "Tomato",
     "name": "番茄",
-    "icon": "https://lootlab.cn/palworld/items/icons/Tomato.png"
+    "icon": "/icons/items/Tomato.png"
   },
   {
     "id": "Lettuce",
     "name": "生菜",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lettuce.png"
+    "icon": "/icons/items/Lettuce.png"
   },
   {
     "id": "HealingMushroom",
     "name": "洞穴蘑菇",
-    "icon": "https://lootlab.cn/palworld/items/icons/HealingMushroom.png"
+    "icon": "/icons/items/HealingMushroom.png"
   },
   {
     "id": "Mushroom",
     "name": "蘑菇",
-    "icon": "https://lootlab.cn/palworld/items/icons/Mushroom.png"
+    "icon": "/icons/items/Mushroom.png"
   },
   {
     "id": "Milk",
     "name": "牛奶",
-    "icon": "https://lootlab.cn/palworld/items/icons/Milk.png"
+    "icon": "/icons/items/Milk.png"
   },
   {
     "id": "Potato",
     "name": "土豆",
-    "icon": "https://lootlab.cn/palworld/items/icons/Potato.png"
+    "icon": "/icons/items/Potato.png"
   },
   {
     "id": "Honey",
     "name": "蜂蜜",
-    "icon": "https://lootlab.cn/palworld/items/icons/Honey.png"
+    "icon": "/icons/items/Honey.png"
   },
   {
     "id": "Carrot",
     "name": "胡萝卜",
-    "icon": "https://lootlab.cn/palworld/items/icons/Carrot.png"
+    "icon": "/icons/items/Carrot.png"
   },
   {
     "id": "Onion",
     "name": "洋葱",
-    "icon": "https://lootlab.cn/palworld/items/icons/Onion.png"
+    "icon": "/icons/items/Onion.png"
   },
   {
     "id": "Wheat",
     "name": "小麦",
-    "icon": "https://lootlab.cn/palworld/items/icons/Wheat.png"
+    "icon": "/icons/items/Wheat.png"
   },
   {
     "id": "Sweet",
     "name": "棉花糖",
-    "icon": "https://lootlab.cn/palworld/items/icons/Sweet.png"
+    "icon": "/icons/items/Sweet.png"
   },
   {
     "id": "Sweet_Caramel",
     "name": "焦糖棉花糖",
-    "icon": "https://lootlab.cn/palworld/items/icons/Sweet_Caramel.png"
+    "icon": "/icons/items/Sweet_Caramel.png"
   },
   {
     "id": "Flour",
     "name": "面粉",
-    "icon": "https://lootlab.cn/palworld/items/icons/Flour.png"
+    "icon": "/icons/items/Flour.png"
   },
   {
     "id": "PoisonMushroom",
     "name": "不可思议的蘑菇",
-    "icon": "https://lootlab.cn/palworld/items/icons/PoisonMushroom.png"
+    "icon": "/icons/items/PoisonMushroom.png"
   },
   {
     "id": "Herbs",
     "name": "低品质药品",
-    "icon": "https://lootlab.cn/palworld/items/icons/Herbs.png"
+    "icon": "/icons/items/Herbs.png"
   },
   {
     "id": "Medicines",
     "name": "药品",
-    "icon": "https://lootlab.cn/palworld/items/icons/Medicines.png"
+    "icon": "/icons/items/Medicines.png"
   },
   {
     "id": "LuxuryMedicines",
     "name": "高品质药品",
-    "icon": "https://lootlab.cn/palworld/items/icons/LuxuryMedicines.png"
+    "icon": "/icons/items/LuxuryMedicines.png"
   },
   {
     "id": "MindControlDrug",
     "name": "洗脑药",
-    "icon": "https://lootlab.cn/palworld/items/icons/MindControlDrug.png"
+    "icon": "/icons/items/MindControlDrug.png"
   },
   {
     "id": "Potion_Low",
     "name": "低品质恢复药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Potion_Low.png"
+    "icon": "/icons/items/Potion_Low.png"
   },
   {
     "id": "Potion",
     "name": "恢复药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Potion.png"
+    "icon": "/icons/items/Potion.png"
   },
   {
     "id": "Potion_High",
     "name": "高品质恢复药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Potion_High.png"
+    "icon": "/icons/items/Potion_High.png"
   },
   {
     "id": "Potion_Extreme",
     "name": "至高恢复药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Potion_Extreme.png"
+    "icon": "/icons/items/Potion_Extreme.png"
   },
   {
     "id": "Poppy",
     "name": "美丽花朵",
-    "icon": "https://lootlab.cn/palworld/items/icons/Poppy.png"
+    "icon": "/icons/items/Poppy.png"
   },
   {
     "id": "Opium",
     "name": "可疑果汁",
-    "icon": "https://lootlab.cn/palworld/items/icons/Opium.png"
+    "icon": "/icons/items/Opium.png"
   },
   {
     "id": "Narcotic",
     "name": "怪异果汁",
-    "icon": "https://lootlab.cn/palworld/items/icons/Narcotic.png"
+    "icon": "/icons/items/Narcotic.png"
   },
   {
     "id": "MushroomJuice",
     "name": "不可思议的蘑菇汁",
-    "icon": "https://lootlab.cn/palworld/items/icons/MushroomJuice.png"
+    "icon": "/icons/items/MushroomJuice.png"
   },
   {
     "id": "StatusPointResetSan",
     "name": "消除记忆药",
-    "icon": "https://lootlab.cn/palworld/items/icons/StatusPointResetSan.png"
+    "icon": "/icons/items/StatusPointResetSan.png"
   },
   {
     "id": "Supplement",
     "name": "营养剂",
-    "icon": "https://lootlab.cn/palworld/items/icons/Supplement.png"
+    "icon": "/icons/items/Supplement.png"
   },
   {
     "id": "PalAwakening_Material_Water",
     "name": "水之辉石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Material_Water.png"
+    "icon": "/icons/items/PalAwakening_Material_Water.png"
   },
   {
     "id": "PalAwakening_Material_Electric",
     "name": "雷之辉石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Material_Electric.png"
+    "icon": "/icons/items/PalAwakening_Material_Electric.png"
   },
   {
     "id": "PalAwakening_Material_Ground",
     "name": "地之辉石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Material_Ground.png"
+    "icon": "/icons/items/PalAwakening_Material_Ground.png"
   },
   {
     "id": "PalAwakening_Material_Grass",
     "name": "草之辉石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Material_Grass.png"
+    "icon": "/icons/items/PalAwakening_Material_Grass.png"
   },
   {
     "id": "PalAwakening_Material_Fire",
     "name": "火之辉石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Material_Fire.png"
+    "icon": "/icons/items/PalAwakening_Material_Fire.png"
   },
   {
     "id": "PalAwakening_Material_Ice",
     "name": "冰之辉石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Material_Ice.png"
+    "icon": "/icons/items/PalAwakening_Material_Ice.png"
   },
   {
     "id": "PalAwakening_Material_Dragon",
     "name": "龙之辉石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Material_Dragon.png"
+    "icon": "/icons/items/PalAwakening_Material_Dragon.png"
   },
   {
     "id": "PalAwakening_Material_Dark",
     "name": "暗之辉石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Material_Dark.png"
+    "icon": "/icons/items/PalAwakening_Material_Dark.png"
   },
   {
     "id": "PalAwakening_Material_Neutral",
     "name": "无之辉石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Material_Neutral.png"
+    "icon": "/icons/items/PalAwakening_Material_Neutral.png"
   },
   {
     "id": "PalRevive",
     "name": "复活药",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalRevive.png"
+    "icon": "/icons/items/PalRevive.png"
   },
   {
     "id": "PalAwakening_Water",
     "name": "水之觉醒晶石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Water.png"
+    "icon": "/icons/items/PalAwakening_Water.png"
   },
   {
     "id": "PalAwakening_Electric",
     "name": "雷之觉醒晶石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Electric.png"
+    "icon": "/icons/items/PalAwakening_Electric.png"
   },
   {
     "id": "PalAwakening_Ground",
     "name": "地之觉醒晶石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Ground.png"
+    "icon": "/icons/items/PalAwakening_Ground.png"
   },
   {
     "id": "PalAwakening_Grass",
     "name": "草之觉醒晶石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Grass.png"
+    "icon": "/icons/items/PalAwakening_Grass.png"
   },
   {
     "id": "PalAwakening_Fire",
     "name": "火之觉醒晶石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Fire.png"
+    "icon": "/icons/items/PalAwakening_Fire.png"
   },
   {
     "id": "PalAwakening_Ice",
     "name": "冰之觉醒晶石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Ice.png"
+    "icon": "/icons/items/PalAwakening_Ice.png"
   },
   {
     "id": "PalAwakening_Dragon",
     "name": "龙之觉醒晶石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Dragon.png"
+    "icon": "/icons/items/PalAwakening_Dragon.png"
   },
   {
     "id": "PalAwakening_Dark",
     "name": "暗之觉醒晶石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Dark.png"
+    "icon": "/icons/items/PalAwakening_Dark.png"
   },
   {
     "id": "PalAwakening_Neutral",
     "name": "无之觉醒晶石",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalAwakening_Neutral.png"
+    "icon": "/icons/items/PalAwakening_Neutral.png"
   },
   {
     "id": "Elixir_hp_01",
     "name": "命脉秘药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_hp_01.png"
+    "icon": "/icons/items/Elixir_hp_01.png"
   },
   {
     "id": "Elixir_stamina_01",
     "name": "活力秘药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_stamina_01.png"
+    "icon": "/icons/items/Elixir_stamina_01.png"
   },
   {
     "id": "Elixir_attack_01",
     "name": "猛击秘药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_attack_01.png"
+    "icon": "/icons/items/Elixir_attack_01.png"
   },
   {
     "id": "Elixir_workspeed_01",
     "name": "勤勉秘药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_workspeed_01.png"
+    "icon": "/icons/items/Elixir_workspeed_01.png"
   },
   {
     "id": "Elixir_weight_01",
     "name": "巨人秘药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_weight_01.png"
+    "icon": "/icons/items/Elixir_weight_01.png"
   },
   {
     "id": "Elixir_hp_02",
     "name": "命脉灵药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_hp_02.png"
+    "icon": "/icons/items/Elixir_hp_02.png"
   },
   {
     "id": "Elixir_stamina_02",
     "name": "活力灵药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_stamina_02.png"
+    "icon": "/icons/items/Elixir_stamina_02.png"
   },
   {
     "id": "Elixir_attack_02",
     "name": "猛击灵药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_attack_02.png"
+    "icon": "/icons/items/Elixir_attack_02.png"
   },
   {
     "id": "Elixir_workspeed_02",
     "name": "勤勉灵药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_workspeed_02.png"
+    "icon": "/icons/items/Elixir_workspeed_02.png"
   },
   {
     "id": "Elixir_weight_02",
     "name": "巨人灵药",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_weight_02.png"
+    "icon": "/icons/items/Elixir_weight_02.png"
   },
   {
     "id": "Elixir_hp_Yakushima",
     "name": "生命水晶",
-    "icon": "https://lootlab.cn/palworld/items/icons/Elixir_hp_Yakushima.png"
+    "icon": "/icons/items/Elixir_hp_Yakushima.png"
   },
   {
     "id": "AffectionFruit_01",
     "name": "羁绊小桃",
-    "icon": "https://lootlab.cn/palworld/items/icons/AffectionFruit_01.png"
+    "icon": "/icons/items/AffectionFruit_01.png"
   },
   {
     "id": "ButcheringImportPal",
     "name": "废弃组织样本",
-    "icon": "https://lootlab.cn/palworld/items/icons/ButcheringImportPal.png"
+    "icon": "/icons/items/ButcheringImportPal.png"
   },
   {
     "id": "Lotus_hp_01",
     "name": "生命之莲（小）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_hp_01.png"
+    "icon": "/icons/items/Lotus_hp_01.png"
   },
   {
     "id": "Lotus_stamina_01",
     "name": "耐力之莲（小）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_stamina_01.png"
+    "icon": "/icons/items/Lotus_stamina_01.png"
   },
   {
     "id": "Lotus_attack_01",
     "name": "力量之莲（小）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_attack_01.png"
+    "icon": "/icons/items/Lotus_attack_01.png"
   },
   {
     "id": "Lotus_workspeed_01",
     "name": "巧手之莲（小）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_workspeed_01.png"
+    "icon": "/icons/items/Lotus_workspeed_01.png"
   },
   {
     "id": "Lotus_weight_01",
     "name": "耐重之莲（小）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_weight_01.png"
+    "icon": "/icons/items/Lotus_weight_01.png"
   },
   {
     "id": "Lotus_hp_02",
     "name": "生命之莲（大）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_hp_02.png"
+    "icon": "/icons/items/Lotus_hp_02.png"
   },
   {
     "id": "Lotus_stamina_02",
     "name": "耐力之莲（大）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_stamina_02.png"
+    "icon": "/icons/items/Lotus_stamina_02.png"
   },
   {
     "id": "Lotus_attack_02",
     "name": "力量之莲（大）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_attack_02.png"
+    "icon": "/icons/items/Lotus_attack_02.png"
   },
   {
     "id": "Lotus_workspeed_02",
     "name": "巧手之莲（大）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_workspeed_02.png"
+    "icon": "/icons/items/Lotus_workspeed_02.png"
   },
   {
     "id": "Lotus_weight_02",
     "name": "耐重之莲（大）",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lotus_weight_02.png"
+    "icon": "/icons/items/Lotus_weight_02.png"
   },
   {
     "id": "Fruit_hp_01",
     "name": "生命之果",
-    "icon": "https://lootlab.cn/palworld/items/icons/Fruit_hp_01.png"
+    "icon": "/icons/items/Fruit_hp_01.png"
   },
   {
     "id": "Fruit_attack_01",
     "name": "刚力之果",
-    "icon": "https://lootlab.cn/palworld/items/icons/Fruit_attack_01.png"
+    "icon": "/icons/items/Fruit_attack_01.png"
   },
   {
     "id": "Fruit__defense_01",
     "name": "坚壁之果",
-    "icon": "https://lootlab.cn/palworld/items/icons/Fruit__defense_01.png"
+    "icon": "/icons/items/Fruit__defense_01.png"
   },
   {
     "id": "Homeward",
     "name": "归途雷云",
-    "icon": "https://lootlab.cn/palworld/items/icons/Homeward.png"
+    "icon": "/icons/items/Homeward.png"
   },
   {
     "id": "Rankup_1",
     "name": "升段苹果☆1",
-    "icon": "https://lootlab.cn/palworld/items/icons/Rankup_1.png"
+    "icon": "/icons/items/Rankup_1.png"
   },
   {
     "id": "Rankup_2",
     "name": "升段苹果☆2",
-    "icon": "https://lootlab.cn/palworld/items/icons/Rankup_2.png"
+    "icon": "/icons/items/Rankup_2.png"
   },
   {
     "id": "Rankup_3",
     "name": "升段苹果☆3",
-    "icon": "https://lootlab.cn/palworld/items/icons/Rankup_3.png"
+    "icon": "/icons/items/Rankup_3.png"
   },
   {
     "id": "Rankup_4",
     "name": "升段苹果☆4",
-    "icon": "https://lootlab.cn/palworld/items/icons/Rankup_4.png"
+    "icon": "/icons/items/Rankup_4.png"
   },
   {
     "id": "Rankup_Arbitrary",
     "name": "成熟的升段苹果",
-    "icon": "https://lootlab.cn/palworld/items/icons/Rankup_Arbitrary.png"
+    "icon": "/icons/items/Rankup_Arbitrary.png"
   },
   {
     "id": "WorkSuitability_AddTicket_EmitFlame",
     "name": "应用点火学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_EmitFlame.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_EmitFlame.png"
   },
   {
     "id": "WorkSuitability_AddTicket_Watering",
     "name": "应用灌溉学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_Watering.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_Watering.png"
   },
   {
     "id": "WorkSuitability_AddTicket_Seeding",
     "name": "应用播种学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_Seeding.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_Seeding.png"
   },
   {
     "id": "WorkSuitability_AddTicket_GenerateElectricity",
     "name": "应用发电学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_GenerateElectricity.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_GenerateElectricity.png"
   },
   {
     "id": "WorkSuitability_AddTicket_Handcraft",
     "name": "应用手工学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_Handcraft.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_Handcraft.png"
   },
   {
     "id": "WorkSuitability_AddTicket_Collection",
     "name": "应用采集学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_Collection.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_Collection.png"
   },
   {
     "id": "WorkSuitability_AddTicket_Deforest",
     "name": "应用伐木学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_Deforest.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_Deforest.png"
   },
   {
     "id": "WorkSuitability_AddTicket_Mining",
     "name": "应用挖矿学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_Mining.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_Mining.png"
   },
   {
     "id": "WorkSuitability_AddTicket_ProductMedicine",
     "name": "应用制药学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_ProductMedicine.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_ProductMedicine.png"
   },
   {
     "id": "WorkSuitability_AddTicket_Cool",
     "name": "应用制冷学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_Cool.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_Cool.png"
   },
   {
     "id": "WorkSuitability_AddTicket_Transport",
     "name": "应用运输学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_Transport.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_Transport.png"
   },
   {
     "id": "WorkSuitability_AddTicket_MonsterFarm",
     "name": "应用牧场学Ⅰ",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorkSuitability_AddTicket_MonsterFarm.png"
+    "icon": "/icons/items/WorkSuitability_AddTicket_MonsterFarm.png"
   },
   {
     "id": "ExpBoost_01",
     "name": "修炼之书（小）",
-    "icon": "https://lootlab.cn/palworld/items/icons/ExpBoost_01.png"
+    "icon": "/icons/items/ExpBoost_01.png"
   },
   {
     "id": "ExpBoost_02",
     "name": "修炼之书（中）",
-    "icon": "https://lootlab.cn/palworld/items/icons/ExpBoost_02.png"
+    "icon": "/icons/items/ExpBoost_02.png"
   },
   {
     "id": "ExpBoost_03",
     "name": "修炼之书（大）",
-    "icon": "https://lootlab.cn/palworld/items/icons/ExpBoost_03.png"
+    "icon": "/icons/items/ExpBoost_03.png"
   },
   {
     "id": "ExpBoost_04",
     "name": "修炼之书（特大）",
-    "icon": "https://lootlab.cn/palworld/items/icons/ExpBoost_04.png"
+    "icon": "/icons/items/ExpBoost_04.png"
   },
   {
     "id": "LvUP_01",
     "name": "修炼结晶",
-    "icon": "https://lootlab.cn/palworld/items/icons/LvUP_01.png"
+    "icon": "/icons/items/LvUP_01.png"
   },
   {
     "id": "Wood",
     "name": "木材",
-    "icon": "https://lootlab.cn/palworld/items/icons/Wood.png"
+    "icon": "/icons/items/Wood.png"
   },
   {
     "id": "Wood_Fine",
     "name": "硬木材",
-    "icon": "https://lootlab.cn/palworld/items/icons/Wood_Fine.png"
+    "icon": "/icons/items/Wood_Fine.png"
   },
   {
     "id": "Wood_WorldTree",
     "name": "神秘木材",
-    "icon": "https://lootlab.cn/palworld/items/icons/Wood_WorldTree.png"
+    "icon": "/icons/items/Wood_WorldTree.png"
   },
   {
     "id": "Fiber",
     "name": "纤维",
-    "icon": "https://lootlab.cn/palworld/items/icons/Fiber.png"
+    "icon": "/icons/items/Fiber.png"
   },
   {
     "id": "Stone",
     "name": "石头",
-    "icon": "https://lootlab.cn/palworld/items/icons/Stone.png"
+    "icon": "/icons/items/Stone.png"
   },
   {
     "id": "Pal_crystal_S",
     "name": "帕鲁矿碎块",
-    "icon": "https://lootlab.cn/palworld/items/icons/Pal_crystal_S.png"
+    "icon": "/icons/items/Pal_crystal_S.png"
   },
   {
     "id": "CopperOre",
     "name": "金属矿石",
-    "icon": "https://lootlab.cn/palworld/items/icons/CopperOre.png"
+    "icon": "/icons/items/CopperOre.png"
   },
   {
     "id": "Coal",
     "name": "石炭",
-    "icon": "https://lootlab.cn/palworld/items/icons/Coal.png"
+    "icon": "/icons/items/Coal.png"
   },
   {
     "id": "Sulfur",
     "name": "硫磺",
-    "icon": "https://lootlab.cn/palworld/items/icons/Sulfur.png"
+    "icon": "/icons/items/Sulfur.png"
   },
   {
     "id": "Quartz",
     "name": "纯水晶",
-    "icon": "https://lootlab.cn/palworld/items/icons/Quartz.png"
+    "icon": "/icons/items/Quartz.png"
   },
   {
     "id": "CrudeOil",
     "name": "原油",
-    "icon": "https://lootlab.cn/palworld/items/icons/CrudeOil.png"
+    "icon": "/icons/items/CrudeOil.png"
   },
   {
     "id": "Chromium",
     "name": "铬铁矿",
-    "icon": "https://lootlab.cn/palworld/items/icons/Chromium.png"
+    "icon": "/icons/items/Chromium.png"
   },
   {
     "id": "NightStone",
     "name": "夜星砂",
-    "icon": "https://lootlab.cn/palworld/items/icons/NightStone.png"
+    "icon": "/icons/items/NightStone.png"
   },
   {
     "id": "RainbowCrystal",
     "name": "六棱晶矿",
-    "icon": "https://lootlab.cn/palworld/items/icons/RainbowCrystal.png"
+    "icon": "/icons/items/RainbowCrystal.png"
   },
   {
     "id": "ManganeseOre",
     "name": "珊瑚矿石",
-    "icon": "https://lootlab.cn/palworld/items/icons/ManganeseOre.png"
+    "icon": "/icons/items/ManganeseOre.png"
   },
   {
     "id": "MeteorDrop",
     "name": "陨石碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/MeteorDrop.png"
+    "icon": "/icons/items/MeteorDrop.png"
   },
   {
     "id": "SkyIslandOre",
     "name": "烈阳金属",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyIslandOre.png"
+    "icon": "/icons/items/SkyIslandOre.png"
   },
   {
     "id": "WorldTreeOre",
     "name": "帕鲁树晶矿",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorldTreeOre.png"
+    "icon": "/icons/items/WorldTreeOre.png"
   },
   {
     "id": "Wool",
     "name": "羊毛",
-    "icon": "https://lootlab.cn/palworld/items/icons/Wool.png"
+    "icon": "/icons/items/Wool.png"
   },
   {
     "id": "Leather",
     "name": "皮革",
-    "icon": "https://lootlab.cn/palworld/items/icons/Leather.png"
+    "icon": "/icons/items/Leather.png"
   },
   {
     "id": "Bone",
     "name": "骨头",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bone.png"
+    "icon": "/icons/items/Bone.png"
   },
   {
     "id": "Horn",
     "name": "角",
-    "icon": "https://lootlab.cn/palworld/items/icons/Horn.png"
+    "icon": "/icons/items/Horn.png"
   },
   {
     "id": "ElectricOrgan",
     "name": "发电器官",
-    "icon": "https://lootlab.cn/palworld/items/icons/ElectricOrgan.png"
+    "icon": "/icons/items/ElectricOrgan.png"
   },
   {
     "id": "Venom",
     "name": "毒腺",
-    "icon": "https://lootlab.cn/palworld/items/icons/Venom.png"
+    "icon": "/icons/items/Venom.png"
   },
   {
     "id": "FireOrgan",
     "name": "喷火器官",
-    "icon": "https://lootlab.cn/palworld/items/icons/FireOrgan.png"
+    "icon": "/icons/items/FireOrgan.png"
   },
   {
     "id": "IceOrgan",
     "name": "结冰器官",
-    "icon": "https://lootlab.cn/palworld/items/icons/IceOrgan.png"
+    "icon": "/icons/items/IceOrgan.png"
   },
   {
     "id": "PalFluid",
     "name": "水栖帕鲁的黏液",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalFluid.png"
+    "icon": "/icons/items/PalFluid.png"
   },
   {
     "id": "PalOil",
     "name": "优质帕鲁油",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalOil.png"
+    "icon": "/icons/items/PalOil.png"
   },
   {
     "id": "PalDarkParts",
     "name": "暗黑碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalDarkParts.png"
+    "icon": "/icons/items/PalDarkParts.png"
   },
   {
     "id": "Wood_Ancient",
     "name": "古代树皮",
-    "icon": "https://lootlab.cn/palworld/items/icons/Wood_Ancient.png"
+    "icon": "/icons/items/Wood_Ancient.png"
   },
   {
     "id": "Lava_Ancient",
     "name": "古代熔岩块",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lava_Ancient.png"
+    "icon": "/icons/items/Lava_Ancient.png"
   },
   {
     "id": "BeastBone_Ancient",
     "name": "古代兽骨",
-    "icon": "https://lootlab.cn/palworld/items/icons/BeastBone_Ancient.png"
+    "icon": "/icons/items/BeastBone_Ancient.png"
   },
   {
     "id": "WorldTreeRelic_1",
     "name": "腐朽的古代文明遗物",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorldTreeRelic_1.png"
+    "icon": "/icons/items/WorldTreeRelic_1.png"
   },
   {
     "id": "WorldTreeRelic_2",
     "name": "沉眠的古代文明遗物",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorldTreeRelic_2.png"
+    "icon": "/icons/items/WorldTreeRelic_2.png"
   },
   {
     "id": "WorldTreeRelic_3",
     "name": "漂亮的古代文明遗物",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorldTreeRelic_3.png"
+    "icon": "/icons/items/WorldTreeRelic_3.png"
   },
   {
     "id": "WorldTreeRelic_4",
     "name": "发光的古代文明遗物",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorldTreeRelic_4.png"
+    "icon": "/icons/items/WorldTreeRelic_4.png"
   },
   {
     "id": "WorldTreeRelic_5",
     "name": "闪耀的古代文明遗物",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorldTreeRelic_5.png"
+    "icon": "/icons/items/WorldTreeRelic_5.png"
   },
   {
     "id": "WorldTreeHolyWater",
     "name": "世界树圣水",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorldTreeHolyWater.png"
+    "icon": "/icons/items/WorldTreeHolyWater.png"
   },
   {
     "id": "PalItem_ColorfulBird",
     "name": "炸蛋鸟的羽毛",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_ColorfulBird.png"
+    "icon": "/icons/items/PalItem_ColorfulBird.png"
   },
   {
     "id": "PalItem_PlantSlime",
     "name": "叶泥泥的叶子",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_PlantSlime.png"
+    "icon": "/icons/items/PalItem_PlantSlime.png"
   },
   {
     "id": "PalItem_CaptainPenguin",
     "name": "企丸王的羽饰",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_CaptainPenguin.png"
+    "icon": "/icons/items/PalItem_CaptainPenguin.png"
   },
   {
     "id": "PalItem_CatMage",
     "name": "暗巫猫的体毛",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_CatMage.png"
+    "icon": "/icons/items/PalItem_CatMage.png"
   },
   {
     "id": "PalItem_PinkRabbit",
     "name": "姬小兔的发带",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_PinkRabbit.png"
+    "icon": "/icons/items/PalItem_PinkRabbit.png"
   },
   {
     "id": "PalItem_MopBaby",
     "name": "毛掸儿的棉毛",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_MopBaby.png"
+    "icon": "/icons/items/PalItem_MopBaby.png"
   },
   {
     "id": "PalItem_NegativeOctopus",
     "name": "勾魂鱿的触手",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_NegativeOctopus.png"
+    "icon": "/icons/items/PalItem_NegativeOctopus.png"
   },
   {
     "id": "PalItem_RaijinDaughter",
     "name": "雷鸣童子的云朵",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_RaijinDaughter.png"
+    "icon": "/icons/items/PalItem_RaijinDaughter.png"
   },
   {
     "id": "PalItem_LizardMan",
     "name": "朋克蜥的头冠",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_LizardMan.png"
+    "icon": "/icons/items/PalItem_LizardMan.png"
   },
   {
     "id": "UniqueMaterial_FlowerPrince",
     "name": "腐毒过滤膜",
-    "icon": "https://lootlab.cn/palworld/items/icons/UniqueMaterial_FlowerPrince.png"
+    "icon": "/icons/items/UniqueMaterial_FlowerPrince.png"
   },
   {
     "id": "UniqueMaterial_Mothman",
     "name": "防爆纤维",
-    "icon": "https://lootlab.cn/palworld/items/icons/UniqueMaterial_Mothman.png"
+    "icon": "/icons/items/UniqueMaterial_Mothman.png"
   },
   {
     "id": "AncientParts3",
     "name": "旧羊皮纸",
-    "icon": "https://lootlab.cn/palworld/items/icons/AncientParts3.png"
+    "icon": "/icons/items/AncientParts3.png"
   },
   {
     "id": "DogCoin",
     "name": "汪汪币",
-    "icon": "https://lootlab.cn/palworld/items/icons/DogCoin.png"
+    "icon": "/icons/items/DogCoin.png"
   },
   {
     "id": "PalCrystal_Ex",
     "name": "古代文明部件",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalCrystal_Ex.png"
+    "icon": "/icons/items/PalCrystal_Ex.png"
   },
   {
     "id": "AncientParts2",
     "name": "古代文明核心",
-    "icon": "https://lootlab.cn/palworld/items/icons/AncientParts2.png"
+    "icon": "/icons/items/AncientParts2.png"
   },
   {
     "id": "PredatorCrystal",
     "name": "捕食者核心",
-    "icon": "https://lootlab.cn/palworld/items/icons/PredatorCrystal.png"
+    "icon": "/icons/items/PredatorCrystal.png"
   },
   {
     "id": "BountyProof_1",
     "name": "通缉犯讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BountyProof_1.png"
+    "icon": "/icons/items/BountyProof_1.png"
   },
   {
     "id": "BattleTicket",
     "name": "战斗券",
-    "icon": "https://lootlab.cn/palworld/items/icons/BattleTicket.png"
+    "icon": "/icons/items/BattleTicket.png"
   },
   {
     "id": "BerrySeeds",
     "name": "野莓种子",
-    "icon": "https://lootlab.cn/palworld/items/icons/BerrySeeds.png"
+    "icon": "/icons/items/BerrySeeds.png"
   },
   {
     "id": "WheatSeeds",
     "name": "小麦种子",
-    "icon": "https://lootlab.cn/palworld/items/icons/WheatSeeds.png"
+    "icon": "/icons/items/WheatSeeds.png"
   },
   {
     "id": "TomatoSeeds",
     "name": "番茄种子",
-    "icon": "https://lootlab.cn/palworld/items/icons/TomatoSeeds.png"
+    "icon": "/icons/items/TomatoSeeds.png"
   },
   {
     "id": "LettuceSeeds",
     "name": "生菜种子",
-    "icon": "https://lootlab.cn/palworld/items/icons/LettuceSeeds.png"
+    "icon": "/icons/items/LettuceSeeds.png"
   },
   {
     "id": "PotatoSeeds",
     "name": "土豆种薯",
-    "icon": "https://lootlab.cn/palworld/items/icons/PotatoSeeds.png"
+    "icon": "/icons/items/PotatoSeeds.png"
   },
   {
     "id": "CarrotSeeds",
     "name": "胡萝卜种子",
-    "icon": "https://lootlab.cn/palworld/items/icons/CarrotSeeds.png"
+    "icon": "/icons/items/CarrotSeeds.png"
   },
   {
     "id": "OnionSeeds",
     "name": "洋葱种子",
-    "icon": "https://lootlab.cn/palworld/items/icons/OnionSeeds.png"
+    "icon": "/icons/items/OnionSeeds.png"
   },
   {
     "id": "Cloth",
     "name": "布",
-    "icon": "https://lootlab.cn/palworld/items/icons/Cloth.png"
+    "icon": "/icons/items/Cloth.png"
   },
   {
     "id": "Processed_Wood",
     "name": "木板",
-    "icon": "https://lootlab.cn/palworld/items/icons/Processed_Wood.png"
+    "icon": "/icons/items/Processed_Wood.png"
   },
   {
     "id": "HighGrade_Processed_Wood",
     "name": "优质木板",
-    "icon": "https://lootlab.cn/palworld/items/icons/HighGrade_Processed_Wood.png"
+    "icon": "/icons/items/HighGrade_Processed_Wood.png"
   },
   {
     "id": "Premium_Processed_Wood",
     "name": "神秘木板",
-    "icon": "https://lootlab.cn/palworld/items/icons/Premium_Processed_Wood.png"
+    "icon": "/icons/items/Premium_Processed_Wood.png"
   },
   {
     "id": "MachineParts",
     "name": "钉子",
-    "icon": "https://lootlab.cn/palworld/items/icons/MachineParts.png"
+    "icon": "/icons/items/MachineParts.png"
   },
   {
     "id": "GunPowder2",
     "name": "火药",
-    "icon": "https://lootlab.cn/palworld/items/icons/GunPowder2.png"
+    "icon": "/icons/items/GunPowder2.png"
   },
   {
     "id": "ElectronicCircuit",
     "name": "电路板",
-    "icon": "https://lootlab.cn/palworld/items/icons/ElectronicCircuit.png"
+    "icon": "/icons/items/ElectronicCircuit.png"
   },
   {
     "id": "Polymer",
     "name": "聚合物",
-    "icon": "https://lootlab.cn/palworld/items/icons/Polymer.png"
+    "icon": "/icons/items/Polymer.png"
   },
   {
     "id": "Silicon",
     "name": "硅",
-    "icon": "https://lootlab.cn/palworld/items/icons/Silicon.png"
+    "icon": "/icons/items/Silicon.png"
   },
   {
     "id": "Cement",
     "name": "水泥",
-    "icon": "https://lootlab.cn/palworld/items/icons/Cement.png"
+    "icon": "/icons/items/Cement.png"
   },
   {
     "id": "CarbonFiber",
     "name": "碳纤维",
-    "icon": "https://lootlab.cn/palworld/items/icons/CarbonFiber.png"
+    "icon": "/icons/items/CarbonFiber.png"
   },
   {
     "id": "Bio_Coolant",
     "name": "极低温冷却介质",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bio_Coolant.png"
+    "icon": "/icons/items/Bio_Coolant.png"
   },
   {
     "id": "Corrosive_Solvent",
     "name": "腐蚀溶剂",
-    "icon": "https://lootlab.cn/palworld/items/icons/Corrosive_Solvent.png"
+    "icon": "/icons/items/Corrosive_Solvent.png"
   },
   {
     "id": "Bio_Battery",
     "name": "生化电池",
-    "icon": "https://lootlab.cn/palworld/items/icons/Bio_Battery.png"
+    "icon": "/icons/items/Bio_Battery.png"
   },
   {
     "id": "Thermal_Core",
     "name": "超高热核心",
-    "icon": "https://lootlab.cn/palworld/items/icons/Thermal_Core.png"
+    "icon": "/icons/items/Thermal_Core.png"
   },
   {
     "id": "Computer",
     "name": "电脑",
-    "icon": "https://lootlab.cn/palworld/items/icons/Computer.png"
+    "icon": "/icons/items/Computer.png"
   },
   {
     "id": "AIcore",
     "name": "AI核心",
-    "icon": "https://lootlab.cn/palworld/items/icons/AIcore.png"
+    "icon": "/icons/items/AIcore.png"
   },
   {
     "id": "Charcoal",
     "name": "木炭",
-    "icon": "https://lootlab.cn/palworld/items/icons/Charcoal.png"
+    "icon": "/icons/items/Charcoal.png"
   },
   {
     "id": "CopperIngot",
     "name": "金属锭",
-    "icon": "https://lootlab.cn/palworld/items/icons/CopperIngot.png"
+    "icon": "/icons/items/CopperIngot.png"
   },
   {
     "id": "IronIngot",
     "name": "精炼金属锭",
-    "icon": "https://lootlab.cn/palworld/items/icons/IronIngot.png"
+    "icon": "/icons/items/IronIngot.png"
   },
   {
     "id": "StealIngot",
     "name": "帕鲁金属锭",
-    "icon": "https://lootlab.cn/palworld/items/icons/StealIngot.png"
+    "icon": "/icons/items/StealIngot.png"
   },
   {
     "id": "Plastic",
     "name": "塑钢",
-    "icon": "https://lootlab.cn/palworld/items/icons/Plastic.png"
+    "icon": "/icons/items/Plastic.png"
   },
   {
     "id": "StainlessSteel",
     "name": "六棱晶锭",
-    "icon": "https://lootlab.cn/palworld/items/icons/StainlessSteel.png"
+    "icon": "/icons/items/StainlessSteel.png"
   },
   {
     "id": "ManganeseIngot",
     "name": "珊瑚锭",
-    "icon": "https://lootlab.cn/palworld/items/icons/ManganeseIngot.png"
+    "icon": "/icons/items/ManganeseIngot.png"
   },
   {
     "id": "SkyislandIngot",
     "name": "烈阳金属锭",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkyislandIngot.png"
+    "icon": "/icons/items/SkyislandIngot.png"
   },
   {
     "id": "WorldTreeIngot",
     "name": "帕鲁树晶锭",
-    "icon": "https://lootlab.cn/palworld/items/icons/WorldTreeIngot.png"
+    "icon": "/icons/items/WorldTreeIngot.png"
   },
   {
     "id": "YakushimaIngot001",
     "name": "神圣锭",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaIngot001.png"
+    "icon": "/icons/items/YakushimaIngot001.png"
   },
   {
     "id": "YakushimaIngot002",
     "name": "夜明锭",
-    "icon": "https://lootlab.cn/palworld/items/icons/YakushimaIngot002.png"
+    "icon": "/icons/items/YakushimaIngot002.png"
   },
   {
     "id": "PalEgg_Normal_01",
     "name": "平凡帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_Normal_01.png"
+    "icon": "/icons/items/PalEgg_Normal_01.png"
   },
   {
     "id": "PalEgg_Fire_01",
     "name": "发热帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_Fire_01.png"
+    "icon": "/icons/items/PalEgg_Fire_01.png"
   },
   {
     "id": "PalEgg_Water_01",
     "name": "潮湿帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_Water_01.png"
+    "icon": "/icons/items/PalEgg_Water_01.png"
   },
   {
     "id": "PalEgg_Leaf_01",
     "name": "新绿帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_Leaf_01.png"
+    "icon": "/icons/items/PalEgg_Leaf_01.png"
   },
   {
     "id": "PalEgg_Electricity_01",
     "name": "电气帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_Electricity_01.png"
+    "icon": "/icons/items/PalEgg_Electricity_01.png"
   },
   {
     "id": "PalEgg_Ice_01",
     "name": "结冰帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_Ice_01.png"
+    "icon": "/icons/items/PalEgg_Ice_01.png"
   },
   {
     "id": "PalEgg_Earth_01",
     "name": "粗糙帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_Earth_01.png"
+    "icon": "/icons/items/PalEgg_Earth_01.png"
   },
   {
     "id": "PalEgg_Dark_01",
     "name": "暗黑帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_Dark_01.png"
+    "icon": "/icons/items/PalEgg_Dark_01.png"
   },
   {
     "id": "PalEgg_Dragon_01",
     "name": "龙蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_Dragon_01.png"
+    "icon": "/icons/items/PalEgg_Dragon_01.png"
   },
   {
     "id": "PalEgg_MutationPal",
     "name": "突变帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_MutationPal.png"
+    "icon": "/icons/items/PalEgg_MutationPal.png"
   },
   {
     "id": "PalEgg_WorldTree_01",
     "name": "不祥帕鲁蛋",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalEgg_WorldTree_01.png"
+    "icon": "/icons/items/PalEgg_WorldTree_01.png"
   },
   {
     "id": "Ruby",
     "name": "红宝石",
-    "icon": "https://lootlab.cn/palworld/items/icons/Ruby.png"
+    "icon": "/icons/items/Ruby.png"
   },
   {
     "id": "Sapphire",
     "name": "蓝宝石",
-    "icon": "https://lootlab.cn/palworld/items/icons/Sapphire.png"
+    "icon": "/icons/items/Sapphire.png"
   },
   {
     "id": "Eemerald",
     "name": "绿宝石",
-    "icon": "https://lootlab.cn/palworld/items/icons/Eemerald.png"
+    "icon": "/icons/items/Eemerald.png"
   },
   {
     "id": "Diamond",
     "name": "钻石",
-    "icon": "https://lootlab.cn/palworld/items/icons/Diamond.png"
+    "icon": "/icons/items/Diamond.png"
   },
   {
     "id": "PalItem_ToSell_01",
     "name": "贵重龙珠",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_ToSell_01.png"
+    "icon": "/icons/items/PalItem_ToSell_01.png"
   },
   {
     "id": "PalItem_ToSell_02",
     "name": "贵重羽毛",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_ToSell_02.png"
+    "icon": "/icons/items/PalItem_ToSell_02.png"
   },
   {
     "id": "PalItem_ToSell_03",
     "name": "贵重内脏",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_ToSell_03.png"
+    "icon": "/icons/items/PalItem_ToSell_03.png"
   },
   {
     "id": "PalItem_ToSell_04",
     "name": "贵重爪子",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_ToSell_04.png"
+    "icon": "/icons/items/PalItem_ToSell_04.png"
   },
   {
     "id": "PalItem_ToSell_05",
     "name": "贵重兽毛",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalItem_ToSell_05.png"
+    "icon": "/icons/items/PalItem_ToSell_05.png"
   },
   {
     "id": "PalUpgradeStone1",
     "name": "小型帕鲁之魂",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalUpgradeStone1.png"
+    "icon": "/icons/items/PalUpgradeStone1.png"
   },
   {
     "id": "PalUpgradeStone2",
     "name": "中型帕鲁之魂",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalUpgradeStone2.png"
+    "icon": "/icons/items/PalUpgradeStone2.png"
   },
   {
     "id": "PalUpgradeStone3",
     "name": "大型帕鲁之魂",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalUpgradeStone3.png"
+    "icon": "/icons/items/PalUpgradeStone3.png"
   },
   {
     "id": "PalUpgradeStone4",
     "name": "究极帕鲁之魂",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalUpgradeStone4.png"
+    "icon": "/icons/items/PalUpgradeStone4.png"
   },
   {
     "id": "SkillCard_Neutral",
     "name": "技能果实：能量射击",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillCard_Neutral.png"
+    "icon": "/icons/items/SkillCard_Neutral.png"
   },
   {
     "id": "SkillCard_Grass",
     "name": "草之技能果实：风刃",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillCard_Grass.png"
+    "icon": "/icons/items/SkillCard_Grass.png"
   },
   {
     "id": "SkillCard_Water",
     "name": "水之技能果实：水枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillCard_Water.png"
+    "icon": "/icons/items/SkillCard_Water.png"
   },
   {
     "id": "SkillCard_Flame",
     "name": "炎之技能果实：烈焰射击",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillCard_Flame.png"
+    "icon": "/icons/items/SkillCard_Flame.png"
   },
   {
     "id": "SkillCard_Electric",
     "name": "雷之技能果实：冲击波",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillCard_Electric.png"
+    "icon": "/icons/items/SkillCard_Electric.png"
   },
   {
     "id": "SkillCard_Earth",
     "name": "地之技能果实：投石",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillCard_Earth.png"
+    "icon": "/icons/items/SkillCard_Earth.png"
   },
   {
     "id": "SkillCard_Frost",
     "name": "冰之技能果实：冰雪飞弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillCard_Frost.png"
+    "icon": "/icons/items/SkillCard_Frost.png"
   },
   {
     "id": "SkillCard_Dark",
     "name": "暗之技能果实：暗影波动",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillCard_Dark.png"
+    "icon": "/icons/items/SkillCard_Dark.png"
   },
   {
     "id": "SkillCard_Dragon",
     "name": "龙之技能果实：龙息弹",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillCard_Dragon.png"
+    "icon": "/icons/items/SkillCard_Dragon.png"
   },
   {
     "id": "PalGenderReverse",
     "name": "帕鲁性转药",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalGenderReverse.png"
+    "icon": "/icons/items/PalGenderReverse.png"
   },
   {
     "id": "PalPassiveSkillChange",
     "name": "植入体：手下留情",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalPassiveSkillChange.png"
+    "icon": "/icons/items/PalPassiveSkillChange.png"
   },
   {
     "id": "PalPassiveSkillChange_Consumable",
     "name": "耗材植入体：双刃圣剑",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalPassiveSkillChange_Consumable.png"
+    "icon": "/icons/items/PalPassiveSkillChange_Consumable.png"
   },
   {
     "id": "TechnologyBook_G1",
     "name": "高等技术书",
-    "icon": "https://lootlab.cn/palworld/items/icons/TechnologyBook_G1.png"
+    "icon": "/icons/items/TechnologyBook_G1.png"
   },
   {
     "id": "TechnologyBook_G2",
     "name": "革新技术书",
-    "icon": "https://lootlab.cn/palworld/items/icons/TechnologyBook_G2.png"
+    "icon": "/icons/items/TechnologyBook_G2.png"
   },
   {
     "id": "TechnologyBook_G3",
     "name": "未来技术书",
-    "icon": "https://lootlab.cn/palworld/items/icons/TechnologyBook_G3.png"
+    "icon": "/icons/items/TechnologyBook_G3.png"
   },
   {
     "id": "TechnologyBook_G4",
     "name": "古代技术书",
-    "icon": "https://lootlab.cn/palworld/items/icons/TechnologyBook_G4.png"
+    "icon": "/icons/items/TechnologyBook_G4.png"
   },
   {
     "id": "TreasureBoxKey01",
     "name": "铜钥匙",
-    "icon": "https://lootlab.cn/palworld/items/icons/TreasureBoxKey01.png"
+    "icon": "/icons/items/TreasureBoxKey01.png"
   },
   {
     "id": "TreasureBoxKey02",
     "name": "银钥匙",
-    "icon": "https://lootlab.cn/palworld/items/icons/TreasureBoxKey02.png"
+    "icon": "/icons/items/TreasureBoxKey02.png"
   },
   {
     "id": "TreasureBoxKey03",
     "name": "金钥匙",
-    "icon": "https://lootlab.cn/palworld/items/icons/TreasureBoxKey03.png"
+    "icon": "/icons/items/TreasureBoxKey03.png"
   },
   {
     "id": "Salvage_TreasureBoxKey01",
     "name": "渔用磁铁",
-    "icon": "https://lootlab.cn/palworld/items/icons/Salvage_TreasureBoxKey01.png"
+    "icon": "/icons/items/Salvage_TreasureBoxKey01.png"
   },
   {
     "id": "RepairKit",
     "name": "建筑修理套装",
-    "icon": "https://lootlab.cn/palworld/items/icons/RepairKit.png"
+    "icon": "/icons/items/RepairKit.png"
   },
   {
     "id": "WaterBuildKit",
     "name": "水上建造套装",
-    "icon": "https://lootlab.cn/palworld/items/icons/WaterBuildKit.png"
+    "icon": "/icons/items/WaterBuildKit.png"
   },
   {
     "id": "Blueprint",
     "name": "金属球棒设计图1",
-    "icon": "https://lootlab.cn/palworld/items/icons/Blueprint.png"
+    "icon": "/icons/items/Blueprint.png"
   },
   {
     "id": "PalSummon_NightLady_Parts",
     "name": "贝菈诺娃的石板碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_NightLady_Parts.png"
+    "icon": "/icons/items/PalSummon_NightLady_Parts.png"
   },
   {
     "id": "PalSummon_NightLady_Dark_Parts",
     "name": "贝菈露洁的石板碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_NightLady_Dark_Parts.png"
+    "icon": "/icons/items/PalSummon_NightLady_Dark_Parts.png"
   },
   {
     "id": "PalSummon_KingBahamut_Dragon_Parts",
     "name": "殁殃的石板碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_KingBahamut_Dragon_Parts.png"
+    "icon": "/icons/items/PalSummon_KingBahamut_Dragon_Parts.png"
   },
   {
     "id": "PalSummon_DarkMechaDragon_Parts",
     "name": "杰诺多兰的石板碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_DarkMechaDragon_Parts.png"
+    "icon": "/icons/items/PalSummon_DarkMechaDragon_Parts.png"
   },
   {
     "id": "PalSummon_LegendDeer_Parts",
     "name": "默世鹿的石板碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_LegendDeer_Parts.png"
+    "icon": "/icons/items/PalSummon_LegendDeer_Parts.png"
   },
   {
     "id": "PalSummon_NightLady_Dark_Parts_2",
     "name": "【极】贝菈露洁的石板碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_NightLady_Dark_Parts_2.png"
+    "icon": "/icons/items/PalSummon_NightLady_Dark_Parts_2.png"
   },
   {
     "id": "PalSummon_KingBahamut_Dragon_Parts_2",
     "name": "【极】殁殃的石板碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_KingBahamut_Dragon_Parts_2.png"
+    "icon": "/icons/items/PalSummon_KingBahamut_Dragon_Parts_2.png"
   },
   {
     "id": "PalSummon_DarkMechaDragon_Parts_2",
     "name": "【极】杰诺多兰的石板碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_DarkMechaDragon_Parts_2.png"
+    "icon": "/icons/items/PalSummon_DarkMechaDragon_Parts_2.png"
   },
   {
     "id": "PalSummon_LegendDeer_Parts_2",
     "name": "【极】默世鹿的石板碎片",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_LegendDeer_Parts_2.png"
+    "icon": "/icons/items/PalSummon_LegendDeer_Parts_2.png"
   },
   {
     "id": "PalSummon_NightLady",
     "name": "贝菈诺娃的石板",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_NightLady.png"
+    "icon": "/icons/items/PalSummon_NightLady.png"
   },
   {
     "id": "PalSummon_NightLady_Dark",
     "name": "贝菈露洁的石板",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_NightLady_Dark.png"
+    "icon": "/icons/items/PalSummon_NightLady_Dark.png"
   },
   {
     "id": "PalSummon_KingBahamut_Dragon",
     "name": "殁殃的石板",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_KingBahamut_Dragon.png"
+    "icon": "/icons/items/PalSummon_KingBahamut_Dragon.png"
   },
   {
     "id": "PalSummon_DarkMechaDragon",
     "name": "杰诺多兰的石板",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_DarkMechaDragon.png"
+    "icon": "/icons/items/PalSummon_DarkMechaDragon.png"
   },
   {
     "id": "PalSummon_YakushimaBoss002",
     "name": "天界符",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_YakushimaBoss002.png"
+    "icon": "/icons/items/PalSummon_YakushimaBoss002.png"
   },
   {
     "id": "PalSummon_LegendDeer",
     "name": "默世鹿的石板",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_LegendDeer.png"
+    "icon": "/icons/items/PalSummon_LegendDeer.png"
   },
   {
     "id": "PalSummon_NightLady_Dark_2",
     "name": "【极】贝菈露洁的石板",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_NightLady_Dark_2.png"
+    "icon": "/icons/items/PalSummon_NightLady_Dark_2.png"
   },
   {
     "id": "PalSummon_KingBahamut_Dragon_2",
     "name": "【极】殁殃的石板",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_KingBahamut_Dragon_2.png"
+    "icon": "/icons/items/PalSummon_KingBahamut_Dragon_2.png"
   },
   {
     "id": "PalSummon_DarkMechaDragon_2",
     "name": "【极】杰诺多兰的石板",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_DarkMechaDragon_2.png"
+    "icon": "/icons/items/PalSummon_DarkMechaDragon_2.png"
   },
   {
     "id": "PalSummon_YakushimaBoss002_2",
     "name": "天界符【大师】",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_YakushimaBoss002_2.png"
+    "icon": "/icons/items/PalSummon_YakushimaBoss002_2.png"
   },
   {
     "id": "PalSummon_LegendDeer_2",
     "name": "【极】默世鹿的石板",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSummon_LegendDeer_2.png"
+    "icon": "/icons/items/PalSummon_LegendDeer_2.png"
   },
   {
     "id": "Salvage_TreasureBoxKey02",
     "name": "强力渔用磁铁",
-    "icon": "https://lootlab.cn/palworld/items/icons/Salvage_TreasureBoxKey02.png"
+    "icon": "/icons/items/Salvage_TreasureBoxKey02.png"
   },
   {
     "id": "Blueprint_Building",
     "name": "盗猎团旗帜设计图",
-    "icon": "https://lootlab.cn/palworld/items/icons/Blueprint_Building.png"
+    "icon": "/icons/items/Blueprint_Building.png"
   },
   {
     "id": "Blueprint_WhaleWhistle",
     "name": "磨损的设计图",
-    "icon": "https://lootlab.cn/palworld/items/icons/Blueprint_WhaleWhistle.png"
+    "icon": "/icons/items/Blueprint_WhaleWhistle.png"
   },
   {
     "id": "GrilledMeat",
     "name": "烤肉",
-    "icon": "https://lootlab.cn/palworld/items/icons/GrilledMeat.png"
+    "icon": "/icons/items/GrilledMeat.png"
   },
   {
     "id": "PalSphere_Robbery",
     "name": "雷达帕鲁球",
-    "icon": "https://lootlab.cn/palworld/items/icons/PalSphere_Robbery.png"
+    "icon": "/icons/items/PalSphere_Robbery.png"
   },
   {
     "id": "Pal_crystal_L",
     "name": "帕鲁矿",
-    "icon": "https://lootlab.cn/palworld/items/icons/Pal_crystal_L.png"
+    "icon": "/icons/items/Pal_crystal_L.png"
   },
   {
     "id": "Unko",
     "name": "便便",
-    "icon": "https://lootlab.cn/palworld/items/icons/Unko.png"
+    "icon": "/icons/items/Unko.png"
   },
   {
     "id": "CheeseBurger",
     "name": "芝士汉堡",
-    "icon": "https://lootlab.cn/palworld/items/icons/CheeseBurger.png"
+    "icon": "/icons/items/CheeseBurger.png"
   },
   {
     "id": "SkillUnlock_Shotgun",
     "name": "Shadora shot弹枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Shotgun.png"
+    "icon": "/icons/items/SkillUnlock_Shotgun.png"
   },
   {
     "id": "Relic",
     "name": "翠叶鼠雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic.png"
+    "icon": "/icons/items/Relic.png"
   },
   {
     "id": "Relic_01",
     "name": "棉悠悠雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_01.png"
+    "icon": "/icons/items/Relic_01.png"
   },
   {
     "id": "Relic_02",
     "name": "企丸丸雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_02.png"
+    "icon": "/icons/items/Relic_02.png"
   },
   {
     "id": "Relic_03",
     "name": "肚肚鳄雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_03.png"
+    "icon": "/icons/items/Relic_03.png"
   },
   {
     "id": "Relic_04",
     "name": "燎火鹿雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_04.png"
+    "icon": "/icons/items/Relic_04.png"
   },
   {
     "id": "Relic_05",
     "name": "达鼠泥雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_05.png"
+    "icon": "/icons/items/Relic_05.png"
   },
   {
     "id": "Relic_06",
     "name": "新叶猿雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_06.png"
+    "icon": "/icons/items/Relic_06.png"
   },
   {
     "id": "Relic_07",
     "name": "瞅什魔雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_07.png"
+    "icon": "/icons/items/Relic_07.png"
   },
   {
     "id": "Relic_08",
     "name": "捣蛋猫雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_08.png"
+    "icon": "/icons/items/Relic_08.png"
   },
   {
     "id": "Relic_09",
     "name": "秘斯媞雅雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_09.png"
+    "icon": "/icons/items/Relic_09.png"
   },
   {
     "id": "Relic_10",
     "name": "佩克龙雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_10.png"
+    "icon": "/icons/items/Relic_10.png"
   },
   {
     "id": "Relic_11",
     "name": "八云犬雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_11.png"
+    "icon": "/icons/items/Relic_11.png"
   },
   {
     "id": "Relic_12",
     "name": "旺财雕像",
-    "icon": "https://lootlab.cn/palworld/items/icons/Relic_12.png"
+    "icon": "/icons/items/Relic_12.png"
   },
   {
     "id": "Lantern",
     "name": "腰挂提灯",
-    "icon": "https://lootlab.cn/palworld/items/icons/Lantern.png"
+    "icon": "/icons/items/Lantern.png"
   },
   {
     "id": "AutoMealPouch_Tier1",
     "name": "小饲料袋",
-    "icon": "https://lootlab.cn/palworld/items/icons/AutoMealPouch_Tier1.png"
+    "icon": "/icons/items/AutoMealPouch_Tier1.png"
   },
   {
     "id": "AutoMealPouch_Tier2",
     "name": "普通饲料袋",
-    "icon": "https://lootlab.cn/palworld/items/icons/AutoMealPouch_Tier2.png"
+    "icon": "/icons/items/AutoMealPouch_Tier2.png"
   },
   {
     "id": "AutoMealPouch_Tier3",
     "name": "大饲料袋",
-    "icon": "https://lootlab.cn/palworld/items/icons/AutoMealPouch_Tier3.png"
+    "icon": "/icons/items/AutoMealPouch_Tier3.png"
   },
   {
     "id": "AutoMealPouch_Tier4",
     "name": "巨大饲料袋",
-    "icon": "https://lootlab.cn/palworld/items/icons/AutoMealPouch_Tier4.png"
+    "icon": "/icons/items/AutoMealPouch_Tier4.png"
   },
   {
     "id": "AutoMealPouch_Tier5",
     "name": "特大饲料袋",
-    "icon": "https://lootlab.cn/palworld/items/icons/AutoMealPouch_Tier5.png"
+    "icon": "/icons/items/AutoMealPouch_Tier5.png"
   },
   {
     "id": "UnlockEquipmentSlot_Accessory",
     "name": "不可思议的饰品箱",
-    "icon": "https://lootlab.cn/palworld/items/icons/UnlockEquipmentSlot_Accessory.png"
+    "icon": "/icons/items/UnlockEquipmentSlot_Accessory.png"
   },
   {
     "id": "UnlockEquipmentSlot_Accessory_1",
     "name": "神秘的饰品箱",
-    "icon": "https://lootlab.cn/palworld/items/icons/UnlockEquipmentSlot_Accessory_1.png"
+    "icon": "/icons/items/UnlockEquipmentSlot_Accessory_1.png"
   },
   {
     "id": "Unlock_Picking",
     "name": "简易开锁工具",
-    "icon": "https://lootlab.cn/palworld/items/icons/Unlock_Picking.png"
+    "icon": "/icons/items/Unlock_Picking.png"
   },
   {
     "id": "Unlock_Picking_Tier2",
     "name": "高级开锁工具",
-    "icon": "https://lootlab.cn/palworld/items/icons/Unlock_Picking_Tier2.png"
+    "icon": "/icons/items/Unlock_Picking_Tier2.png"
   },
   {
     "id": "Unlock_Picking_Tier3",
     "name": "专家开锁工具",
-    "icon": "https://lootlab.cn/palworld/items/icons/Unlock_Picking_Tier3.png"
+    "icon": "/icons/items/Unlock_Picking_Tier3.png"
   },
   {
     "id": "SkillUnlock_Saddle",
     "name": "草莽猪的鞍具",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Saddle.png"
+    "icon": "/icons/items/SkillUnlock_Saddle.png"
   },
   {
     "id": "SkillUnlock_Harness",
     "name": "火绒狐的背带",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Harness.png"
+    "icon": "/icons/items/SkillUnlock_Harness.png"
   },
   {
     "id": "SkillUnlock_Gloves",
     "name": "鲁米儿的手套",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Gloves.png"
+    "icon": "/icons/items/SkillUnlock_Gloves.png"
   },
   {
     "id": "SkillUnlock_Choker",
     "name": "寐魔的项圈",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Choker.png"
+    "icon": "/icons/items/SkillUnlock_Choker.png"
   },
   {
     "id": "SkillUnlock_SMG",
     "name": "翠叶鼠的冲锋枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_SMG.png"
+    "icon": "/icons/items/SkillUnlock_SMG.png"
   },
   {
     "id": "SkillUnlock_AssaultRifle",
     "name": "新叶猿的突击步枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_AssaultRifle.png"
+    "icon": "/icons/items/SkillUnlock_AssaultRifle.png"
   },
   {
     "id": "SkillUnlock_Launcher",
     "name": "企丸丸的火箭发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Launcher.png"
+    "icon": "/icons/items/SkillUnlock_Launcher.png"
   },
   {
     "id": "SkillUnlock_Headband",
     "name": "碎岩龟的头巾",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Headband.png"
+    "icon": "/icons/items/SkillUnlock_Headband.png"
   },
   {
     "id": "SkillUnlock_Grenadelauncher",
     "name": "叶胖达的榴弹发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Grenadelauncher.png"
+    "icon": "/icons/items/SkillUnlock_Grenadelauncher.png"
   },
   {
     "id": "SkillUnlock_Minigun",
     "name": "暴电熊的机关枪",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Minigun.png"
+    "icon": "/icons/items/SkillUnlock_Minigun.png"
   },
   {
     "id": "SkillUnlock_MultiMissile",
     "name": "佩克龙的导弹发射器",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_MultiMissile.png"
+    "icon": "/icons/items/SkillUnlock_MultiMissile.png"
   },
   {
     "id": "SkillUnlock_Hammer",
     "name": "霜牙王的巨锤",
-    "icon": "https://lootlab.cn/palworld/items/icons/SkillUnlock_Hammer.png"
+    "icon": "/icons/items/SkillUnlock_Hammer.png"
   },
   {
     "id": "UnlockEquipmentSlot_Weapon_01",
     "name": "额外武器套",
-    "icon": "https://lootlab.cn/palworld/items/icons/UnlockEquipmentSlot_Weapon_01.png"
+    "icon": "/icons/items/UnlockEquipmentSlot_Weapon_01.png"
   },
   {
     "id": "UnlockEquipmentSlot_Weapon_02",
     "name": "额外武器套2",
-    "icon": "https://lootlab.cn/palworld/items/icons/UnlockEquipmentSlot_Weapon_02.png"
+    "icon": "/icons/items/UnlockEquipmentSlot_Weapon_02.png"
   },
   {
     "id": "AdditionalInventory_001",
     "name": "小型扩展背包",
-    "icon": "https://lootlab.cn/palworld/items/icons/AdditionalInventory_001.png"
+    "icon": "/icons/items/AdditionalInventory_001.png"
   },
   {
     "id": "AdditionalInventory_002",
     "name": "中型扩展背包",
-    "icon": "https://lootlab.cn/palworld/items/icons/AdditionalInventory_002.png"
+    "icon": "/icons/items/AdditionalInventory_002.png"
   },
   {
     "id": "AdditionalInventory_003",
     "name": "大型扩展背包",
-    "icon": "https://lootlab.cn/palworld/items/icons/AdditionalInventory_003.png"
+    "icon": "/icons/items/AdditionalInventory_003.png"
   },
   {
     "id": "AdditionalInventory_004",
     "name": "巨大扩展背包",
-    "icon": "https://lootlab.cn/palworld/items/icons/AdditionalInventory_004.png"
+    "icon": "/icons/items/AdditionalInventory_004.png"
   },
   {
     "id": "SphereModule_Heavy",
     "name": "重量模块",
-    "icon": "https://lootlab.cn/palworld/items/icons/SphereModule_Heavy.png"
+    "icon": "/icons/items/SphereModule_Heavy.png"
   },
   {
     "id": "SphereModule_Curve",
     "name": "曲线模块",
-    "icon": "https://lootlab.cn/palworld/items/icons/SphereModule_Curve.png"
+    "icon": "/icons/items/SphereModule_Curve.png"
   },
   {
     "id": "SphereModule_Sniper",
     "name": "狙击模块",
-    "icon": "https://lootlab.cn/palworld/items/icons/SphereModule_Sniper.png"
+    "icon": "/icons/items/SphereModule_Sniper.png"
   },
   {
     "id": "SphereModule_Curve2",
     "name": "滑球模块",
-    "icon": "https://lootlab.cn/palworld/items/icons/SphereModule_Curve2.png"
+    "icon": "/icons/items/SphereModule_Curve2.png"
   },
   {
     "id": "SphereModule_Sniper2",
     "name": "狙击模块Ⅱ",
-    "icon": "https://lootlab.cn/palworld/items/icons/SphereModule_Sniper2.png"
+    "icon": "/icons/items/SphereModule_Sniper2.png"
   },
   {
     "id": "SphereModule_Homing",
     "name": "追踪模块",
-    "icon": "https://lootlab.cn/palworld/items/icons/SphereModule_Homing.png"
+    "icon": "/icons/items/SphereModule_Homing.png"
   },
   {
     "id": "BossDefeatReward_WeaselDragon",
     "name": "疾旋鼬的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_WeaselDragon.png"
+    "icon": "/icons/items/BossDefeatReward_WeaselDragon.png"
   },
   {
     "id": "BossDefeatReward_MopKing",
     "name": "毛老爹的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_MopKing.png"
+    "icon": "/icons/items/BossDefeatReward_MopKing.png"
   },
   {
     "id": "BossDefeatReward_PlantSlime",
     "name": "叶泥泥的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_PlantSlime.png"
+    "icon": "/icons/items/BossDefeatReward_PlantSlime.png"
   },
   {
     "id": "BossDefeatReward_LazyCatfish",
     "name": "趴趴鲶的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_LazyCatfish.png"
+    "icon": "/icons/items/BossDefeatReward_LazyCatfish.png"
   },
   {
     "id": "BossDefeatReward_CaptainPenguin",
     "name": "企丸王的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_CaptainPenguin.png"
+    "icon": "/icons/items/BossDefeatReward_CaptainPenguin.png"
   },
   {
     "id": "BossDefeatReward_BlueDragon",
     "name": "碧海龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_BlueDragon.png"
+    "icon": "/icons/items/BossDefeatReward_BlueDragon.png"
   },
   {
     "id": "BossDefeatReward_NaughtyCat",
     "name": "笑魇猫的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_NaughtyCat.png"
+    "icon": "/icons/items/BossDefeatReward_NaughtyCat.png"
   },
   {
     "id": "BossDefeatReward_HawkBird",
     "name": "疾风隼的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_HawkBird.png"
+    "icon": "/icons/items/BossDefeatReward_HawkBird.png"
   },
   {
     "id": "BossDefeatReward_SkyDragon",
     "name": "天羽龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_SkyDragon.png"
+    "icon": "/icons/items/BossDefeatReward_SkyDragon.png"
   },
   {
     "id": "BossDefeatReward_CatVampire",
     "name": "夜幕魔蝠的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_CatVampire.png"
+    "icon": "/icons/items/BossDefeatReward_CatVampire.png"
   },
   {
     "id": "BossDefeatReward_KingAlpaca",
     "name": "君王美露帕的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_KingAlpaca.png"
+    "icon": "/icons/items/BossDefeatReward_KingAlpaca.png"
   },
   {
     "id": "BossDefeatReward_SakuraSaurus",
     "name": "连理龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_SakuraSaurus.png"
+    "icon": "/icons/items/BossDefeatReward_SakuraSaurus.png"
   },
   {
     "id": "BossDefeatReward_CatMage",
     "name": "暗巫猫的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_CatMage.png"
+    "icon": "/icons/items/BossDefeatReward_CatMage.png"
   },
   {
     "id": "BossDefeatReward_Ronin",
     "name": "浪刃武士的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Ronin.png"
+    "icon": "/icons/items/BossDefeatReward_Ronin.png"
   },
   {
     "id": "BossDefeatReward_FengyunDeeper",
     "name": "云海鹿的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FengyunDeeper.png"
+    "icon": "/icons/items/BossDefeatReward_FengyunDeeper.png"
   },
   {
     "id": "BossDefeatReward_FlowerDoll",
     "name": "花丽娜的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FlowerDoll.png"
+    "icon": "/icons/items/BossDefeatReward_FlowerDoll.png"
   },
   {
     "id": "BossDefeatReward_ThunderBird",
     "name": "迅雷鸟的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_ThunderBird.png"
+    "icon": "/icons/items/BossDefeatReward_ThunderBird.png"
   },
   {
     "id": "BossDefeatReward_HerculesBeetle",
     "name": "铠格力斯的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_HerculesBeetle.png"
+    "icon": "/icons/items/BossDefeatReward_HerculesBeetle.png"
   },
   {
     "id": "BossDefeatReward_SakuraSaurus_Water",
     "name": "海誓龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_SakuraSaurus_Water.png"
+    "icon": "/icons/items/BossDefeatReward_SakuraSaurus_Water.png"
   },
   {
     "id": "BossDefeatReward_FairyDragon",
     "name": "精灵龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FairyDragon.png"
+    "icon": "/icons/items/BossDefeatReward_FairyDragon.png"
   },
   {
     "id": "BossDefeatReward_LazyDragon_Electric",
     "name": "派克龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_LazyDragon_Electric.png"
+    "icon": "/icons/items/BossDefeatReward_LazyDragon_Electric.png"
   },
   {
     "id": "BossDefeatReward_Kirin",
     "name": "雷角马的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Kirin.png"
+    "icon": "/icons/items/BossDefeatReward_Kirin.png"
   },
   {
     "id": "BossDefeatReward_QueenBee",
     "name": "女皇蜂的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_QueenBee.png"
+    "icon": "/icons/items/BossDefeatReward_QueenBee.png"
   },
   {
     "id": "BossDefeatReward_GrassPanda_Electric",
     "name": "雷胖达的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_GrassPanda_Electric.png"
+    "icon": "/icons/items/BossDefeatReward_GrassPanda_Electric.png"
   },
   {
     "id": "BossDefeatReward_Mutant",
     "name": "秘斯媞雅的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Mutant.png"
+    "icon": "/icons/items/BossDefeatReward_Mutant.png"
   },
   {
     "id": "BossDefeatReward_GrassRabbitMan",
     "name": "踏春兔的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_GrassRabbitMan.png"
+    "icon": "/icons/items/BossDefeatReward_GrassRabbitMan.png"
   },
   {
     "id": "BossDefeatReward_Yeti_Grass",
     "name": "绿苔绒怪的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Yeti_Grass.png"
+    "icon": "/icons/items/BossDefeatReward_Yeti_Grass.png"
   },
   {
     "id": "BossDefeatReward_GrassMammoth",
     "name": "森猛犸的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_GrassMammoth.png"
+    "icon": "/icons/items/BossDefeatReward_GrassMammoth.png"
   },
   {
     "id": "BossDefeatReward_VioletFairy",
     "name": "薇莉塔的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_VioletFairy.png"
+    "icon": "/icons/items/BossDefeatReward_VioletFairy.png"
   },
   {
     "id": "BossDefeatReward_WhiteMoth",
     "name": "绸笠蛾的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_WhiteMoth.png"
+    "icon": "/icons/items/BossDefeatReward_WhiteMoth.png"
   },
   {
     "id": "BossDefeatReward_DarkScorpion",
     "name": "冥铠蝎的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_DarkScorpion.png"
+    "icon": "/icons/items/BossDefeatReward_DarkScorpion.png"
   },
   {
     "id": "BossDefeatReward_Suzaku",
     "name": "朱雀的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Suzaku.png"
+    "icon": "/icons/items/BossDefeatReward_Suzaku.png"
   },
   {
     "id": "BossDefeatReward_Umihebi",
     "name": "覆海龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Umihebi.png"
+    "icon": "/icons/items/BossDefeatReward_Umihebi.png"
   },
   {
     "id": "BossDefeatReward_KingAlpaca_Ice",
     "name": "冰帝美露帕的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_KingAlpaca_Ice.png"
+    "icon": "/icons/items/BossDefeatReward_KingAlpaca_Ice.png"
   },
   {
     "id": "BossDefeatReward_FlowerDinosaur_Electric",
     "name": "雷冠龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FlowerDinosaur_Electric.png"
+    "icon": "/icons/items/BossDefeatReward_FlowerDinosaur_Electric.png"
   },
   {
     "id": "BossDefeatReward_Anubis",
     "name": "阿努比斯的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Anubis.png"
+    "icon": "/icons/items/BossDefeatReward_Anubis.png"
   },
   {
     "id": "BossDefeatReward_BlackMetalDragon",
     "name": "魔渊龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_BlackMetalDragon.png"
+    "icon": "/icons/items/BossDefeatReward_BlackMetalDragon.png"
   },
   {
     "id": "BossDefeatReward_KingBahamut",
     "name": "焰煌的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_KingBahamut.png"
+    "icon": "/icons/items/BossDefeatReward_KingBahamut.png"
   },
   {
     "id": "BossDefeatReward_LilyQueen_Dark",
     "name": "黑月女王的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_LilyQueen_Dark.png"
+    "icon": "/icons/items/BossDefeatReward_LilyQueen_Dark.png"
   },
   {
     "id": "BossDefeatReward_DarkScorpion_Ground",
     "name": "金铠蝎的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_DarkScorpion_Ground.png"
+    "icon": "/icons/items/BossDefeatReward_DarkScorpion_Ground.png"
   },
   {
     "id": "BossDefeatReward_WingGolem",
     "name": "泰锋的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_WingGolem.png"
+    "icon": "/icons/items/BossDefeatReward_WingGolem.png"
   },
   {
     "id": "BossDefeatReward_GrimGirl",
     "name": "幽恋娜的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_GrimGirl.png"
+    "icon": "/icons/items/BossDefeatReward_GrimGirl.png"
   },
   {
     "id": "BossDefeatReward_BlueThunderHorse",
     "name": "驭雷马的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_BlueThunderHorse.png"
+    "icon": "/icons/items/BossDefeatReward_BlueThunderHorse.png"
   },
   {
     "id": "BossDefeatReward_AmaterasuWolf_Dark",
     "name": "幽焰狼的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_AmaterasuWolf_Dark.png"
+    "icon": "/icons/items/BossDefeatReward_AmaterasuWolf_Dark.png"
   },
   {
     "id": "BossDefeatReward_FengyunDeeper_Electric",
     "name": "雷隐鹿的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FengyunDeeper_Electric.png"
+    "icon": "/icons/items/BossDefeatReward_FengyunDeeper_Electric.png"
   },
   {
     "id": "BossDefeatReward_WhiteDeer",
     "name": "净世鹿的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_WhiteDeer.png"
+    "icon": "/icons/items/BossDefeatReward_WhiteDeer.png"
   },
   {
     "id": "BossDefeatReward_WhiteShieldDragon",
     "name": "艾基鲁迦的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_WhiteShieldDragon.png"
+    "icon": "/icons/items/BossDefeatReward_WhiteShieldDragon.png"
   },
   {
     "id": "BossDefeatReward_Horus_Water",
     "name": "伊西斯的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Horus_Water.png"
+    "icon": "/icons/items/BossDefeatReward_Horus_Water.png"
   },
   {
     "id": "BossDefeatReward_JetDragon",
     "name": "空涡龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_JetDragon.png"
+    "icon": "/icons/items/BossDefeatReward_JetDragon.png"
   },
   {
     "id": "BossDefeatReward_IceHorse",
     "name": "唤冬兽的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_IceHorse.png"
+    "icon": "/icons/items/BossDefeatReward_IceHorse.png"
   },
   {
     "id": "BossDefeatReward_SaintCentaur",
     "name": "双骑士的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_SaintCentaur.png"
+    "icon": "/icons/items/BossDefeatReward_SaintCentaur.png"
   },
   {
     "id": "BossDefeatReward_BlackPuppy",
     "name": "墨丸的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_BlackPuppy.png"
+    "icon": "/icons/items/BossDefeatReward_BlackPuppy.png"
   },
   {
     "id": "BossDefeatReward_GhostRabbit",
     "name": "魅爱莉的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_GhostRabbit.png"
+    "icon": "/icons/items/BossDefeatReward_GhostRabbit.png"
   },
   {
     "id": "BossDefeatReward_NightBlueHorse",
     "name": "夜冥驹的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_NightBlueHorse.png"
+    "icon": "/icons/items/BossDefeatReward_NightBlueHorse.png"
   },
   {
     "id": "BossDefeatReward_BlueberryFairy",
     "name": "梅莉姆的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_BlueberryFairy.png"
+    "icon": "/icons/items/BossDefeatReward_BlueberryFairy.png"
   },
   {
     "id": "BossDefeatReward_BadCatgirl",
     "name": "妮瞅莎的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_BadCatgirl.png"
+    "icon": "/icons/items/BossDefeatReward_BadCatgirl.png"
   },
   {
     "id": "BossDefeatReward_GoldenHorse",
     "name": "金驰兽的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_GoldenHorse.png"
+    "icon": "/icons/items/BossDefeatReward_GoldenHorse.png"
   },
   {
     "id": "BossDefeatReward_MysteryMask",
     "name": "面惧的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_MysteryMask.png"
+    "icon": "/icons/items/BossDefeatReward_MysteryMask.png"
   },
   {
     "id": "BossDefeatReward_PurpleSpider",
     "name": "桃蛛娘的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_PurpleSpider.png"
+    "icon": "/icons/items/BossDefeatReward_PurpleSpider.png"
   },
   {
     "id": "BossDefeatReward_IceHorse_Dark",
     "name": "唤夜兽的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_IceHorse_Dark.png"
+    "icon": "/icons/items/BossDefeatReward_IceHorse_Dark.png"
   },
   {
     "id": "BossDefeatReward_Kitsunebi_Ice",
     "name": "雪绒狐的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Kitsunebi_Ice.png"
+    "icon": "/icons/items/BossDefeatReward_Kitsunebi_Ice.png"
   },
   {
     "id": "BossDefeatReward_RaijinDaughter_Water",
     "name": "天阴童子的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_RaijinDaughter_Water.png"
+    "icon": "/icons/items/BossDefeatReward_RaijinDaughter_Water.png"
   },
   {
     "id": "BossDefeatReward_WhiteTiger_Ground",
     "name": "金棘兽的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_WhiteTiger_Ground.png"
+    "icon": "/icons/items/BossDefeatReward_WhiteTiger_Ground.png"
   },
   {
     "id": "BossDefeatReward_BerryGoat_Dark",
     "name": "郁木羊的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_BerryGoat_Dark.png"
+    "icon": "/icons/items/BossDefeatReward_BerryGoat_Dark.png"
   },
   {
     "id": "BossDefeatReward_Werewolf_Ice",
     "name": "霜镰魔的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Werewolf_Ice.png"
+    "icon": "/icons/items/BossDefeatReward_Werewolf_Ice.png"
   },
   {
     "id": "BossDefeatReward_PinkRabbit_Grass",
     "name": "艾小兔的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_PinkRabbit_Grass.png"
+    "icon": "/icons/items/BossDefeatReward_PinkRabbit_Grass.png"
   },
   {
     "id": "BossDefeatReward_HerculesBeetle_Ground",
     "name": "格鲁力斯的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_HerculesBeetle_Ground.png"
+    "icon": "/icons/items/BossDefeatReward_HerculesBeetle_Ground.png"
   },
   {
     "id": "BossDefeatReward_IceNarwhal",
     "name": "凉晶鲸的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_IceNarwhal.png"
+    "icon": "/icons/items/BossDefeatReward_IceNarwhal.png"
   },
   {
     "id": "BossDefeatReward_PoseidonOrca",
     "name": "海皇鲸的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_PoseidonOrca.png"
+    "icon": "/icons/items/BossDefeatReward_PoseidonOrca.png"
   },
   {
     "id": "BossDefeatReward_IceNarwhal_Fire",
     "name": "桃晶鲸的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_IceNarwhal_Fire.png"
+    "icon": "/icons/items/BossDefeatReward_IceNarwhal_Fire.png"
   },
   {
     "id": "BossDefeatReward_FlowerPrince",
     "name": "夜蔓爵的花瓣",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FlowerPrince.png"
+    "icon": "/icons/items/BossDefeatReward_FlowerPrince.png"
   },
   {
     "id": "BossDefeatReward_Mothman",
     "name": "暮尘蛾的羽毛",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Mothman.png"
+    "icon": "/icons/items/BossDefeatReward_Mothman.png"
   },
   {
     "id": "BossDefeatReward_BossRush",
     "name": "改造帕鲁的污染核心",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_BossRush.png"
+    "icon": "/icons/items/BossDefeatReward_BossRush.png"
   },
   {
     "id": "BossDefeatReward_FireKirin",
     "name": "火麒麟的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FireKirin.png"
+    "icon": "/icons/items/BossDefeatReward_FireKirin.png"
   },
   {
     "id": "BossDefeatReward_CubeTurtle",
     "name": "重岩龟的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_CubeTurtle.png"
+    "icon": "/icons/items/BossDefeatReward_CubeTurtle.png"
   },
   {
     "id": "BossDefeatReward_VolcanicMonster",
     "name": "熔岩兽的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_VolcanicMonster.png"
+    "icon": "/icons/items/BossDefeatReward_VolcanicMonster.png"
   },
   {
     "id": "BossDefeatReward_KabukiMan",
     "name": "燎火舞伶的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_KabukiMan.png"
+    "icon": "/icons/items/BossDefeatReward_KabukiMan.png"
   },
   {
     "id": "BossDefeatReward_VolcanoDragon_Ice",
     "name": "川霜龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_VolcanoDragon_Ice.png"
+    "icon": "/icons/items/BossDefeatReward_VolcanoDragon_Ice.png"
   },
   {
     "id": "BossDefeatReward_GrassGolem",
     "name": "双心岩傀的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_GrassGolem.png"
+    "icon": "/icons/items/BossDefeatReward_GrassGolem.png"
   },
   {
     "id": "BossDefeatReward_MushroomLady",
     "name": "红菇娘的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_MushroomLady.png"
+    "icon": "/icons/items/BossDefeatReward_MushroomLady.png"
   },
   {
     "id": "BossDefeatReward_WhiteDeer_Dark",
     "name": "织夜鹿的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_WhiteDeer_Dark.png"
+    "icon": "/icons/items/BossDefeatReward_WhiteDeer_Dark.png"
   },
   {
     "id": "BossDefeatReward_RockBeast_Ice",
     "name": "寒峰兽的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_RockBeast_Ice.png"
+    "icon": "/icons/items/BossDefeatReward_RockBeast_Ice.png"
   },
   {
     "id": "BossDefeatReward_LotusDragon",
     "name": "沁莲龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_LotusDragon.png"
+    "icon": "/icons/items/BossDefeatReward_LotusDragon.png"
   },
   {
     "id": "BossDefeatReward_FoxExorcist",
     "name": "昭炎狐的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FoxExorcist.png"
+    "icon": "/icons/items/BossDefeatReward_FoxExorcist.png"
   },
   {
     "id": "BossDefeatReward_ThunderFluffyBird",
     "name": "雷云鹫的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_ThunderFluffyBird.png"
+    "icon": "/icons/items/BossDefeatReward_ThunderFluffyBird.png"
   },
   {
     "id": "BossDefeatReward_ElecLizard",
     "name": "电懒懒的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_ElecLizard.png"
+    "icon": "/icons/items/BossDefeatReward_ElecLizard.png"
   },
   {
     "id": "BossDefeatReward_ElecSnail",
     "name": "电涡蜗的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_ElecSnail.png"
+    "icon": "/icons/items/BossDefeatReward_ElecSnail.png"
   },
   {
     "id": "BossDefeatReward_GhostDragon",
     "name": "灵曦龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_GhostDragon.png"
+    "icon": "/icons/items/BossDefeatReward_GhostDragon.png"
   },
   {
     "id": "BossDefeatReward_LilyQueen",
     "name": "百合女王的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_LilyQueen.png"
+    "icon": "/icons/items/BossDefeatReward_LilyQueen.png"
   },
   {
     "id": "BossDefeatReward_ElecPanda",
     "name": "暴电熊的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_ElecPanda.png"
+    "icon": "/icons/items/BossDefeatReward_ElecPanda.png"
   },
   {
     "id": "BossDefeatReward_GrassGolem_Dark",
     "name": "咒心岩傀的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_GrassGolem_Dark.png"
+    "icon": "/icons/items/BossDefeatReward_GrassGolem_Dark.png"
   },
   {
     "id": "BossDefeatReward_Manticore",
     "name": "狱焰王的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_Manticore.png"
+    "icon": "/icons/items/BossDefeatReward_Manticore.png"
   },
   {
     "id": "BossDefeatReward_FlameBuffalo",
     "name": "炽焰牛的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FlameBuffalo.png"
+    "icon": "/icons/items/BossDefeatReward_FlameBuffalo.png"
   },
   {
     "id": "BossDefeatReward_IceFox",
     "name": "吹雪狐的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_IceFox.png"
+    "icon": "/icons/items/BossDefeatReward_IceFox.png"
   },
   {
     "id": "BossDefeatReward_FoxMage",
     "name": "焰巫狐的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_FoxMage.png"
+    "icon": "/icons/items/BossDefeatReward_FoxMage.png"
   },
   {
     "id": "BossDefeatReward_CubeTurtle_Neutral",
     "name": "净岩龟的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_CubeTurtle_Neutral.png"
+    "icon": "/icons/items/BossDefeatReward_CubeTurtle_Neutral.png"
   },
   {
     "id": "BossDefeatReward_MoonChild",
     "name": "缀夜星的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_MoonChild.png"
+    "icon": "/icons/items/BossDefeatReward_MoonChild.png"
   },
   {
     "id": "BossDefeatReward_ScorpionMan_Electric",
     "name": "电针妖的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_ScorpionMan_Electric.png"
+    "icon": "/icons/items/BossDefeatReward_ScorpionMan_Electric.png"
   },
   {
     "id": "BossDefeatReward_RockBeast",
     "name": "磐峰兽的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_RockBeast.png"
+    "icon": "/icons/items/BossDefeatReward_RockBeast.png"
   },
   {
     "id": "BossDefeatReward_VolcanoDragon",
     "name": "流焰龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_VolcanoDragon.png"
+    "icon": "/icons/items/BossDefeatReward_VolcanoDragon.png"
   },
   {
     "id": "BossDefeatReward_CactusDoll",
     "name": "球抱苞的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_CactusDoll.png"
+    "icon": "/icons/items/BossDefeatReward_CactusDoll.png"
   },
   {
     "id": "BossDefeatReward_DomeArmorDragon",
     "name": "磐甲龙的讨伐证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/BossDefeatReward_DomeArmorDragon.png"
+    "icon": "/icons/items/BossDefeatReward_DomeArmorDragon.png"
   },
   {
     "id": "QuestItem_Farmer_1",
     "name": "农民的特制料理",
-    "icon": "https://lootlab.cn/palworld/items/icons/QuestItem_Farmer_1.png"
+    "icon": "/icons/items/QuestItem_Farmer_1.png"
   },
   {
     "id": "QuestItem_Zoe_1",
     "name": "佐伊记忆中的布条",
-    "icon": "https://lootlab.cn/palworld/items/icons/QuestItem_Zoe_1.png"
+    "icon": "/icons/items/QuestItem_Zoe_1.png"
   },
   {
     "id": "QuestItem_Zoe_2",
     "name": "佐伊的万圣节服装",
-    "icon": "https://lootlab.cn/palworld/items/icons/QuestItem_Zoe_2.png"
+    "icon": "/icons/items/QuestItem_Zoe_2.png"
   },
   {
     "id": "QuestItem_Breeder_1",
     "name": "驯养员心爱的帕鲁",
-    "icon": "https://lootlab.cn/palworld/items/icons/QuestItem_Breeder_1.png"
+    "icon": "/icons/items/QuestItem_Breeder_1.png"
   },
   {
     "id": "TreasureMap01",
     "name": "藏宝图",
-    "icon": "https://lootlab.cn/palworld/items/icons/TreasureMap01.png"
+    "icon": "/icons/items/TreasureMap01.png"
   },
   {
     "id": "KeySphere_01",
     "name": "嫉妒之密钥球",
-    "icon": "https://lootlab.cn/palworld/items/icons/KeySphere_01.png"
+    "icon": "/icons/items/KeySphere_01.png"
   },
   {
     "id": "KeySphere_02",
     "name": "傲慢之密钥球",
-    "icon": "https://lootlab.cn/palworld/items/icons/KeySphere_02.png"
+    "icon": "/icons/items/KeySphere_02.png"
   },
   {
     "id": "KeySphere_03",
     "name": "贪婪之密钥球",
-    "icon": "https://lootlab.cn/palworld/items/icons/KeySphere_03.png"
+    "icon": "/icons/items/KeySphere_03.png"
   },
   {
     "id": "KeySphere_04",
     "name": "怠惰之密钥球",
-    "icon": "https://lootlab.cn/palworld/items/icons/KeySphere_04.png"
+    "icon": "/icons/items/KeySphere_04.png"
   },
   {
     "id": "KeySphere_05",
     "name": "暴食之密钥球",
-    "icon": "https://lootlab.cn/palworld/items/icons/KeySphere_05.png"
+    "icon": "/icons/items/KeySphere_05.png"
   },
   {
     "id": "KeySphere_06",
     "name": "色欲之密钥球",
-    "icon": "https://lootlab.cn/palworld/items/icons/KeySphere_06.png"
+    "icon": "/icons/items/KeySphere_06.png"
   },
   {
     "id": "KeySphere_07",
     "name": "愤怒之密钥球",
-    "icon": "https://lootlab.cn/palworld/items/icons/KeySphere_07.png"
+    "icon": "/icons/items/KeySphere_07.png"
   },
   {
     "id": "KeySphere_08",
     "name": "原罪之密钥球",
-    "icon": "https://lootlab.cn/palworld/items/icons/KeySphere_08.png"
+    "icon": "/icons/items/KeySphere_08.png"
   },
   {
     "id": "WhaleWhistleFragment_01",
     "name": "涛声响骨",
-    "icon": "https://lootlab.cn/palworld/items/icons/WhaleWhistleFragment_01.png"
+    "icon": "/icons/items/WhaleWhistleFragment_01.png"
   },
   {
     "id": "WhaleWhistleFragment_02",
     "name": "静寂响骨",
-    "icon": "https://lootlab.cn/palworld/items/icons/WhaleWhistleFragment_02.png"
+    "icon": "/icons/items/WhaleWhistleFragment_02.png"
   },
   {
     "id": "WhaleWhistleFragment_03",
     "name": "泡沫响骨",
-    "icon": "https://lootlab.cn/palworld/items/icons/WhaleWhistleFragment_03.png"
+    "icon": "/icons/items/WhaleWhistleFragment_03.png"
   },
   {
     "id": "WhaleWhistleFragment_04",
     "name": "海风响骨",
-    "icon": "https://lootlab.cn/palworld/items/icons/WhaleWhistleFragment_04.png"
+    "icon": "/icons/items/WhaleWhistleFragment_04.png"
   },
   {
     "id": "WhaleWhistle",
     "name": "残响之笛",
-    "icon": "https://lootlab.cn/palworld/items/icons/WhaleWhistle.png"
+    "icon": "/icons/items/WhaleWhistle.png"
   },
   {
     "id": "PlayerDropItem",
     "name": "胜者证明",
-    "icon": "https://lootlab.cn/palworld/items/icons/PlayerDropItem.png"
+    "icon": "/icons/items/PlayerDropItem.png"
   }
 ]
