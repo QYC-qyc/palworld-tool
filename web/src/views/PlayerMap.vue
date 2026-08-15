@@ -26,21 +26,21 @@ const loading = ref(false)
 
 const TILE_SIZE = 256
 const MAX_ZOOM = 4
-// zoom=0 时瓦片数为 1x1，覆盖范围即游戏世界
-// 游戏坐标范围约 -1,400,000 ~ +1,400,000
+// 游戏世界坐标范围
 const WORLD_HALF = 1400000
-const PX_PER_UNIT = TILE_SIZE / (WORLD_HALF * 2) // zoom 0 时 1 游戏单位 = 多少像素
 
 let map: L.Map | null = null
 let markersLayer: L.LayerGroup | null = null
 let timer: any
 
+// 游戏坐标 -> Leaflet LatLng
+// L.CRS.Simple: 坐标 [lat,lng] 在 zoom=0 时对应像素 [y,x]
+// zoom 变化时 Leaflet 自动缩放
 function gameToLatLng(x: number, y: number): [number, number] {
-  // Simple CRS: y 向下为正
-  // 游戏坐标 (x, y) -> 地图像素 (px, py)
-  const px = (x + WORLD_HALF) * PX_PER_UNIT
-  const py = (-y + WORLD_HALF) * PX_PER_UNIT
-  return [py, px]
+  // 归一化到 [0, TILE_SIZE]（zoom=0 时整张地图1个tile）
+  const lat = ((-y + WORLD_HALF) / (WORLD_HALF * 2)) * TILE_SIZE
+  const lng = ((x + WORLD_HALF) / (WORLD_HALF * 2)) * TILE_SIZE
+  return [lat, lng]
 }
 
 async function loadOnline() {
@@ -85,16 +85,20 @@ onMounted(async () => {
   await nextTick()
   if (!mapEl.value) return
 
-  // Simple CRS: 像素坐标系，y 向下为正
-  const crs = L.Util.extend({}, L.CRS.Simple)
+  // 使用 Simple CRS，坐标范围 [0,0] 到 [256,256]（zoom=0）
+  const bounds: L.LatLngBoundsExpression = [
+    [0, 0],
+    [TILE_SIZE, TILE_SIZE],
+  ]
+
   map = L.map(mapEl.value, {
-    crs,
+    crs: L.CRS.Simple,
     minZoom: 0,
     maxZoom: MAX_ZOOM,
     zoomSnap: 0.5,
     zoomDelta: 0.5,
-    center: [TILE_SIZE / 2, TILE_SIZE / 2],
-    zoom: 1,
+    maxBounds: bounds,
+    maxBoundsViscosity: 1.0,
     attributionControl: false,
   })
 
@@ -104,17 +108,14 @@ onMounted(async () => {
     minZoom: 0,
     maxZoom: MAX_ZOOM,
     noWrap: true,
-    bounds: [[0, 0], [TILE_SIZE, TILE_SIZE]],
+    bounds,
   }).addTo(map)
 
-  // treemap 小地图叠加（左上角，约85x86像素）
-  const miniBounds: L.LatLngBoundsExpression = [
-    [0, 0],
-    [86, 85],
-  ]
-  L.imageOverlay('/map/treemap.webp', miniBounds, { opacity: 0.9 }).addTo(map)
+  // treemap 小地图叠加在左上角
+  L.imageOverlay('/map/treemap.webp', [[0, 0], [86, 85]], { opacity: 0.9 }).addTo(map)
 
-  map.setMaxBounds([[-256, -256], [TILE_SIZE + 256, TILE_SIZE + 256]])
+  map.fitBounds(bounds)
+  map.setZoom(1)
 
   markersLayer = L.layerGroup().addTo(map)
 
