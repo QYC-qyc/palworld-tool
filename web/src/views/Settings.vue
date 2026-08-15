@@ -278,15 +278,14 @@ async function doUpdate() {
       return
     }
 
-    // 轮询更新进度：下载阶段查 status，重启阶段查 health
+    // 先轮询 status 获取下载进度，直到 status 返回 done 或连接断开
     let elapsed = 0
-    let restartDetected = false
-    let healthOkCount = 0
-    const pollTimer = setInterval(async () => {
+    const pollStatus = setInterval(async () => {
       elapsed += 1
       try {
         const progResp = await fetch('/api/updater/status', {
           headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(3000),
         })
         if (progResp.ok) {
           const prog = await progResp.json()
@@ -294,44 +293,70 @@ async function doUpdate() {
           if (typeof prog.percent === 'number' && prog.percent > 0) {
             updateProgress.percent = prog.percent
           }
-          if (prog.done && prog.error) {
-            clearInterval(pollTimer)
-            updating.value = false
-            message.error(prog.error)
-            return
-          }
-        }
-      } catch { /* status 不可用，服务可能正在重启 */ }
-
-      // health 检测：服务断开后再恢复即认为重启完成
-      try {
-        const healthResp = await fetch('/health')
-        if (healthResp.ok) {
-          if (restartDetected) {
-            healthOkCount++
-            // 连续2次health成功才确认（避免服务刚启动又崩了）
-            if (healthOkCount >= 2) {
-              clearInterval(pollTimer)
-              updateProgress.percent = 100
-              updateProgress.message = '更新完成，即将刷新...'
-              message.success('面板更新完成')
-              setTimeout(() => location.reload(), 2000)
+          // 后端报告下载完成（done=true），开始等待重启
+          if (prog.done) {
+            if (prog.error) {
+              clearInterval(pollStatus)
+              updating.value = false
+              message.error(prog.error)
+              return
             }
+            // 下载完成，进入重启等待阶段
+            clearInterval(pollStatus)
+            waitForRestart()
           }
         }
       } catch {
-        restartDetected = true
-        healthOkCount = 0
-        updateProgress.message = '服务正在重启...'
-        updateProgress.percent = 98
+        // status 连接失败，可能正在重启，转入 health 检测
+        clearInterval(pollStatus)
+        waitForRestart()
       }
+      if (elapsed > 120) {
+        clearInterval(pollStatus)
+        // 超时也转入重启等待，服务可能已经重启了
+        waitForRestart()
+      }
+    }, 1500)
 
-      if (elapsed > 180) {
-        clearInterval(pollTimer)
-        updating.value = false
-        message.error('更新超时，请手动刷新页面')
-      }
-    }, 2000)
+    // 等待服务重启：先断开再恢复
+    let restartElapsed = 0
+    let wentDown = false
+    function waitForRestart() {
+      updateProgress.message = '服务正在重启...'
+      updateProgress.percent = 98
+      const t = setInterval(async () => {
+        restartElapsed += 1
+        try {
+          const r = await fetch('/health', { signal: AbortSignal.timeout(2000) })
+          if (!r.ok) {
+            wentDown = true
+          } else if (wentDown) {
+            // 服务断开后恢复了
+            clearInterval(t)
+            updateProgress.percent = 100
+            updateProgress.message = '更新完成，即将刷新...'
+            message.success('面板更新完成')
+            setTimeout(() => location.reload(), 2000)
+          } else {
+            // health 一直 OK，说明服务可能重启太快没检测到断开
+            // 等 10 秒后直接刷新（版本应该已经更新）
+            if (restartElapsed > 6) {
+              clearInterval(t)
+              updateProgress.percent = 100
+              updateProgress.message = '更新完成，即将刷新...'
+              setTimeout(() => location.reload(), 1500)
+            }
+          }
+        } catch {
+          wentDown = true
+        }
+        if (restartElapsed > 60) {
+          clearInterval(t)
+          updating.value = false
+          message.error('更新超时，请手动刷新页面')
+        }
+      }, 1500)
+    }
   } catch (e: any) {
     updating.value = false
     message.error(e.message || '更新失败')
