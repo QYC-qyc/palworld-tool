@@ -53,10 +53,14 @@ func fRange(min, max, step float64) (*float64, *float64, *float64) {
 	return &min, &max, &step
 }
 
-func rateField(key, label, def, desc, group string, restart bool) Field {
-	return Field{Key: key, Label: label, Type: TypeFloat, Default: def,
+func rateField(key, label, def, desc, group string, restart bool, min, max float64) Field {
+	f := Field{Key: key, Label: label, Type: TypeFloat, Default: def,
 		Description: desc, Group: group, RequiresRestart: restart,
-		Min: fmin(0), Step: fstep(0.1)}
+		Min: fmin(min), Step: fstep(0.1)}
+	if max > 0 {
+		f.Max = fmax(max)
+	}
+	return f
 }
 
 func intField(key, label, def, desc, group string, restart bool, min, max float64) Field {
@@ -131,36 +135,36 @@ func Schema() []Field {
 			Description: "跨平台列表，格式如 (Steam,Xbox,PS5,Mac)，无需加引号", Group: "服务器", RequiresRestart: true},
 
 		// ---- 游戏平衡（倍率字段官方未限定范围，仅设最小值和步进）----
-		rateField("DayTimeSpeedRate", "白天流逝速度", "1.0", "游戏内白天时间流速倍率", "世界", false),
-		rateField("NightTimeSpeedRate", "夜晚流逝速度", "1.0", "游戏内夜晚时间流速倍率", "世界", false),
-		rateField("ExpRate", "经验获取倍率", "1.0", "玩家与帕鲁获得经验值的倍率", "世界", false),
-		rateField("WorkSpeedRate", "工作速度倍率", "1.0", "帕鲁在据点工作的速度倍率", "世界", false),
-		rateField("PalCaptureRate", "捕获概率倍率", "1.0", "捕获帕鲁的成功概率倍率", "世界", false),
-		rateField("PalSpawnNumRate", "帕鲁出现数量倍率", "1.0", "野外帕鲁刷新数量倍率，数值越大服务器负载越高", "世界", false),
+		rateField("DayTimeSpeedRate", "白天流逝速度", "1.0", "游戏内白天时间流速倍率", "世界", false, 0.1, 5),
+		rateField("NightTimeSpeedRate", "夜晚流逝速度", "1.0", "游戏内夜晚时间流速倍率", "世界", false, 0.1, 5),
+		rateField("ExpRate", "经验获取倍率", "1.0", "玩家与帕鲁获得经验值的倍率", "世界", false, 0.1, 20),
+		rateField("WorkSpeedRate", "工作速度倍率", "1.0", "帕鲁在据点工作的速度倍率", "世界", false, 0.1, 5),
+		rateField("PalCaptureRate", "捕获概率倍率", "1.0", "捕获帕鲁的成功概率倍率", "世界", false, 0.5, 5),
+		rateField("PalSpawnNumRate", "帕鲁出现数量倍率", "1.0", "野外帕鲁刷新数量倍率，数值越大服务器负载越高", "世界", false, 0.5, 5),
 		{Key: "PalEggDefaultHatchingTime", Label: "巨大蛋孵化时间(小时)", Type: TypeFloat, Default: "72.0",
 			Description: "巨大帕鲁蛋所需孵化时长（小时），其余蛋按比例缩放", Group: "世界", Min: fmin(0), Step: fstep(0.1)},
-		rateField("PalDamageRateAttack", "帕鲁攻击伤害倍率", "1.0", "帕鲁造成的伤害倍率", "世界", false),
-		rateField("PalDamageRateDefense", "帕鲁受到伤害倍率", "1.0", "帕鲁承受的伤害倍率，越小越耐打", "世界", false),
-		rateField("PalAutoHPRegeneRate", "帕鲁自然回血倍率", "1.0", "帕鲁非睡眠状态下生命自然恢复倍率", "世界", false),
-		rateField("PalAutoHpRegeneRateInSleep", "帕鲁睡眠回血倍率", "1.0", "帕鲁睡眠时生命恢复倍率（官方键名拼写为 Hp）", "世界", false),
-		rateField("PalStaminaDecreaceRate", "帕鲁耐力消耗倍率", "1.0", "帕鲁耐力消耗速度倍率（官方键名拼写为 Decreace）", "世界", false),
-		rateField("PalStomachDecreaceRate", "帕鲁饥饿消耗倍率", "1.0", "帕鲁饱食度下降速度倍率（官方键名拼写为 Decreace）", "世界", false),
-		rateField("PlayerDamageRateAttack", "玩家攻击伤害倍率", "1.0", "玩家造成的伤害倍率", "世界", false),
-		rateField("PlayerDamageRateDefense", "玩家受到伤害倍率", "1.0", "玩家承受的伤害倍率，越小越耐打", "世界", false),
-		rateField("PlayerAutoHPRegeneRate", "玩家自然回血倍率", "1.0", "玩家非睡眠状态生命自然恢复倍率", "世界", false),
-		rateField("PlayerAutoHpRegeneRateInSleep", "玩家睡眠回血倍率", "1.0", "玩家睡眠时生命恢复倍率（官方键名拼写为 Hp）", "世界", false),
-		rateField("PlayerStaminaDecreaceRate", "玩家耐力消耗倍率", "1.0", "玩家耐力消耗速度倍率（官方键名拼写为 Decreace）", "世界", false),
-		rateField("PlayerStomachDecreaceRate", "玩家饥饿消耗倍率", "1.0", "玩家饱食度下降速度倍率（官方键名拼写为 Decreace）", "世界", false),
-		rateField("BuildObjectDamageRate", "建筑受伤倍率", "1.0", "建筑受到攻击时的伤害倍率", "世界", false),
-		rateField("BuildObjectDeteriorationDamageRate", "建筑损坏速度倍率", "1.0", "建筑无人维护时自然劣化速度倍率", "世界", false),
-		rateField("CollectionDropRate", "采集掉落倍率", "1.0", "砍伐、采矿等采集产出数量倍率", "世界", false),
-		rateField("CollectionObjectHpRate", "采集物血量倍率", "1.0", "树木、矿点等可采集对象生命值倍率，越大越难采集", "世界", false),
-		rateField("CollectionObjectRespawnSpeedRate", "采集物重生速度倍率", "1.0", "树木、矿石等重新刷新速度倍率", "世界", false),
-		rateField("EnemyDropItemRate", "敌人掉落物倍率", "1.0", "击败敌人/帕鲁时掉落物品数量倍率", "世界", false),
-		rateField("MonsterFarmActionSpeedRate", "牧场生产速度倍率", "1.0", "牧场帕鲁产出物品的速度倍率", "世界", false),
-		rateField("ItemWeightRate", "物品重量倍率", "1.0", "物品重量倍率，越小可携带越多", "世界", false),
-		rateField("ItemCorruptionMultiplier", "物品腐坏速度倍率", "1.0", "食物腐坏速度倍率", "世界", false),
-		rateField("EquipmentDurabilityDamageRate", "装备耐久损耗倍率", "1.0", "武器、防具耐久度下降速度倍率", "世界", false),
+		rateField("PalDamageRateAttack", "帕鲁攻击伤害倍率", "1.0", "帕鲁造成的伤害倍率", "世界", false, 0.1, 5),
+		rateField("PalDamageRateDefense", "帕鲁受到伤害倍率", "1.0", "帕鲁承受的伤害倍率，越小越耐打", "世界", false, 0.1, 5),
+		rateField("PalAutoHPRegeneRate", "帕鲁自然回血倍率", "1.0", "帕鲁非睡眠状态下生命自然恢复倍率", "世界", false, 0.1, 5),
+		rateField("PalAutoHpRegeneRateInSleep", "帕鲁睡眠回血倍率", "1.0", "帕鲁睡眠时生命恢复倍率（官方键名拼写为 Hp）", "世界", false, 0.1, 5),
+		rateField("PalStaminaDecreaceRate", "帕鲁耐力消耗倍率", "1.0", "帕鲁耐力消耗速度倍率（官方键名拼写为 Decreace）", "世界", false, 0.1, 5),
+		rateField("PalStomachDecreaceRate", "帕鲁饥饿消耗倍率", "1.0", "帕鲁饱食度下降速度倍率（官方键名拼写为 Decreace）", "世界", false, 0.1, 5),
+		rateField("PlayerDamageRateAttack", "玩家攻击伤害倍率", "1.0", "玩家造成的伤害倍率", "世界", false, 0.1, 5),
+		rateField("PlayerDamageRateDefense", "玩家受到伤害倍率", "1.0", "玩家承受的伤害倍率，越小越耐打", "世界", false, 0.1, 5),
+		rateField("PlayerAutoHPRegeneRate", "玩家自然回血倍率", "1.0", "玩家非睡眠状态生命自然恢复倍率", "世界", false, 0.1, 5),
+		rateField("PlayerAutoHpRegeneRateInSleep", "玩家睡眠回血倍率", "1.0", "玩家睡眠时生命恢复倍率（官方键名拼写为 Hp）", "世界", false, 0.1, 5),
+		rateField("PlayerStaminaDecreaceRate", "玩家耐力消耗倍率", "1.0", "玩家耐力消耗速度倍率（官方键名拼写为 Decreace）", "世界", false, 0.1, 5),
+		rateField("PlayerStomachDecreaceRate", "玩家饥饿消耗倍率", "1.0", "玩家饱食度下降速度倍率（官方键名拼写为 Decreace）", "世界", false, 0.1, 5),
+		rateField("BuildObjectDamageRate", "建筑受伤倍率", "1.0", "建筑受到攻击时的伤害倍率", "世界", false, 0.5, 3),
+		rateField("BuildObjectDeteriorationDamageRate", "建筑损坏速度倍率", "1.0", "建筑无人维护时自然劣化速度倍率", "世界", false, 0.1, 10),
+		rateField("CollectionDropRate", "采集掉落倍率", "1.0", "砍伐、采矿等采集产出数量倍率", "世界", false, 0.5, 5),
+		rateField("CollectionObjectHpRate", "采集物血量倍率", "1.0", "树木、矿点等可采集对象生命值倍率，越大越难采集", "世界", false, 0.5, 3),
+		rateField("CollectionObjectRespawnSpeedRate", "采集物重生速度倍率", "1.0", "树木、矿石等重新刷新速度倍率", "世界", false, 0.5, 5),
+		rateField("EnemyDropItemRate", "敌人掉落物倍率", "1.0", "击败敌人/帕鲁时掉落物品数量倍率", "世界", false, 0.5, 5),
+		rateField("MonsterFarmActionSpeedRate", "牧场生产速度倍率", "1.0", "牧场帕鲁产出物品的速度倍率", "世界", false, 0.1, 10),
+		rateField("ItemWeightRate", "物品重量倍率", "1.0", "物品重量倍率，越小可携带越多", "世界", false, 0.1, 5),
+		rateField("ItemCorruptionMultiplier", "物品腐坏速度倍率", "1.0", "食物腐坏速度倍率", "世界", false, 0.1, 10),
+		rateField("EquipmentDurabilityDamageRate", "装备耐久损耗倍率", "1.0", "武器、防具耐久度下降速度倍率", "世界", false, 0.1, 5),
 		intField("SupplyDropSpan", "空投补给间隔(秒)", "300",
 			"空投补给出现的间隔（秒）", "世界", false, 60, 0),
 		intField("AutoSaveSpan", "自动存档间隔(秒)", "30",
@@ -229,7 +233,7 @@ func Schema() []Field {
 		intField("DropItemMaxNum_UNKO", "UNKO掉落物上限", "100", "UNKO 掉落物最大数量", "进阶设置", false, 0, 0),
 		{Key: "DropItemAliveMaxHours", Label: "掉落物存活时间(小时)", Type: TypeFloat, Default: "1.0",
 			Description: "掉落物在世界中存在的最长时间（小时）", Group: "进阶设置", Min: fmin(0.1), Step: fstep(0.1)},
-		rateField("BuildObjectHpRate", "建筑血量倍率", "1.0", "建筑最大生命值倍率", "进阶设置", false),
+		rateField("BuildObjectHpRate", "建筑血量倍率", "1.0", "建筑最大生命值倍率", "进阶设置", false, 0.5, 5),
 		{Key: "ServerReplicatePawnCullDistance", Label: "帕鲁同步距离(cm)", Type: TypeInt, Default: "15000",
 			Description: "玩家周围帕鲁的同步距离（厘米），官方范围 5000–15000", Group: "进阶设置",
 			Min: fmin(5000), Max: fmax(15000), Step: fstep(100)},
