@@ -265,6 +265,20 @@ func Schema() []Field {
 		boolField("bAllowEnhanceStat_WorkSpeed", "允许强化工作速度", "True", "允许玩家分配点数到工作速度", "游戏设置", false),
 		boolField("bEnableAimAssistPad", "手柄瞄准辅助", "True", "启用手柄瞄准辅助", "游戏设置", false),
 		boolField("bEnableAimAssistKeyboard", "键盘瞄准辅助", "False", "启用键盘鼠标瞄准辅助", "游戏设置", false),
+		stringField("AdditionalDropItemWhenPlayerKillingInPvPMode", "PvP击杀掉落物品ID", "PlayerDropItem",
+			"PvP模式击杀玩家时额外掉落的物品ID", "游戏设置"),
+		intField("AdditionalDropItemNumWhenPlayerKillingInPvPMode", "PvP击杀掉落数量", "1",
+			"PvP模式击杀玩家时额外掉落物品数量", "游戏设置", false, 0, 100),
+		boolField("bAdditionalDropItemWhenPlayerKillingInPvPMode", "启用PvP击杀掉落", "False",
+			"PvP模式击杀玩家时掉落额外物品", "游戏设置", false),
+		{Key: "ItemContainerForceMarkDirtyInterval", Label: "容器同步间隔(秒)", Type: TypeFloat, Default: "1.0",
+			Description: "打开容器UI时强制重新同步的间隔（秒）", Group: "经济与掉落", Min: fmin(0.1), Max: fmax(10), Step: fstep(0.1)},
+		{Key: "PhysicsActiveDropItemMaxNum", Label: "物理掉落物上限", Type: TypeInt, Default: "-1",
+			Description: "使用物理行为的掉落物最大数量，-1 表示不限制", Group: "经济与掉落", Min: fmin(-1), Max: fmax(10000)},
+		boolField("bInvisibleOtherGuildBaseCampAreaFX", "隐藏他公会据点特效", "False",
+			"不显示其他公会据点的区域边界特效", "多人与公会", false),
+		boolField("bIsMultiplay", "多人游戏（仅客户端开服）", "False",
+			"启用多人游戏模式，对专用服务器无效", "多人与公会", false),
 	}
 
 	// 添加死亡惩罚枚举
