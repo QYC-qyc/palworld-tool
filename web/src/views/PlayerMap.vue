@@ -30,11 +30,12 @@ let map: L.Map | null = null
 let markersLayer: L.LayerGroup | null = null
 let timer: any
 
-// 游戏坐标 -> Leaflet 坐标（Simple CRS, y轴翻转）
+// 游戏坐标 -> Leaflet 坐标（以图片中心为原点）
+// 游戏坐标范围 -1.4M ~ 1.4M，图片 4096px，即 1 像素 ≈ 683.6 游戏单位
 function gameToMap(x: number, y: number): [number, number] {
-  const px = ((x + WORLD_HALF) / (WORLD_HALF * 2)) * IMG_SIZE
-  const py = ((-y + WORLD_HALF) / (WORLD_HALF * 2)) * IMG_SIZE
-  return [py, px] // Leaflet uses [lat, lng] = [y, x] in pixel CRS
+  const scale = IMG_SIZE / (WORLD_HALF * 2)
+  // 地图 y 轴向下为正，游戏 y 轴向上为正，所以翻转
+  return [-y * scale, x * scale]
 }
 
 async function loadOnline() {
@@ -82,18 +83,19 @@ onMounted(async () => {
   // Simple CRS: 像素坐标系，y 向下为正
   map = L.map(mapEl.value, {
     crs: L.CRS.Simple,
-    minZoom: -2,
-    maxZoom: 3,
+    minZoom: -3,
+    maxZoom: 4,
     zoomSnap: 0.5,
-    center: [IMG_SIZE / 2, IMG_SIZE / 2],
-    zoom: -1,
+    center: [0, 0],
+    zoom: 0,
     attributionControl: false,
   })
 
-  // 地图边界
+  // 地图边界（以图片中心为原点 [0,0]）
+  const half = IMG_SIZE / 2
   const bounds: L.LatLngBoundsExpression = [
-    [0, 0],
-    [IMG_SIZE, IMG_SIZE],
+    [-half, -half],
+    [half, half],
   ]
   L.imageOverlay('/map/world.webp', bounds).addTo(map)
   map.fitBounds(bounds)
