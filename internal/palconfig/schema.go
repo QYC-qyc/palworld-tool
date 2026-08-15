@@ -271,6 +271,19 @@ func Schema() []Field {
 		Description: "玩家死亡时掉落的内容", Group: "多人与公会"}
 	fields = append(fields, deathPenalty)
 
+	// 给有 Min/Max 的字段在 Description 中追加范围提示
+	for i := range fields {
+		if fields[i].Min != nil && fields[i].Max != nil {
+			rangeText := fmt.Sprintf("（范围：%g–%g）", *fields[i].Min, *fields[i].Max)
+			if !strings.Contains(fields[i].Description, "范围") {
+				if fields[i].Description != "" {
+					fields[i].Description += " "
+				}
+				fields[i].Description += rangeText
+			}
+		}
+	}
+
 	return fields
 }
 

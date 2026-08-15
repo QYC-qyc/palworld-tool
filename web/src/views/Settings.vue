@@ -40,16 +40,16 @@
     </n-card>
 
     <n-card title="存档与进程" size="small">
-      <n-form label-placement="left" label-width="140">
+      <n-form label-placement="top">
         <n-form-item>
           <template #label>
-            <span style="display:inline-flex;align-items:center;gap:4px">
+            <span class="field-label">
               存档 Saved 目录
               <n-tooltip trigger="hover">
                 <template #trigger>
                   <n-icon :component="HelpCircleOutline" class="help-icon" />
                 </template>
-                通常无需手动填写，留空时自动使用游戏安装目录下的 Pal/Saved
+                通常无需手动填写。留空时自动使用游戏安装目录下的 Pal/Saved
               </n-tooltip>
             </span>
           </template>
@@ -58,30 +58,63 @@
         </n-form-item>
         <n-grid cols="1 s:3" :x-gap="12">
           <n-gi>
-            <n-form-item label="进程控制" label-placement="top">
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  进程控制模式
+                  <n-tooltip trigger="hover">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    面板启动/停止游戏服的方式。systemd：通过 systemctl 管理服务；docker：控制容器；noop：仅提示手动操作
+                  </n-tooltip>
+                </span>
+              </template>
               <n-select v-model:value="form['process.mode']" :options="processModes" />
             </n-form-item>
           </n-gi>
           <n-gi>
-            <n-form-item label="systemd 服务名" label-placement="top">
-              <n-input v-model:value="form['process.service']" placeholder="paladmin" />
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  systemd 服务名
+                  <n-tooltip trigger="hover">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    systemd 模式下游戏服的服务名，如 palworld 或 palServer
+                  </n-tooltip>
+                </span>
+              </template>
+              <n-input v-model:value="form['process.service']" placeholder="palworld" />
             </n-form-item>
           </n-gi>
           <n-gi>
-            <n-form-item label="docker 容器名" label-placement="top">
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  docker 容器名
+                  <n-tooltip trigger="hover">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    docker 模式下游戏服容器名或 ID
+                  </n-tooltip>
+                </span>
+              </template>
               <n-input v-model:value="form['process.container']" placeholder="palworld" />
             </n-form-item>
           </n-gi>
         </n-grid>
         <n-form-item>
           <template #label>
-            <span style="display:inline-flex;align-items:center;gap:4px">
-              自动备份间隔（分钟，0=关闭）
+            <span class="field-label">
+              自动备份间隔（分钟）
               <n-tooltip trigger="hover">
                 <template #trigger>
                   <n-icon :component="HelpCircleOutline" class="help-icon" />
                 </template>
-                仅在游戏服运行时执行备份，默认 60 分钟
+                每隔多少分钟自动备份存档，0 表示关闭。仅在游戏服运行时执行备份
               </n-tooltip>
             </span>
           </template>
