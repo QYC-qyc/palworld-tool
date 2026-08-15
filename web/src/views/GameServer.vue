@@ -57,16 +57,25 @@
             </n-form-item>
           </n-gi>
           <n-gi style="grid-column: 1 / -1">
-            <n-form-item label="启动额外参数（可选）">
+            <n-form-item>
+              <template #label>
+                <span style="display:inline-flex;align-items:center;gap:4px">
+                  启动额外参数（可选）
+                  <n-tooltip trigger="hover" placement="top" style="max-width:400px">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    <span>端口、REST/RCON 等网络参数请到「游戏配置」页修改，无需填写 -port。<br/>
+                    常用参数：<br/>
+                    <code>-publiclobby</code> 社区服务器；<br/>
+                    <code>-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS</code> 多线程优化；<br/>
+                    <code>-NumberOfWorkerThreadsServer=X</code> 工作线程数；<br/>
+                    <code>-logformat=text</code> 日志格式</span>
+                  </n-tooltip>
+                </span>
+              </template>
               <n-input v-model:value="cfg.extra_args" type="textarea" :autosize="{ minRows: 2 }"
                 placeholder="如 -publiclobby -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS" />
-              <n-text depth="3" style="font-size:12px;line-height:1.6">
-                端口、REST/RCON 等网络参数请到「游戏配置」页修改，无需在此填写 -port。常用参数：<br/>
-                <code>-publiclobby</code> 设为社区服务器（公开列表）；
-                <code>-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS</code> 多线程性能优化；
-                <code>-NumberOfWorkerThreadsServer=X</code> 指定工作线程数；
-                <code>-logformat=text</code> 日志格式（text/json）
-              </n-text>
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -131,8 +140,10 @@
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
-  NForm, NFormItem, NInput, NButton, NGrid, NGi, NText, NModal, useMessage,
+  NForm, NFormItem, NInput, NButton, NGrid, NGi, NText, NModal,
+  NTooltip, NIcon, useMessage,
 } from 'naive-ui'
+import { HelpCircleOutline } from '@vicons/ionicons5'
 import { gameApi, type GameServerStatus, type GameServerConfig } from '@/api/gameserver'
 
 const message = useMessage()
@@ -313,5 +324,10 @@ code {
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 12px;
+}
+.help-icon {
+  font-size: 15px;
+  color: var(--n-text-color-3, #999);
+  cursor: help;
 }
 </style>

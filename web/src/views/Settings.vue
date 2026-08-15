@@ -41,12 +41,20 @@
 
     <n-card title="存档与进程" size="small">
       <n-form label-placement="left" label-width="140">
-        <n-form-item label="存档 Saved 目录">
+        <n-form-item>
+          <template #label>
+            <span style="display:inline-flex;align-items:center;gap:4px">
+              存档 Saved 目录
+              <n-tooltip trigger="hover">
+                <template #trigger>
+                  <n-icon :component="HelpCircleOutline" class="help-icon" />
+                </template>
+                通常无需手动填写，留空时自动使用游戏安装目录下的 Pal/Saved
+              </n-tooltip>
+            </span>
+          </template>
           <n-input v-model:value="form['save.path']"
             :placeholder="form['save.path_effective'] ? `留空自动使用：${form['save.path_effective']}` : '留空则从游戏安装目录自动查找'" />
-          <n-text depth="3" style="font-size:12px">
-            通常无需手动填写，留空时自动使用游戏安装目录下的 Pal/Saved
-          </n-text>
         </n-form-item>
         <n-grid cols="1 s:3" :x-gap="12">
           <n-gi>
@@ -65,12 +73,20 @@
             </n-form-item>
           </n-gi>
         </n-grid>
-        <n-form-item label="自动备份间隔（分钟，0=关闭）">
+        <n-form-item>
+          <template #label>
+            <span style="display:inline-flex;align-items:center;gap:4px">
+              自动备份间隔（分钟，0=关闭）
+              <n-tooltip trigger="hover">
+                <template #trigger>
+                  <n-icon :component="HelpCircleOutline" class="help-icon" />
+                </template>
+                仅在游戏服运行时执行备份，默认 60 分钟
+              </n-tooltip>
+            </span>
+          </template>
           <n-input-number v-model:value="backupInterval" :min="0" :max="1440"
             :step="10" style="width:200px" />
-          <n-text depth="3" style="font-size:12px;margin-left:12px">
-            仅在游戏服运行时执行备份
-          </n-text>
         </n-form-item>
       </n-form>
     </n-card>
@@ -146,8 +162,10 @@
 import { onMounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NForm, NFormItem, NInput, NSwitch, NGrid, NGi,
-  NSelect, NButton, NTag, NText, NAlert, NModal, NProgress, useMessage,
+  NSelect, NButton, NTag, NText, NAlert, NModal, NProgress,
+  NTooltip, NIcon, NInputNumber, useMessage,
 } from 'naive-ui'
+import { HelpCircleOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
 
 const message = useMessage()
@@ -377,3 +395,11 @@ async function doUpdate() {
   }
 }
 </script>
+
+<style scoped>
+.help-icon {
+  font-size: 15px;
+  color: var(--n-text-color-3, #999);
+  cursor: help;
+}
+</style>

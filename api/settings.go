@@ -154,7 +154,8 @@ func isEditableKey(k string) bool {
 	case service.SettingWebPassword, service.SettingRestAddress, service.SettingRestUsername,
 		service.SettingRestPassword, service.SettingRconAddress, service.SettingRconPassword,
 		service.SettingRconUseBase64, service.SettingSavePath, service.SettingProcessMode,
-		service.SettingProcessService, service.SettingProcessContainer:
+		service.SettingProcessService, service.SettingProcessContainer,
+		"save.backup_interval":
 		return true
 	}
 	return false
