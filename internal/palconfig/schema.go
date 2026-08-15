@@ -303,7 +303,10 @@ func ParseFile(path string) (map[string]string, error) {
 			for _, pair := range splitOptions(body) {
 				kv := strings.SplitN(pair, "=", 2)
 				if len(kv) == 2 {
-					result[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+					key := strings.TrimSpace(kv[0])
+					val := strings.TrimSpace(kv[1])
+					val = strings.Trim(val, `"`)
+					result[key] = val
 				}
 			}
 		}
@@ -393,7 +396,10 @@ func Parse(content string) map[string]string {
 			for _, pair := range splitOptions(body) {
 				kv := strings.SplitN(pair, "=", 2)
 				if len(kv) == 2 {
-					result[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+					key := strings.TrimSpace(kv[0])
+					val := strings.TrimSpace(kv[1])
+					val = strings.Trim(val, `"`)
+					result[key] = val
 				}
 			}
 		}

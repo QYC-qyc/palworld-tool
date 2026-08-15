@@ -402,4 +402,8 @@ async function doUpdate() {
   color: var(--n-text-color-3, #999);
   cursor: help;
 }
+:deep(.n-tooltip) {
+  background: #1f1f1f !important;
+  color: #fff !important;
+}
 </style>

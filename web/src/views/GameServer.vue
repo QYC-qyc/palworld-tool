@@ -61,16 +61,18 @@
               <template #label>
                 <span style="display:inline-flex;align-items:center;gap:4px">
                   启动额外参数（可选）
-                  <n-tooltip trigger="hover" placement="top" style="max-width:400px">
+                  <n-tooltip trigger="hover" placement="top" :show-arrow="false">
                     <template #trigger>
                       <n-icon :component="HelpCircleOutline" class="help-icon" />
                     </template>
-                    <span>端口、REST/RCON 等网络参数请到「游戏配置」页修改，无需填写 -port。<br/>
-                    常用参数：<br/>
-                    <code>-publiclobby</code> 社区服务器；<br/>
-                    <code>-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS</code> 多线程优化；<br/>
-                    <code>-NumberOfWorkerThreadsServer=X</code> 工作线程数；<br/>
-                    <code>-logformat=text</code> 日志格式</span>
+                    <div class="tooltip-content">
+                      端口、REST/RCON 等网络参数请到「游戏配置」页修改，无需填写 -port。<br/>
+                      常用参数：<br/>
+                      <code>-publiclobby</code> 社区服务器；<br/>
+                      <code>-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS</code> 多线程优化；<br/>
+                      <code>-NumberOfWorkerThreadsServer=X</code> 工作线程数；<br/>
+                      <code>-logformat=text</code> 日志格式
+                    </div>
                   </n-tooltip>
                 </span>
               </template>
@@ -329,5 +331,19 @@ code {
   font-size: 15px;
   color: var(--n-text-color-3, #999);
   cursor: help;
+}
+.tooltip-content {
+  max-width: 360px;
+  line-height: 1.6;
+}
+.tooltip-content code {
+  background: rgba(255,255,255,0.15);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+:deep(.n-tooltip) {
+  background: #1f1f1f !important;
+  color: #fff !important;
 }
 </style>

@@ -205,4 +205,8 @@ onMounted(load)
   max-width: 260px;
   line-height: 1.5;
 }
+:deep(.n-tooltip) {
+  background: #1f1f1f !important;
+  color: #fff !important;
+}
 </style>
