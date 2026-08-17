@@ -1,9 +1,9 @@
 #!/bin/bash
-# 自动清理旧 tag，只保留最近 N 个（本地 + Gitee origin + GitHub github）
+# 自动清理旧 tag，只保留最近 N 个（本地 + Gitee origin，GitHub 由 Gitee 自动同步）
 # 用法: ./scripts/cleanup-tags.sh [保留数量，默认5]
 #
-# 注意：只删 tag，不删 GitHub/Gitee release（release 保留）。
-# 需在仓库根目录执行，且已配置 origin(gitee) 和 github 两个 remote。
+# 注意：只删 tag，不删 release（release 保留）。
+# Gitee 已配置自动同步到 GitHub，因此不需要单独操作 github remote。
 
 set -e
 
@@ -29,16 +29,13 @@ echo "$OLD_TAGS" | while read -r t; do
   [ -n "$t" ] && git tag -d "$t"
 done
 
-# 远程删除参数
+# 远程删除参数（Gitee 删除后会自动同步到 GitHub）
 REFS=$(echo "$OLD_TAGS" | while read -r t; do
   [ -n "$t" ] && echo -n ":refs/tags/$t "
 done)
 
-echo ">> 删除 Gitee(origin) 远程 tag..."
+echo ">> 删除 Gitee(origin) 远程 tag（将自动同步到 GitHub）..."
 eval "git push origin $REFS"
-
-echo ">> 删除 GitHub(github) 远程 tag..."
-eval "git -c http.sslVerify=false push github $REFS"
 
 echo ""
 echo "完成。剩余 tag："
