@@ -90,11 +90,26 @@ async function loadAll() {
 
 function openBroadcast() { showBroadcast.value = true }
 
+// 优先走 PalDefender 广播；若 PD 未配置/不可用，回退官方 REST broadcast
+async function sendBroadcastMsg(msg: string) {
+  try {
+    await api.pdBroadcast(msg)
+    return 'paldefender'
+  } catch (e: any) {
+    const msgText: string = e?.message || ''
+    if (msgText.includes('未配置') || msgText.includes('PalDefender') || msgText.includes('paldefender')) {
+      await api.broadcast(msg)
+      return 'official'
+    }
+    throw e
+  }
+}
+
 async function sendBroadcast() {
   if (!broadcastMsg.value) return
   sending.value = true
   try {
-    await api.broadcast(broadcastMsg.value)
+    await sendBroadcastMsg(broadcastMsg.value)
     message.success('广播已发送')
     broadcastMsg.value = ''
     showBroadcast.value = false

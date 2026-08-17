@@ -1,7 +1,8 @@
-// Package detect 提供轻量级外部反作弊检测。
-// 不 hook 游戏进程，通过 REST API 轮询在线玩家和解析存档数据发现异常。
-// 检测到作弊时，封禁优先通过 PalDefender REST API（写入 Banlist.json 并踢在线玩家），
-// 未配置 PalDefender 时回退到官方 REST API。
+// Package detect 提供外部监控与存档审计。
+// 不 hook 游戏进程，通过 REST API 轮询在线玩家和解析存档数据发现异常，
+// 与 PalDefender 运行时 hook 形成互补。
+// 检测到作弊时，封禁通过 PalDefender REST API 执行（写入 Banlist.json 并自动踢在线玩家）；
+// 踢出优先走 PalDefender，失败时回退官方 REST API。
 package detect
 
 import (
@@ -16,7 +17,6 @@ import (
 	"paladmin/internal/logger"
 	"paladmin/internal/paldefender"
 	"paladmin/internal/tool"
-	"paladmin/service"
 )
 
 // Config 检测配置
@@ -219,46 +219,37 @@ func RunSaveCheck(db *bbolt.DB, cfg *Config, players []database.Player) {
 	}
 }
 
-// act 执行处置动作。封禁优先通过 PalDefender（写入 Banlist.json 并强制踢在线玩家），
-// 未配置 PalDefender 时回退到官方 REST API。
+// act 执行处置动作。封禁通过 PalDefender（写入 Banlist.json 并强制踢在线玩家），
+// PD 失败仅记日志，不再回退官方 REST；踢出优先 PalDefender，失败回退官方 REST。
 func act(db *bbolt.DB, cfg *Config, steamID, nickname, reason string) {
 	logger.Warnf("[检测] %s(%s): %s", nickname, steamID, reason)
 	if db == nil || steamID == "" {
 		return
 	}
 
-	// 封禁（优先 PalDefender）
+	// 封禁：只走 PalDefender（成功时 PD 会自动踢在线玩家）
 	banned := false
 	if cfg.BanOnDetect {
-		banned = banByPalDefender(db, steamID, reason)
-		if !banned {
-			if err := tool.BanPlayer(steamID); err != nil {
-				logger.Warnf("封禁失败(官方REST): %v", err)
-			} else {
-				banned = true
-			}
-		}
-		if banned {
-			_ = service.AddBan(db, database.BanRecord{
-				Type: database.BanUser, Identifier: steamID,
-				Reason: reason, Issuer: "detect",
-			})
+		if banByPalDefender(db, steamID, reason) {
+			banned = true
 			logger.Infof("已封禁 %s: %s", nickname, reason)
 		}
 	}
 
-	// 踢出：未封禁或封禁未把玩家踢下线时执行
+	// 踢出：未封禁时执行（封禁成功时 PD 已自动踢人，无需重复）
 	if cfg.KickOnDetect && !banned {
-		if err := tool.KickPlayer(steamID); err != nil {
+		if kickByPalDefender(db, steamID, reason) {
+			logger.Infof("已踢出 %s: %s", nickname, reason)
+		} else if err := tool.KickPlayer(steamID); err != nil {
 			logger.Warnf("踢出失败: %v", err)
 		} else {
-			logger.Infof("已踢出 %s: %s", nickname, reason)
+			logger.Infof("已踢出(官方REST) %s: %s", nickname, reason)
 		}
 	}
 }
 
-// banByPalDefender 尝试通过 PalDefender REST API 封禁玩家。
-// 成功返回 true（PD 封禁会同时踢在线玩家）；未配置或失败返回 false 由调用方回退。
+// banByPalDefender 通过 PalDefender REST API 封禁玩家。
+// 成功返回 true（PD 封禁会同时踢在线玩家）；未配置或失败返回 false。
 func banByPalDefender(db *bbolt.DB, steamID, reason string) bool {
 	client, err := paldefender.Load(db)
 	if err != nil {
@@ -270,6 +261,23 @@ func banByPalDefender(db *bbolt.DB, steamID, reason string) bool {
 	// PD 接受带平台前缀的 UserId（steam_xxx）
 	if _, err := client.Ban("steam_"+steamID, reason, false); err != nil {
 		logger.Warnf("PalDefender 封禁失败: %v", err)
+		return false
+	}
+	return true
+}
+
+// kickByPalDefender 通过 PalDefender REST API 踢出玩家。
+// 成功返回 true；未配置或失败返回 false 由调用方回退官方 REST。
+func kickByPalDefender(db *bbolt.DB, steamID, reason string) bool {
+	client, err := paldefender.Load(db)
+	if err != nil {
+		if !errors.Is(err, paldefender.ErrNotConfigured) {
+			logger.Debugf("PalDefender 加载失败: %v", err)
+		}
+		return false
+	}
+	if _, err := client.Kick("steam_"+steamID, reason); err != nil {
+		logger.Warnf("PalDefender 踢出失败: %v", err)
 		return false
 	}
 	return true

@@ -1,8 +1,15 @@
 package api
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"paladmin/internal/paldefender"
@@ -34,6 +41,79 @@ func pdRaw(c *gin.Context, raw []byte) {
 }
 
 // --- 连通性 ---
+
+// createToken 一键生成 PalDefender REST API Token 文件（仅 Linux）。
+func (p *palDefenderAPI) createToken(c *gin.Context) {
+	if runtime.GOOS != "linux" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "仅支持 Linux"})
+		return
+	}
+
+	var req struct {
+		Name string `json:"name"`
+	}
+	_ = c.ShouldBindJSON(&req)
+	name := req.Name
+	if name == "" {
+		name = "PalAdmin"
+	}
+
+	st := p.detectAt("")
+	if st.Win64Path == "" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "PalDefender 未安装（找不到游戏 Win64 目录）"})
+		return
+	}
+
+	tokensDir := filepath.Join(st.Win64Path, "PalDefender", "RESTAPI", "Tokens")
+	if err := os.MkdirAll(tokensDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	// 生成 48 字节随机 token
+	buf := make([]byte, 48)
+	if _, err := rand.Read(buf); err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+	token := base64.RawURLEncoding.EncodeToString(buf)
+
+	// 文件名冲突时 name-2.json、name-3.json ...
+	filename := name + ".json"
+	for i := 2; ; i++ {
+		if _, err := os.Stat(filepath.Join(tokensDir, filename)); os.IsNotExist(err) {
+			break
+		}
+		filename = name + "-" + strconv.Itoa(i) + ".json"
+	}
+
+	payload := struct {
+		Name        string   `json:"Name"`
+		Token       string   `json:"Token"`
+		Permissions []string `json:"Permissions"`
+	}{
+		Name:        name,
+		Token:       token,
+		Permissions: []string{"REST.*"},
+	}
+	data, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+	if err := os.WriteFile(filepath.Join(tokensDir, filename), data, 0600); err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	_ = audit.Add(db, "web", "paldefender_create_token", filename, "生成 REST API Token", "success")
+	c.JSON(http.StatusOK, gin.H{
+		"success":    true,
+		"token":      token,
+		"token_file": filename,
+		"tokens_dir": tokensDir,
+	})
+}
 
 func (p *palDefenderAPI) apiVersion(c *gin.Context) {
 	client := pdLoad(c)

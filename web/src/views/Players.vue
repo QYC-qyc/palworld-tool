@@ -47,21 +47,40 @@
         </n-tabs>
         <n-divider>操作</n-divider>
         <n-space>
-          <n-button type="warning" ghost @click="act('kick', detail)">踢出</n-button>
-          <n-button type="error" ghost @click="act('ban', detail)">封禁</n-button>
-          <n-button @click="act('unban', detail)">解封</n-button>
-          <n-button type="error" @click="act('ipban', detail)">IP封禁</n-button>
+          <n-button type="warning" ghost @click="openAct('kick', detail)">踢出</n-button>
+          <n-button type="error" ghost @click="openAct('ban', detail)">封禁</n-button>
+          <n-button @click="openAct('unban', detail)">解封</n-button>
+          <n-button type="error" @click="openAct('ipban', detail)">IP封禁</n-button>
         </n-space>
       </n-drawer-content>
     </n-drawer>
+
+    <n-modal v-model:show="act.show" preset="card" :title="act.title" style="max-width:460px">
+      <n-space vertical>
+        <n-input v-if="act.kind === 'ipban'" v-model:value="act.ip" placeholder="IP 地址（默认使用该玩家 IP）" />
+        <n-input v-model:value="act.reason" type="textarea" :autosize="{ minRows: 2 }"
+          placeholder="原因（可选）" />
+        <n-switch v-if="act.kind === 'ban'" v-model:value="act.ipBan">
+          <template #checked>同时封禁 IP</template>
+          <template #unchecked>仅封禁账号</template>
+        </n-switch>
+      </n-space>
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="act.show = false">取消</n-button>
+          <n-button type="primary" :loading="act.loading" @click="confirmAct">确定</n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </n-space>
 </template>
 
 <script setup lang="ts">
-import { h, onMounted, ref, computed } from 'vue'
+import { h, onMounted, reactive, ref, computed } from 'vue'
 import {
   NSpace, NCard, NDataTable, NDrawer, NDrawerContent, NDescriptions, NDescriptionsItem,
-  NButton, NDivider, NTag, NTabs, NTabPane, NImage, NText, useMessage,
+  NButton, NDivider, NTag, NTabs, NTabPane, NImage, NText, NModal, NInput, NSwitch,
+  useMessage,
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { api } from '@/api'
@@ -72,6 +91,18 @@ const online = ref<any[]>([])
 const showDetail = ref(false)
 const detail = ref<any>(null)
 const itemMap = ref<Record<string, any>>({})
+
+// 操作弹框
+const act = reactive({
+  show: false,
+  kind: '' as 'kick' | 'ban' | 'unban' | 'ipban' | '',
+  title: '',
+  reason: '',
+  ip: '',
+  ipBan: false,
+  loading: false,
+  target: null as any,
+})
 
 // 加载物品图标映射
 fetch('/data/item_list.json').then(r => r.json()).then((data: any[]) => {
@@ -172,15 +203,52 @@ function rowProps(row: any) {
   }
 }
 
-async function act(kind: string, p: any) {
+// PalDefender 玩家标识：优先 steam_<steam_id>，缺失时回退 PlayerUID
+function pdId(p: any): string {
+  return p.steam_id ? `steam_${p.steam_id}` : p.player_uid
+}
+
+const ACT_TITLE: Record<string, string> = {
+  kick: '踢出玩家',
+  ban: '封禁玩家',
+  unban: '解封玩家',
+  ipban: 'IP 封禁',
+}
+
+function openAct(kind: 'kick' | 'ban' | 'unban' | 'ipban', p: any) {
+  act.kind = kind
+  act.title = ACT_TITLE[kind]
+  act.reason = ''
+  act.ip = p.ip || ''
+  act.ipBan = false
+  act.target = p
+  act.show = true
+}
+
+async function confirmAct() {
+  const p = act.target
+  if (!p) return
+  if (act.kind === 'ipban' && !act.ip.trim()) {
+    message.warning('请输入 IP 地址')
+    return
+  }
+  act.loading = true
   try {
-    if (kind === 'kick') await api.kickPlayer(p.player_uid)
-    if (kind === 'ban') await api.banPlayer(p.player_uid)
-    if (kind === 'unban') await api.unbanPlayer(p.player_uid)
-    if (kind === 'ipban') await api.ipBanPlayer(p.player_uid)
+    const reason = act.reason.trim()
+    if (act.kind === 'kick') await api.pdKick(pdId(p), reason)
+    else if (act.kind === 'ban') await api.pdBan(pdId(p), reason, act.ipBan)
+    else if (act.kind === 'unban') await api.pdUnban(pdId(p), reason)
+    else if (act.kind === 'ipban') await api.pdBanIP(act.ip.trim(), reason)
     message.success('操作成功')
+    act.show = false
+    // 刷新详情与列表
+    try { detail.value = await api.getPlayer(p.player_uid) } catch {}
+    try { players.value = await api.getPlayers() } catch {}
+    try { online.value = await api.getOnline() } catch {}
   } catch (e: any) {
     message.error(e.message)
+  } finally {
+    act.loading = false
   }
 }
 

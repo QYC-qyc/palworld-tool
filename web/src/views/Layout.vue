@@ -88,7 +88,6 @@ const menuOptions = [
   { label: '玩家地图', key: '/playermap' },
   { label: '公会', key: '/guilds' },
   { label: '白名单', key: '/whitelist' },
-  { label: '封禁', key: '/banlist' },
   { label: '备份', key: '/backups' },
   { label: 'PalDefender', key: '/paldefender' },
   { label: '审计', key: '/audit' },

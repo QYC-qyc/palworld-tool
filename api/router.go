@@ -50,10 +50,6 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.POST("/server/shutdown", shutdownServer)
 
 		authGroup.PUT("/player", putPlayers)
-		authGroup.POST("/player/:player_uid/kick", kickPlayer)
-		authGroup.POST("/player/:player_uid/ban", banPlayer)
-		authGroup.POST("/player/:player_uid/unban", unbanPlayer)
-		authGroup.POST("/player/:player_uid/ipban", ipBanPlayer)
 		authGroup.POST("/player/:player_uid/message", sendPlayerMessage)
 
 		authGroup.PUT("/guild", putGuilds)
@@ -68,10 +64,6 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.GET("/backup", listBackups)
 		authGroup.DELETE("/backup/:backup_id", deleteBackup)
 		authGroup.POST("/backup/restore/:backup_id", restoreBackup)
-
-		authGroup.GET("/banlist", listBans)
-		authGroup.POST("/banip", banIP)
-		authGroup.POST("/unbanip", unbanIP)
 
 		// 游戏服管理
 		if gameAPI != nil {
@@ -102,6 +94,7 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.POST("/paldefender/uninstall-wine", pdAPI.uninstallWine)
 		authGroup.GET("/paldefender/wine-status", pdAPI.wineInstallStatus)
 		authGroup.POST("/paldefender/verify", pdAPI.verify)
+		authGroup.POST("/paldefender/create-token", pdAPI.createToken)
 
 		// PalDefender REST API 代理（前缀 /paldefender/api）
 		pdAPIGroup := authGroup.Group("/paldefender/api")

@@ -54,12 +54,18 @@
               </n-tooltip>
             </span>
           </template>
-          <n-input
-            v-model:value="pdToken"
-            type="password"
-            show-password-on="click"
-            :placeholder="pdTokenSet ? '已设置（留空不修改）' : '未设置'"
-          />
+          <div style="display:flex;align-items:center;width:100%">
+            <n-input
+              v-model:value="pdToken"
+              type="password"
+              show-password-on="click"
+              :placeholder="pdTokenSet ? '已设置（留空不修改）' : '未设置'"
+            />
+            <n-button type="primary" size="small" :loading="generatingToken"
+              style="margin-left:8px;flex-shrink:0" @click="generateToken">
+              生成 Token
+            </n-button>
+          </div>
         </n-form-item>
       </n-form>
     </n-card>
@@ -259,6 +265,7 @@ const backupInterval = ref(60)
 const pdPort = ref(17993)
 const pdToken = ref('')
 const pdTokenSet = ref(false)
+const generatingToken = ref(false)
 
 async function load() {
   const s = await api.getSettings()
@@ -304,6 +311,20 @@ async function testConn(type: 'rest') {
     message.error(e.message || '连接失败')
   } finally {
     testing.value = ''
+  }
+}
+
+async function generateToken() {
+  generatingToken.value = true
+  try {
+    const res = await api.createPalDefenderToken('PalAdmin')
+    pdToken.value = res.token
+    pdTokenSet.value = true
+    message.success(`Token 已生成并写入 ${res.tokens_dir}，请点击保存设置`)
+  } catch (e: any) {
+    message.error(e.message)
+  } finally {
+    generatingToken.value = false
   }
 }
 

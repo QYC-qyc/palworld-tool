@@ -56,10 +56,6 @@ export const api = {
   getPlayers: () => request<any[]>('/api/player'),
   getPlayer: (uid: string) => request<any>(`/api/player/${uid}`),
   getOnline: () => request<any[]>('/api/online_player'),
-  kickPlayer: (uid: string) => request(`/api/player/${uid}/kick`, { method: 'POST' }),
-  banPlayer: (uid: string) => request(`/api/player/${uid}/ban`, { method: 'POST' }),
-  unbanPlayer: (uid: string) => request(`/api/player/${uid}/unban`, { method: 'POST' }),
-  ipBanPlayer: (uid: string) => request(`/api/player/${uid}/ipban`, { method: 'POST' }),
 
   getGuilds: () => request<any[]>('/api/guild'),
   getGuild: (uid: string) => request<any>(`/api/guild/${uid}`),
@@ -74,12 +70,6 @@ export const api = {
   deleteBackup: (id: string) => request(`/api/backup/${id}`, { method: 'DELETE' }),
   restoreBackup: (id: string) =>
     request(`/api/backup/restore/${id}`, { method: 'POST' }),
-
-  getBanlist: () => request<any[]>('/api/banlist?active=true'),
-  banIP: (ip: string) =>
-    request('/api/banip', { method: 'POST', body: JSON.stringify({ ip }) }),
-  unbanIP: (ip: string) =>
-    request('/api/unbanip', { method: 'POST', body: JSON.stringify({ ip }) }),
 
   sync: (from = 'all') => request(`/api/sync?from=${from}`, { method: 'POST' }),
 
@@ -142,6 +132,13 @@ export const api = {
     }),
   pdReloadConfig: () =>
     request('/api/paldefender/api/reload-config', { method: 'POST', body: JSON.stringify({}) }),
+
+  // 生成 PalDefender REST API Token（写入游戏服 Tokens 目录）
+  createPalDefenderToken: (name?: string) =>
+    request<{ success: boolean; token: string; token_file: string; tokens_dir: string }>(
+      '/api/paldefender/create-token',
+      { method: 'POST', body: JSON.stringify({ name: name || '' }) }
+    ),
 
   // 面板动态设置
   getSettings: () => request<Record<string, any>>('/api/settings'),
