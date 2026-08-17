@@ -240,6 +240,38 @@ class Pal:
         }
 
 
+class BaseCamp:
+    """据点（BaseCampSaveData 解码后）。
+
+    data 为 palworld-save-tools base_camp decoder 的输出：
+    id(UUID)/name/state(int)/transform{ftransform}/area_range(float)/
+    group_id_belong_to(UUID)/fast_travel_local_transform/owner_map_object_instance_id(UUID)
+    """
+
+    def __init__(self, data):
+        self.id = hexuid_to_decimal(data["id"])
+        self.state = data["state"]
+        translation = data["transform"]["translation"]
+        self.location_x = translation["x"]
+        self.location_y = translation["y"]
+        self.area_range = data["area_range"]
+        self.group_id_belong_to = hexuid_to_decimal(data["group_id_belong_to"])
+        self.owner_map_object_instance_id = hexuid_to_decimal(
+            data["owner_map_object_instance_id"]
+        )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "state": self.state,
+            "location_x": self.location_x,
+            "location_y": self.location_y,
+            "area": self.area_range,
+            "group_id_belong_to": self.group_id_belong_to,
+            "owner_map_object_instance_id": self.owner_map_object_instance_id,
+        }
+
+
 class Guild:
     def __init__(self, data, real_date_time_ticks, filetime):
         self.name = data["guild_name"]
@@ -261,13 +293,15 @@ class Guild:
             }
             for player in data["players"]
         ]
-        self.base_ids = [str(x) for x in data["base_ids"]]
+        self.base_ids = [hexuid_to_decimal(x) for x in data["base_ids"]]
+        self.base_camp = []
         self.__order = [
             "name",
             "base_camp_level",
             "admin_player_uid",
             "players",
             "base_ids",
+            "base_camp",
         ]
 
     def to_dict(self):

@@ -77,12 +77,21 @@ type Player struct {
 }
 
 // Guild 公会
+// BaseCamp 公会据点（坐标来自 Level.sav 的 BaseCampSaveData）
+type BaseCamp struct {
+	Id        string  `json:"id"`
+	Area      float64 `json:"area"`
+	LocationX float64 `json:"location_x"`
+	LocationY float64 `json:"location_y"`
+}
+
 type Guild struct {
 	Name           string         `json:"name"`
 	BaseCampLevel  int32          `json:"base_camp_level"`
 	AdminPlayerUid string         `json:"admin_player_uid"`
 	Players        []*GuildPlayer `json:"players"`
 	BaseIds        []string       `json:"base_ids"`
+	BaseCamp       []BaseCamp     `json:"base_camp"`
 }
 
 // PlayerW 白名单玩家

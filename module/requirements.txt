@@ -1,2 +1,2 @@
-palworld-save-tools>=0.20.0
+palworld-save-tools>=0.24.0
 requests>=2.31.0

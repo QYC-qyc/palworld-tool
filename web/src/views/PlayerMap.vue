@@ -1,147 +1,568 @@
 <template>
-  <n-space vertical>
-    <n-card title="在线玩家位置" size="small">
-      <template #header-extra>
+  <div class="playermap-wrap">
+    <div class="map-header">
+      <n-space align="center" justify="space-between">
         <n-space align="center">
-          <n-tag :bordered="false" size="small" type="info">在线: {{ online.length }} 人</n-tag>
-          <n-button size="small" @click="loadOnline" :loading="loading">刷新</n-button>
+          <span class="map-title">玩家地图</span>
+          <n-tag size="small" type="success" :bordered="false">在线 {{ onlineCount }} 人</n-tag>
+          <n-tag size="small" :bordered="false">可见玩家 {{ visiblePlayerCount }} 人</n-tag>
+          <n-tag size="small" :bordered="false">据点 {{ baseCount }} 个</n-tag>
         </n-space>
-      </template>
+        <n-button size="small" :loading="loading" @click="loadAll">刷新</n-button>
+      </n-space>
+    </div>
+
+    <div class="map-stage">
       <div ref="mapEl" class="map-container"></div>
-    </n-card>
-  </n-space>
+
+      <!-- 右下角控制面板 -->
+      <div class="control-panel" :class="{ 'control-panel--collapsed': collapsed }">
+        <div class="control-panel__head" @click="collapsed = !collapsed">
+          <span>地图控制</span>
+          <n-icon size="16">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline v-if="collapsed" points="6 9 12 15 18 9" />
+              <polyline v-else points="18 15 12 9 6 15" />
+            </svg>
+          </n-icon>
+        </div>
+
+        <div v-show="!collapsed" class="control-panel__body">
+          <div class="control-row">
+            <n-select
+              v-model:value="searchValue"
+              filterable
+              clearable
+              size="small"
+              placeholder="搜索玩家 / 据点"
+              :options="searchOptions"
+              @update:value="onSearchSelect"
+            />
+          </div>
+
+          <div class="control-row">
+            <n-radio-group v-model:value="visibility" size="small" name="vis">
+              <n-radio-button value="online">在线玩家</n-radio-button>
+              <n-radio-button value="all">全部玩家</n-radio-button>
+            </n-radio-group>
+          </div>
+
+          <div class="control-switches">
+            <div class="switch-row">
+              <span>显示玩家</span>
+              <n-switch v-model:value="showPlayer" size="small" />
+            </div>
+            <div class="switch-row">
+              <span>显示据点</span>
+              <n-switch v-model:value="showBase" size="small" />
+            </div>
+            <div class="switch-row">
+              <span>显示 Boss 塔</span>
+              <n-switch v-model:value="showBoss" size="small" />
+            </div>
+            <div class="switch-row">
+              <span>显示传送点</span>
+              <n-switch v-model:value="showFastTravel" size="small" />
+            </div>
+          </div>
+
+          <div class="control-coords">
+            <span class="coords-label">游戏坐标</span>
+            <span class="coords-value">{{ mouseCoords }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, nextTick } from 'vue'
-import { NSpace, NCard, NButton, NTag, useMessage } from 'naive-ui'
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
+import {
+  NSpace, NTag, NButton, NSwitch, NSelect, NRadioGroup, NRadioButton, NIcon,
+} from 'naive-ui'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { api } from '@/api'
+import {
+  LAND_SCAPE,
+  toMapPosition,
+  fromMapPosition,
+  toMapDistance,
+  hasMapLocation,
+  mergeMapPlayers,
+  selectVisibleMapPlayers,
+  buildPlayerGuildMap,
+} from '@/utils/mapCoords'
+import { clusterBases, type BaseMarker } from '@/utils/mapCluster'
 
-const message = useMessage()
+// ---------- 响应式状态 ----------
 const mapEl = ref<HTMLElement>()
-const online = ref<any[]>([])
 const loading = ref(false)
+const collapsed = ref(false)
 
-const TILE_SIZE = 256
-const MAX_ZOOM = 4
-// 游戏世界坐标范围
-const WORLD_HALF = 1400000
+const players = ref<any[]>([])
+const guilds = ref<any[]>([])
+const onlineUids = ref<Set<string>>(new Set())
 
+const showPlayer = ref(true)
+const showBase = ref(true)
+const showBoss = ref(false)
+const showFastTravel = ref(false)
+const visibility = ref<'online' | 'all'>('online')
+
+const searchValue = ref<string | null>(null)
+const mouseCoords = ref('-')
+
+// ---------- Leaflet 实例 ----------
 let map: L.Map | null = null
-let markersLayer: L.LayerGroup | null = null
-let timer: any
+let playerLayer: L.LayerGroup | null = null
+let baseLayer: L.LayerGroup | null = null
+let bossLayer: L.LayerGroup | null = null
+let fastTravelLayer: L.LayerGroup | null = null
+let pointsLoaded = false
+let timer: number | null = null
 
-// 游戏坐标 -> Leaflet LatLng
-// L.CRS.Simple: 坐标 [lat,lng] 在 zoom=0 时对应像素 [y,x]
-// zoom 变化时 Leaflet 自动缩放
-function gameToLatLng(x: number, y: number): [number, number] {
-  // 归一化到 [0, TILE_SIZE]（zoom=0 时整张地图1个tile）
-  const lat = ((-y + WORLD_HALF) / (WORLD_HALF * 2)) * TILE_SIZE
-  const lng = ((x + WORLD_HALF) / (WORLD_HALF * 2)) * TILE_SIZE
-  return [lat, lng]
+// ---------- 图标 ----------
+const playerIcon = L.icon({
+  iconUrl: '/map/icons/player.webp',
+  iconSize: [45, 45],
+  iconAnchor: [22, 40],
+  popupAnchor: [0, -35],
+})
+const baseIcon = L.icon({
+  iconUrl: '/map/icons/base.webp',
+  iconSize: [55, 55],
+  iconAnchor: [27, 50],
+  className: 'base-marker',
+})
+const bossIcon = L.icon({
+  iconUrl: '/map/icons/boss_tower.webp',
+  iconSize: [48, 48],
+  iconAnchor: [24, 24],
+})
+const fastTravelIcon = L.icon({
+  iconUrl: '/map/icons/fast_travel.webp',
+  iconSize: [48, 48],
+  iconAnchor: [24, 24],
+})
+
+// ---------- 统计 ----------
+const onlineCount = computed(() => onlineUids.value.size)
+const visiblePlayerCount = computed(
+  () => selectVisibleMapPlayers(players.value, onlineUids.value, visibility.value).length,
+)
+const rawBaseMarkers = computed<BaseMarker[]>(() => {
+  const out: BaseMarker[] = []
+  guilds.value.forEach((g) => {
+    const camps: any[] = Array.isArray(g?.base_camp) ? g.base_camp : []
+    camps.forEach((c) => {
+      const x = Number(c.location_x)
+      const y = Number(c.location_y)
+      if (!Number.isFinite(x) || !Number.isFinite(y) || (x === 0 && y === 0)) return
+      out.push({
+        key: `${g.admin_player_uid}:${c.id}`,
+        position: toMapPosition([x, y]),
+        camp: c,
+        guildName: g.name,
+        level: g.base_camp_level,
+        members: (g.players || []).map((p: any) => p.nickname).filter(Boolean),
+      })
+    })
+  })
+  return out
+})
+const baseCount = computed(() => rawBaseMarkers.value.length)
+
+// ---------- 搜索选项 ----------
+const searchOptions = computed(() => {
+  const opts: { label: string; value: string }[] = []
+  players.value
+    .filter((p) => hasMapLocation(p))
+    .forEach((p) => {
+      opts.push({
+        label: `玩家: ${p.nickname || p.player_uid}`,
+        value: `player:${p.player_uid}`,
+      })
+    })
+  rawBaseMarkers.value.forEach((m) => {
+    opts.push({
+      label: `据点: ${m.guildName || '未知公会'}-${m.camp?.id ?? ''}`,
+      value: `base:${m.key}`,
+    })
+  })
+  return opts
+})
+
+function onSearchSelect(value: string | null) {
+  if (!value || !map) return
+  const [type, id] = value.split(':')
+  let pos: [number, number] | undefined
+  if (type === 'player') {
+    const p = players.value.find((x) => x.player_uid === id)
+    if (p) pos = toMapPosition([Number(p.location_x), Number(p.location_y)])
+  } else if (type === 'base') {
+    pos = rawBaseMarkers.value.find((m) => m.key === id)?.position
+  }
+  if (pos) map.setView(pos, 5)
 }
 
-async function loadOnline() {
+// ---------- 绘制玩家 ----------
+function drawPlayers() {
+  if (!map || !playerLayer) return
+  playerLayer.clearLayers()
+  if (!showPlayer.value) return
+
+  const guildMap = buildPlayerGuildMap(guilds.value)
+  const list = selectVisibleMapPlayers(players.value, onlineUids.value, visibility.value)
+  list.forEach((p) => {
+    const online = onlineUids.value.has(p.player_uid)
+    const pos = toMapPosition([Number(p.location_x), Number(p.location_y)])
+    const icon = L.icon({
+      ...playerIcon.options,
+      className: online ? 'player-marker' : 'player-marker player-offline',
+    })
+    const marker = L.marker(pos, { icon })
+    marker.bindTooltip(p.nickname || p.player_uid, {
+      direction: 'top',
+      offset: [0, -35],
+      permanent: true,
+      className: `player-tip${online ? ' player-tip--online' : ' player-tip--offline'}`,
+    })
+    const guild = guildMap.get(p.player_uid)
+    const guildName = guild?.name || '无公会'
+    const wx = Math.round(Number(p.location_x))
+    const wy = Math.round(Number(p.location_y))
+    const ping = p.ping != null ? Math.round(Number(p.ping)) : '-'
+    marker.bindPopup(
+      `<div class="map-popup">
+        <div class="map-popup__title">${escapeHtml(p.nickname || p.player_uid)}</div>
+        <div class="map-popup__row"><span>等级</span><b>Lv.${p.level ?? '-'}</b></div>
+        <div class="map-popup__row"><span>公会</span><b>${escapeHtml(guildName)}</b></div>
+        <div class="map-popup__row"><span>坐标</span><b>${wx}, ${wy}</b></div>
+        <div class="map-popup__row"><span>Ping</span><b>${ping} ms</b></div>
+        <div class="map-popup__status ${online ? 'is-online' : 'is-offline'}">
+          ${online ? '在线' : '离线'}
+        </div>
+      </div>`,
+    )
+    marker.addTo(playerLayer!)
+  })
+}
+
+// ---------- 绘制据点 ----------
+function drawBases() {
+  if (!map || !baseLayer) return
+  baseLayer.clearLayers()
+  if (!showBase.value) return
+
+  const zoom = map.getZoom()
+  const clusters = clusterBases(rawBaseMarkers.value, zoom)
+
+  clusters.forEach((c) => {
+    if (c.markers.length > 1) {
+      // 聚合标记
+      const icon = L.divIcon({
+        className: 'base-cluster',
+        html: `<div class="base-cluster__badge">${c.markers.length}</div>`,
+        iconSize: [62, 62],
+        iconAnchor: [31, 31],
+      })
+      const marker = L.marker(c.position, { icon })
+      const items = c.markers
+        .map(
+          (m) =>
+            `<div class="map-popup__row"><span>${escapeHtml(
+              m.guildName || '未知公会',
+            )}</span><b>Lv.${m.level ?? '-'} · #${m.camp?.id ?? ''}</b></div>`,
+        )
+        .join('')
+      marker.bindPopup(
+        `<div class="map-popup"><div class="map-popup__title">${c.markers.length} 个据点</div>${items}</div>`,
+      )
+      marker.addTo(baseLayer!)
+    } else {
+      const m = c.markers[0]
+      const marker = L.marker(m.position, { icon: baseIcon })
+      const members = (m.members || []).slice(0, 8).map(escapeHtml).join('、')
+      marker.bindPopup(
+        `<div class="map-popup">
+          <div class="map-popup__title">${escapeHtml(m.guildName || '未知公会')}</div>
+          <div class="map-popup__row"><span>据点等级</span><b>Lv.${m.level ?? '-'}</b></div>
+          <div class="map-popup__row"><span>据点 ID</span><b>${m.camp?.id ?? '-'}</b></div>
+          <div class="map-popup__row"><span>范围</span><b>${Math.round(Number(m.camp?.area) || 0)}</b></div>
+          ${members ? `<div class="map-popup__members">成员：${members}</div>` : ''}
+        </div>`,
+      )
+      marker.addTo(baseLayer!)
+
+      // zoom >= 5 时画据点范围圆圈
+      if (zoom >= 5 && m.camp?.area) {
+        L.circle(m.position, {
+          radius: toMapDistance(Number(m.camp.area)),
+          color: '#18a058',
+          fillColor: '#18a058',
+          fillOpacity: 0.1,
+          weight: 1,
+        }).addTo(baseLayer!)
+      }
+    }
+  })
+}
+
+// ---------- 静态点（Boss/传送） ----------
+async function loadPoints() {
+  if (pointsLoaded) return
+  try {
+    const resp = await fetch('/data/map-points.json')
+    const data = await resp.json()
+    bossLayer?.clearLayers()
+    ;(data.boss_tower || []).forEach((pt: [number, number]) => {
+      L.marker(toMapPosition(pt), { icon: bossIcon }).addTo(bossLayer!)
+    })
+    fastTravelLayer?.clearLayers()
+    ;(data.fast_travel || []).forEach((pt: [number, number]) => {
+      L.marker(toMapPosition(pt), { icon: fastTravelIcon }).addTo(fastTravelLayer!)
+    })
+    pointsLoaded = true
+  } catch (e) {
+    // 静态点加载失败不影响主功能
+    console.warn('加载地图静态点失败', e)
+  }
+}
+
+// ---------- 数据加载 ----------
+async function loadAll() {
   loading.value = true
   try {
-    online.value = await api.getOnline()
-    updateMarkers()
-  } catch (e: any) {
-    message.error(e.message)
+    const [ps, gs] = await Promise.all([api.getPlayers(), api.getGuilds()])
+    players.value = Array.isArray(ps) ? ps : []
+    guilds.value = Array.isArray(gs) ? gs : []
+    await refreshOnline()
+    drawPlayers()
+    drawBases()
+  } catch (e) {
+    console.error(e)
   } finally {
     loading.value = false
   }
 }
 
-function updateMarkers() {
-  if (!markersLayer || !map) return
-  markersLayer.clearLayers()
-
-  const colors = ['#ff4444', '#44ff44', '#4488ff', '#ffaa00', '#ff44ff', '#44ffff']
-  online.value.forEach((p, i) => {
-    if (p.location_x === undefined || p.location_y === undefined) return
-    const [lat, lng] = gameToLatLng(Number(p.location_x), Number(p.location_y))
-    const color = colors[i % colors.length]
-    const icon = L.divIcon({
-      className: 'player-marker',
-      html: `<div style="width:14px;height:14px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 0 8px ${color}"></div>`,
-      iconSize: [14, 14],
-      iconAnchor: [7, 7],
-    })
-    const marker = L.marker([lat, lng], { icon })
-    marker.bindPopup(`
-      <strong>${p.nickname}</strong><br/>
-      等级: ${p.level}<br/>
-      坐标: ${Math.round(p.location_x)}, ${Math.round(p.location_y)}<br/>
-      Ping: ${Math.round(p.ping)}ms
-    `)
-    marker.addTo(markersLayer)
-  })
+async function refreshOnline() {
+  try {
+    const online = await api.getOnline()
+    const list = Array.isArray(online) ? online : []
+    onlineUids.value = new Set(
+      list.map((p: any) => p.player_uid).filter(Boolean),
+    )
+    players.value = mergeMapPlayers(players.value, list)
+    drawPlayers()
+  } catch (e) {
+    // 静默：在线接口偶发失败不打断
+    console.warn('刷新在线玩家失败', e)
+  }
 }
 
+// ---------- 工具 ----------
+function escapeHtml(s: any): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+// ---------- 开关联动 ----------
+watch(showPlayer, (v) => {
+  if (v) drawPlayers()
+  else playerLayer?.clearLayers()
+})
+watch(showBase, (v) => {
+  if (v) drawBases()
+  else baseLayer?.clearLayers()
+})
+watch(showBoss, async (v) => {
+  if (!map || !bossLayer) return
+  if (v) {
+    await loadPoints()
+    bossLayer.addTo(map)
+  } else {
+    map.removeLayer(bossLayer)
+  }
+})
+watch(showFastTravel, async (v) => {
+  if (!map || !fastTravelLayer) return
+  if (v) {
+    await loadPoints()
+    fastTravelLayer.addTo(map)
+  } else {
+    map.removeLayer(fastTravelLayer)
+  }
+})
+watch(visibility, () => drawPlayers())
+
+// ---------- 生命周期 ----------
 onMounted(async () => {
   await nextTick()
   if (!mapEl.value) return
 
-  // 使用 Simple CRS，坐标范围 [0,0] 到 [256,256]（zoom=0）
   const bounds: L.LatLngBoundsExpression = [
     [0, 0],
-    [TILE_SIZE, TILE_SIZE],
+    [-256, 256],
   ]
 
   map = L.map(mapEl.value, {
     crs: L.CRS.Simple,
+    center: [-128, 128],
+    zoom: 2,
     minZoom: 0,
-    maxZoom: MAX_ZOOM,
-    zoomSnap: 0.5,
-    zoomDelta: 0.5,
+    maxZoom: 6,
+    zoomControl: true,
+    attributionControl: false,
     maxBounds: bounds,
     maxBoundsViscosity: 1.0,
-    attributionControl: false,
   })
 
-  // 主世界瓦片
   L.tileLayer('/map/tiles/{z}/{x}/{y}.webp', {
-    tileSize: TILE_SIZE,
-    minZoom: 0,
-    maxZoom: MAX_ZOOM,
+    tileSize: 256,
     noWrap: true,
     bounds,
   }).addTo(map)
 
-  // treemap 小地图叠加在左上角
-  L.imageOverlay('/map/treemap.webp', [[0, 0], [86, 85]], { opacity: 0.9 }).addTo(map)
+  playerLayer = L.layerGroup().addTo(map)
+  baseLayer = L.layerGroup().addTo(map)
+  bossLayer = L.layerGroup()
+  fastTravelLayer = L.layerGroup()
 
-  map.fitBounds(bounds)
-  map.setZoom(1)
+  // zoom 变化时重绘据点聚合
+  map.on('zoomend', () => drawBases())
 
-  markersLayer = L.layerGroup().addTo(map)
+  // 鼠标移动反算游戏坐标
+  map.on('mousemove', (e: L.LeafletMouseEvent) => {
+    const [wx, wy] = fromMapPosition([e.latlng.lat, e.latlng.lng])
+    mouseCoords.value = `${Math.round(wx)}, ${Math.round(wy)}`
+  })
 
-  await loadOnline()
-  timer = setInterval(loadOnline, 10000)
+  // 缩放控件放左下
+  map.zoomControl.setPosition('bottomleft')
+
+  await loadAll()
+  timer = window.setInterval(refreshOnline, 5000)
 })
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer)
-  if (map) map.remove()
+  if (timer != null) window.clearInterval(timer)
+  if (map) {
+    map.remove()
+    map = null
+  }
 })
 </script>
 
 <style scoped>
+.playermap-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.map-header {
+  padding: 4px 2px;
+}
+.map-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+.map-stage {
+  position: relative;
+}
 .map-container {
   width: 100%;
   height: 70vh;
-  background: #0d1117;
-  border-radius: 4px;
+  background: #102536;
+  border-radius: 8px;
   overflow: hidden;
+}
+
+/* 控制面板 */
+.control-panel {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 260px;
+  background: rgba(24, 24, 28, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 12px;
+  padding: 12px;
+  z-index: 1000;
+  color: #e5e7eb;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.control-panel--collapsed .control-panel__body {
+  display: none;
+}
+.control-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 10px;
+}
+.control-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.control-row :deep(.n-base-selection) {
+  background: rgba(255, 255, 255, 0.06);
+}
+.control-switches {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #d1d5db;
+}
+.control-coords {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+}
+.coords-label {
+  color: #9ca3af;
+}
+.coords-value {
+  color: #86efac;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (max-width: 480px) {
+  .control-panel {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100% - 24px);
+    max-width: 280px;
+  }
 }
 </style>
 
 <style>
+/* Leaflet 暗色控件样式（沿用现有 PlayerMap 暗色风格） */
 .leaflet-container {
-  background: #0d1117 !important;
+  background: #102536 !important;
 }
 .leaflet-bar a {
   background: #1f2937 !important;
@@ -151,16 +572,114 @@ onUnmounted(() => {
 .leaflet-bar a:hover {
   background: #374151 !important;
 }
+
+/* Popup 白色卡片风格（参考分析文档 2.12） */
 .leaflet-popup-content-wrapper {
-  background: #1f2937 !important;
-  color: #e5e7eb !important;
-  border-radius: 6px;
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  padding: 4px;
+}
+.leaflet-popup-content {
+  margin: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
 }
 .leaflet-popup-tip {
-  background: #1f2937 !important;
+  background: #ffffff !important;
 }
+.map-popup__title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #111827;
+}
+.map-popup__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: #4b5563;
+}
+.map-popup__row b {
+  color: #111827;
+  font-weight: 600;
+}
+.map-popup__members {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #eee;
+  color: #6b7280;
+  font-size: 12px;
+}
+.map-popup__status {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+.map-popup__status.is-online {
+  background: rgba(24, 160, 88, 0.12);
+  color: #18a058;
+}
+.map-popup__status.is-offline {
+  background: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
+
+/* 玩家标记 */
 .player-marker {
   background: transparent !important;
   border: none !important;
+}
+.player-marker.player-offline {
+  filter: grayscale(0.9) saturate(0.35);
+  opacity: 0.6;
+}
+
+/* 玩家昵称 tooltip */
+.player-tip {
+  background: rgba(17, 24, 39, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #d1d5db !important;
+  font-size: 11px !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+.player-tip::before {
+  display: none !important;
+}
+.player-tip--online {
+  color: #86efac !important;
+  border-color: rgba(24, 160, 88, 0.4) !important;
+}
+.player-tip--offline {
+  color: #9ca3af !important;
+}
+
+/* 据点 */
+.base-marker {
+  background: transparent !important;
+  border: none !important;
+}
+.base-cluster {
+  background: transparent !important;
+  border: none !important;
+}
+.base-cluster__badge {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #18a058;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(24, 160, 88, 0.5);
+  border: 3px solid rgba(255, 255, 255, 0.9);
 }
 </style>

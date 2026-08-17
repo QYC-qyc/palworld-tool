@@ -18,7 +18,7 @@ from palworld_save_tools.rawdata import (
     item_container_slots,
 )
 
-from world_types import Player, Pal, Guild
+from world_types import Player, Pal, Guild, BaseCamp
 from logger import log, redirect_stdout_stderr
 
 # PALWORLD_CUSTOM_PROPERTIES: dict[
@@ -400,10 +400,36 @@ def getPlayerItems(player_uid, dir_path):
     return containers_data
 
 
+def structure_base_camp():
+    """解析世界中的全部据点（BaseCampSaveData）。
+
+    需要 palworld-save-tools>=0.24.0（其内置 base_camp RawData decoder）。
+    返回精简 dict 列表，供 structure_guild 按 base_ids 归属到公会。
+    """
+    if not wsd.get("BaseCampSaveData"):
+        return []
+    camps = []
+    for entry in wsd["BaseCampSaveData"]["value"]:
+        raw = entry.get("value", {}).get("RawData", {}).get("value")
+        if not isinstance(raw, dict):
+            # decoder 未生效（库版本过旧或数据异常），跳过而非崩溃
+            continue
+        try:
+            camps.append(BaseCamp(raw).to_dict())
+        except Exception as e:
+            log(f"Parse base camp failed: {e}", "WARNING")
+    return camps
+
+
 def structure_guild(filetime: int = -1):
     log("Structuring guilds...")
     if not wsd.get("GroupSaveDataMap"):
         return []
+    base_camps = structure_base_camp()
+    # base_ids 元素是 GUID 字符串；camp["id"] 是十进制字符串，建索引时同时尝试两种形态
+    camp_by_id = {}
+    for camp in base_camps:
+        camp_by_id[str(camp["id"])] = camp
     groups = (
         g["value"]["RawData"]["value"]
         for g in wsd["GroupSaveDataMap"]["value"]
@@ -414,6 +440,18 @@ def structure_guild(filetime: int = -1):
     sorted_guilds = sorted(
         guilds_generator, key=lambda g: g["base_camp_level"], reverse=True
     )
+    for guild in sorted_guilds:
+        for base_id in guild.get("base_ids", []):
+            camp = camp_by_id.get(str(base_id))
+            if camp is not None:
+                guild["base_camp"].append(
+                    {
+                        "id": camp["id"],
+                        "area": camp["area"],
+                        "location_x": camp["location_x"],
+                        "location_y": camp["location_y"],
+                    }
+                )
     return list(sorted_guilds)
 
 
