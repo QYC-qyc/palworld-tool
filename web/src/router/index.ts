@@ -19,7 +19,6 @@ const router = createRouter({
         { path: 'guilds', name: 'guilds', component: () => import('@/views/Guilds.vue') },
         { path: 'whitelist', name: 'whitelist', component: () => import('@/views/Whitelist.vue') },
         { path: 'banlist', name: 'banlist', component: () => import('@/views/Banlist.vue') },
-        { path: 'rcon', name: 'rcon', component: () => import('@/views/Rcon.vue') },
         { path: 'backups', name: 'backups', component: () => import('@/views/Backups.vue') },
         { path: 'paldefender', name: 'paldefender', component: () => import('@/views/PalDefender.vue') },
         { path: 'audit', name: 'audit', component: () => import('@/views/Audit.vue') },

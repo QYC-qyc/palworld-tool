@@ -25,13 +25,6 @@ type Config struct {
 		PlayerLogoutMessage string `mapstructure:"player_logout_message"`
 	} `mapstructure:"task"`
 
-	Rcon struct {
-		Address   string `mapstructure:"address"`
-		Password  string `mapstructure:"password"`
-		UseBase64 bool   `mapstructure:"use_base64"`
-		Timeout   int    `mapstructure:"timeout"`
-	} `mapstructure:"rcon"`
-
 	Rest struct {
 		Address  string `mapstructure:"address"`
 		Username string `mapstructure:"username"`
@@ -69,16 +62,15 @@ type Config struct {
 	} `mapstructure:"storage"`
 
 	Log struct {
-		Level          string `mapstructure:"level"`
-		File           string `mapstructure:"file"`
-		Chat           bool   `mapstructure:"chat"`
-		Rcon           bool   `mapstructure:"rcon"`
-		Network        bool   `mapstructure:"network"`
-		PlayerLogins   bool   `mapstructure:"player_logins"`
-		PlayerDeaths   bool   `mapstructure:"player_deaths"`
-		PlayerBuildings bool  `mapstructure:"player_buildings"`
-		PlayerSummons  bool   `mapstructure:"player_summons"`
-		PlayerCaptures bool   `mapstructure:"player_captures"`
+		Level           string `mapstructure:"level"`
+		File            string `mapstructure:"file"`
+		Chat            bool   `mapstructure:"chat"`
+		Network         bool   `mapstructure:"network"`
+		PlayerLogins    bool   `mapstructure:"player_logins"`
+		PlayerDeaths    bool   `mapstructure:"player_deaths"`
+		PlayerBuildings bool   `mapstructure:"player_buildings"`
+		PlayerSummons   bool   `mapstructure:"player_summons"`
+		PlayerCaptures  bool   `mapstructure:"player_captures"`
 	} `mapstructure:"log"`
 }
 
@@ -106,8 +98,6 @@ func Init(cfgFile string, conf *Config) {
 	// 默认值
 	viper.SetDefault("web.port", 8080)
 	viper.SetDefault("task.sync_interval", 60)
-	viper.SetDefault("rcon.timeout", 5)
-	viper.SetDefault("rcon.use_base64", false)
 	viper.SetDefault("rest.username", "admin")
 	viper.SetDefault("rest.timeout", 5)
 	viper.SetDefault("save.sync_interval", 120)

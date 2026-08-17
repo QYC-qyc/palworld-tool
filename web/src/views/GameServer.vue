@@ -66,7 +66,7 @@
                       <n-icon :component="HelpCircleOutline" class="help-icon" />
                     </template>
                     <div class="tooltip-content">
-                      端口、REST/RCON 等网络参数请到「游戏配置」页修改，无需填写 -port。<br/>
+                      端口、REST API 等网络参数请到「游戏配置」页修改，无需填写 -port。<br/>
                       常用参数：<br/>
                       <code>-publiclobby</code> 社区服务器；<br/>
                       <code>-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS</code> 多线程优化；<br/>

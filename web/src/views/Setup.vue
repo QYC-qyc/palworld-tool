@@ -20,9 +20,8 @@
           v-model:value="form.rest_password"
           type="password"
           show-password-on="click"
-          placeholder="游戏 AdminPassword（REST 与 RCON 相同）"
+          placeholder="REST API 管理员密码"
         />
-        <n-input v-model:value="form.rcon_address" placeholder="RCON 地址，如 palworld:25575" />
 
         <n-button
           type="primary"
@@ -53,20 +52,15 @@ const form = reactive({
   web_password: '',
   rest_address: 'http://palworld:8212',
   rest_password: '',
-  rcon_address: 'palworld:25575',
-  rcon_password: '',
 })
 
 async function submit() {
   loading.value = true
   try {
-    // RCON 密码默认与 REST 相同
     const res = await api.setup({
       web_password: form.web_password,
       rest_address: form.rest_address,
       rest_password: form.rest_password,
-      rcon_address: form.rcon_address,
-      rcon_password: form.rest_password,
     })
     if (res.token) {
       localStorage.setItem('paladmin_token', res.token)

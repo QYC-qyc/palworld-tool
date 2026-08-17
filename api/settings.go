@@ -14,13 +14,12 @@ import (
 	"paladmin/service/audit"
 )
 
-// testConnection 测试 REST / RCON 连通性
+// testConnection 测试 REST 连通性
 func testConnection(c *gin.Context) {
 	var req struct {
-		Type      string `json:"type"` // rest / rcon
-		Address   string `json:"address"`
-		Password  string `json:"password"`
-		UseBase64 bool   `json:"use_base64"`
+		Type     string `json:"type"` // rest
+		Address  string `json:"address"`
+		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
@@ -28,11 +27,8 @@ func testConnection(c *gin.Context) {
 	}
 	// 未输入密码时使用已保存的密码
 	if req.Password == "" {
-		switch req.Type {
-		case "rest":
+		if req.Type == "rest" {
 			req.Password = viper.GetString("rest.password")
-		case "rcon":
-			req.Password = viper.GetString("rcon.password")
 		}
 	}
 	switch req.Type {
@@ -43,15 +39,8 @@ func testConnection(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"success": true, "message": "REST 连接成功", "version": version})
-	case "rcon":
-		err := tool.TestRcon(req.Address, req.Password, req.UseBase64)
-		if err != nil {
-			c.JSON(http.StatusOK, gin.H{"success": false, "error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"success": true, "message": "RCON 连接成功"})
 	default:
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "type 必须是 rest 或 rcon"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "type 必须是 rest"})
 	}
 }
 
@@ -152,9 +141,10 @@ func isSecret(k string) bool {
 func isEditableKey(k string) bool {
 	switch k {
 	case service.SettingWebPassword, service.SettingRestAddress, service.SettingRestUsername,
-		service.SettingRestPassword, service.SettingRconAddress, service.SettingRconPassword,
-		service.SettingRconUseBase64, service.SettingSavePath, service.SettingProcessMode,
+		service.SettingRestPassword, service.SettingSavePath, service.SettingProcessMode,
 		service.SettingProcessService, service.SettingProcessContainer,
+		service.SettingPalDefenderEnabled, service.SettingPalDefenderHost,
+		service.SettingPalDefenderPort, service.SettingPalDefenderToken,
 		"save.backup_interval":
 		return true
 	}

@@ -16,12 +16,6 @@ task:
   player_login_message: "玩家 {username} 加入服务器!\n当前在线人数: {online_num}"
   player_logout_message: "玩家 {username} 离开服务器!\n当前在线人数: {online_num}"
 
-rcon:
-  address: "127.0.0.1:25575"
-  password: ""
-  use_base64: false
-  timeout: 5
-
 rest:
   address: "http://127.0.0.1:8212"
   username: "admin"
@@ -93,17 +87,8 @@ anticheat:
       actions: ["warn","kick"]
       params: { max_speed: 2500 }
 
-paldefender:
-  enabled: false
-  address: "http://127.0.0.1:17993"
-  token: ""
-  timeout: 5
-  sync_banlist: true
-  sync_import_rules: true
-
 log:
   level: "info"
   file: "./logs/pst.log"
   chat: true
-  rcon: true
   player_logins: true

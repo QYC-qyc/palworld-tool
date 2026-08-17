@@ -11,13 +11,16 @@ const (
 	SettingRestAddress      = "rest.address"
 	SettingRestUsername     = "rest.username"
 	SettingRestPassword     = "rest.password"
-	SettingRconAddress      = "rcon.address"
-	SettingRconPassword     = "rcon.password"
-	SettingRconUseBase64    = "rcon.use_base64"
 	SettingSavePath         = "save.path"
 	SettingProcessMode      = "process.mode"
 	SettingProcessService   = "process.service"
 	SettingProcessContainer = "process.container"
+
+	SettingPalDefenderEnabled  = "paldefender.enabled"
+	SettingPalDefenderHost     = "paldefender.host"
+	SettingPalDefenderPort     = "paldefender.port"
+	SettingPalDefenderToken    = "paldefender.token"
+	SettingPalDefenderBasePath = "paldefender.base_path"
 )
 
 // DefaultSettings 返回需要在数据库中初始化的默认键（首次启动时从 viper 同步）
@@ -27,13 +30,16 @@ func DefaultSettings() map[string]string {
 		SettingRestAddress:      "",
 		SettingRestUsername:     "admin",
 		SettingRestPassword:     "",
-		SettingRconAddress:      "",
-		SettingRconPassword:     "",
-		SettingRconUseBase64:    "false",
 		SettingSavePath:         "",
 		SettingProcessMode:      "noop",
 		SettingProcessService:   "palworld",
 		SettingProcessContainer: "palworld",
+
+		SettingPalDefenderEnabled:  "false",
+		SettingPalDefenderHost:     "127.0.0.1",
+		SettingPalDefenderPort:     "17993",
+		SettingPalDefenderToken:    "",
+		SettingPalDefenderBasePath: "/v1/pdapi",
 	}
 }
 

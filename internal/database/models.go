@@ -101,37 +101,6 @@ type PlayerW struct {
 	PlayerUID string `json:"player_uid"`
 }
 
-// RconCommand 自定义 RCON 命令
-type RconCommand struct {
-	Command     string `json:"command"`
-	Placeholder string `json:"placeholder"`
-	Remark      string `json:"remark"`
-}
-
-// DefaultRconCommands 返回内置的常用 RCON 命令（参考官方文档）
-func DefaultRconCommands() []RconCommand {
-	return []RconCommand{
-		{Command: "Shutdown", Placeholder: "<秒数> <消息文字>", Remark: "关服，可指定延迟秒数和广播消息"},
-		{Command: "DoExit", Placeholder: "", Remark: "立即强制停止服务器"},
-		{Command: "Broadcast", Placeholder: "<消息文字>", Remark: "向全服玩家发送广播"},
-		{Command: "KickPlayer", Placeholder: "<SteamID>", Remark: "踢出指定玩家"},
-		{Command: "BanPlayer", Placeholder: "<SteamID>", Remark: "封禁指定玩家"},
-		{Command: "UnBanPlayer", Placeholder: "<SteamID>", Remark: "解封指定玩家"},
-		{Command: "ShowPlayers", Placeholder: "", Remark: "显示所有在线玩家信息"},
-		{Command: "Info", Placeholder: "", Remark: "显示服务器信息"},
-		{Command: "Save", Placeholder: "", Remark: "手动保存世界数据"},
-		{Command: "TeleportToPlayer", Placeholder: "<SteamID>", Remark: "传送到指定玩家"},
-		{Command: "TeleportToMe", Placeholder: "<SteamID>", Remark: "将指定玩家传送到自己"},
-		{Command: "ToggleSpectate", Placeholder: "", Remark: "切换旁观者模式"},
-	}
-}
-
-// RconCommandList 带 UUID 的命令
-type RconCommandList struct {
-	UUID string `json:"uuid"`
-	RconCommand
-}
-
 // Items 物品容器集合
 type Items struct {
 	CommonContainerId           []*Item `json:"CommonContainerId"`

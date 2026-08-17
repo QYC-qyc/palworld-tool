@@ -17,12 +17,10 @@ func setupStatus(c *gin.Context) {
 }
 
 type setupRequest struct {
-	WebPassword    string `json:"web_password"`
-	RestAddress    string `json:"rest_address"`
-	RestPassword   string `json:"rest_password"`
-	RconAddress    string `json:"rcon_address"`
-	RconPassword   string `json:"rcon_password"`
-	ServerName     string `json:"server_name"`
+	WebPassword  string `json:"web_password"`
+	RestAddress  string `json:"rest_address"`
+	RestPassword string `json:"rest_password"`
+	ServerName   string `json:"server_name"`
 }
 
 // setup 首次初始化：设置管理员密码和游戏连接信息（无需登录，但仅在未初始化时允许）
@@ -51,12 +49,6 @@ func setup(c *gin.Context) {
 	}
 	if req.RestPassword != "" {
 		updates[service.SettingRestPassword] = req.RestPassword
-	}
-	if req.RconAddress != "" {
-		updates[service.SettingRconAddress] = req.RconAddress
-	}
-	if req.RconPassword != "" {
-		updates[service.SettingRconPassword] = req.RconPassword
 	}
 
 	if err := service.SetSettings(db, updates); err != nil {

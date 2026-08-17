@@ -7,7 +7,6 @@ require (
 	github.com/go-co-op/gocron/v2 v2.2.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
-	github.com/gorcon/rcon v1.3.4
 	github.com/spf13/viper v1.18.2
 	go.etcd.io/bbolt v1.3.8
 	go.uber.org/zap v1.27.0

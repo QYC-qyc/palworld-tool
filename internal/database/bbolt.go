@@ -18,7 +18,6 @@ const (
 	BucketPlayers   = "players"
 	BucketGuilds    = "guilds"
 	BucketWhitelist = "whitelist"
-	BucketRcons     = "rcons"
 	BucketBackups   = "backups"
 	BucketSettings  = "settings"
 	BucketBanlist   = "banlist"
@@ -27,7 +26,7 @@ const (
 
 func allBuckets() []string {
 	return []string{
-		BucketPlayers, BucketGuilds, BucketRcons, BucketBackups, BucketSettings,
+		BucketPlayers, BucketGuilds, BucketBackups, BucketSettings,
 		BucketWhitelist, BucketBanlist, BucketAudit,
 	}
 }

@@ -1,11 +1,13 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"paladmin/internal/database"
 	"paladmin/internal/detect"
+	"paladmin/internal/paldefender"
 	"paladmin/internal/tool"
 	"paladmin/service"
 	"paladmin/service/audit"
@@ -141,11 +143,21 @@ func sendPlayerMessage(c *gin.Context) {
 		c.JSON(http.StatusNotFound, ErrorResponse{Error: "未找到该玩家"})
 		return
 	}
-	// 通过 RCON /send 实现私聊
-	cmd := "/send " + req.Type + " steam_" + p.SteamId + " " + req.Message
-	if _, err := tool.CustomCommand(cmd); err != nil {
+	// 私聊通过 PalDefender REST API 实现
+	client, err := paldefender.Load(db)
+	if err != nil {
+		if errors.Is(err, paldefender.ErrNotConfigured) {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: "私聊需要启用并配置 PalDefender"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
+	userID := "steam_" + p.SteamId
+	if _, err := client.SendPlayerMessage(userID, req.Message, "PlayerChat"); err != nil {
+		c.JSON(http.StatusBadGateway, ErrorResponse{Error: err.Error()})
+		return
+	}
+	_ = audit.Add(db, "web", "message", userID, req.Message, "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }

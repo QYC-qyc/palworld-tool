@@ -65,12 +65,6 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.DELETE("/whitelist", removeWhite)
 		authGroup.PUT("/whitelist", putWhite)
 
-		authGroup.GET("/rcon", listRconCommand)
-		authGroup.POST("/rcon", addRconCommand)
-		authGroup.POST("/rcon/send", sendRconCommand)
-		authGroup.PUT("/rcon/:uuid", putRconCommand)
-		authGroup.DELETE("/rcon/:uuid", removeRconCommand)
-
 		authGroup.GET("/backup", listBackups)
 		authGroup.DELETE("/backup/:backup_id", deleteBackup)
 		authGroup.POST("/backup/restore/:backup_id", restoreBackup)
@@ -108,6 +102,31 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.POST("/paldefender/uninstall-wine", pdAPI.uninstallWine)
 		authGroup.GET("/paldefender/wine-status", pdAPI.wineInstallStatus)
 		authGroup.POST("/paldefender/verify", pdAPI.verify)
+
+		// PalDefender REST API 代理（前缀 /paldefender/api）
+		pdAPIGroup := authGroup.Group("/paldefender/api")
+		{
+			pdAPIGroup.GET("/version", pdAPI.apiVersion)
+
+			pdAPIGroup.GET("/players", pdAPI.apiListPlayers)
+			pdAPIGroup.GET("/players/:id", pdAPI.apiGetPlayer)
+			pdAPIGroup.POST("/players/:id/kick", pdAPI.apiKick)
+			pdAPIGroup.POST("/players/:id/ban", pdAPI.apiBan)
+			pdAPIGroup.POST("/unban/:user_id", pdAPI.apiUnban)
+			pdAPIGroup.POST("/banip/:ip", pdAPI.apiBanIP)
+			pdAPIGroup.POST("/unbanip/:ip", pdAPI.apiUnbanIP)
+			pdAPIGroup.GET("/banlist", pdAPI.apiBanlist)
+
+			pdAPIGroup.POST("/broadcast", pdAPI.apiBroadcast)
+			pdAPIGroup.POST("/alert", pdAPI.apiAlert)
+			pdAPIGroup.POST("/message", pdAPI.apiMessage)
+
+			pdAPIGroup.GET("/guilds", pdAPI.apiListGuilds)
+			pdAPIGroup.GET("/guilds/:id", pdAPI.apiGetGuild)
+			pdAPIGroup.POST("/deletebase/:id", pdAPI.apiDeleteBase)
+
+			pdAPIGroup.POST("/reload-config", pdAPI.apiReloadConfig)
+		}
 
 		// 面板动态设置
 		authGroup.GET("/settings", getSettings)

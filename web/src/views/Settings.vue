@@ -3,22 +3,13 @@
     <n-card title="服务器连接" size="small">
       <n-alert type="info" :show-icon="false" style="margin-bottom:12px">
         面板本地启停游戏服时，地址与管理员密码会在「游戏配置」保存网络项时自动同步；
-        仅当游戏服部署在其他机器时才需手动修改。REST 与 RCON 使用同一个管理员密码（AdminPassword）。
+        仅当游戏服部署在其他机器时才需手动修改。REST API 使用游戏配置中的 AdminPassword。
       </n-alert>
       <n-form label-placement="left" label-width="140">
         <n-form-item label="REST 地址">
           <n-input v-model:value="form['rest.address']" placeholder="http://127.0.0.1:8212">
             <template #suffix>
               <n-button size="tiny" quaternary :loading="testing === 'rest'" @click="testConn('rest')">
-                测试
-              </n-button>
-            </template>
-          </n-input>
-        </n-form-item>
-        <n-form-item label="RCON 地址">
-          <n-input v-model:value="form['rcon.address']" placeholder="127.0.0.1:25575">
-            <template #suffix>
-              <n-button size="tiny" quaternary :loading="testing === 'rcon'" @click="testConn('rcon')">
                 测试
               </n-button>
             </template>
@@ -32,9 +23,43 @@
             :placeholder="form['rest.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置，需与游戏配置 AdminPassword 一致'"
           />
         </n-form-item>
-        <n-form-item label="RCON Base64">
-          <n-switch :value="form['rcon.use_base64'] === 'true'"
-            @update:value="(v) => (form['rcon.use_base64'] = v ? 'true' : 'false')" />
+      </n-form>
+    </n-card>
+
+    <n-card title="PalDefender 反作弊" size="small">
+      <n-form label-placement="left" label-width="140">
+        <n-form-item label="启用 REST API">
+          <n-switch :value="form['paldefender.enabled'] === 'true'"
+            @update:value="(v) => (form['paldefender.enabled'] = v ? 'true' : 'false')" />
+        </n-form-item>
+        <n-form-item label="API 主机">
+          <n-input v-model:value="form['paldefender.host']" placeholder="127.0.0.1" />
+        </n-form-item>
+        <n-form-item label="API 端口">
+          <n-input-number v-model:value="pdPort" :min="1" :max="65535" :step="1"
+            style="width:200px" placeholder="17993" />
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <span class="field-label">
+              Token
+              <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
+                <template #trigger>
+                  <n-icon :component="HelpCircleOutline" class="help-icon" />
+                </template>
+                <div class="tooltip-content">
+                  在游戏目录 Pal/Binaries/Win64/PalDefender/RESTAPI/Tokens/ 下手动创建令牌 JSON，
+                  复制其 Token 字段粘贴于此。请勿将 17993 端口暴露到公网。
+                </div>
+              </n-tooltip>
+            </span>
+          </template>
+          <n-input
+            v-model:value="pdToken"
+            type="password"
+            show-password-on="click"
+            :placeholder="pdTokenSet ? '已设置（留空不修改）' : '未设置'"
+          />
         </n-form-item>
       </n-form>
     </n-card>
@@ -231,6 +256,9 @@ const processModes = [
 ]
 
 const backupInterval = ref(60)
+const pdPort = ref(17993)
+const pdToken = ref('')
+const pdTokenSet = ref(false)
 
 async function load() {
   const s = await api.getSettings()
@@ -238,12 +266,16 @@ async function load() {
   // 备份间隔：秒转分钟
   const sec = parseInt(s['save.backup_interval'] || '3600')
   backupInterval.value = sec > 0 ? Math.round(sec / 60) : 0
+  // PalDefender
+  pdPort.value = parseInt(s['paldefender.port'] || '17993') || 17993
+  pdToken.value = ''
+  pdTokenSet.value = s['paldefender.token__set'] === 'true'
 }
 
-async function testConn(type: 'rest' | 'rcon') {
+async function testConn(type: 'rest') {
   testing.value = type
   try {
-    const address = type === 'rest' ? form['rest.address'] : form['rcon.address']
+    const address = form['rest.address']
     if (!address) {
       message.warning('请先填写地址')
       return
@@ -260,7 +292,6 @@ async function testConn(type: 'rest' | 'rcon') {
         type,
         address,
         password,
-        use_base64: form['rcon.use_base64'] === 'true',
       }),
     })
     const data = await res.json()
@@ -283,18 +314,21 @@ async function save() {
     Object.keys(form).forEach((k) => {
       if (!k.endsWith('__set') && !k.endsWith('_effective')) payload[k] = form[k]
     })
-    // REST 与 RCON 共用管理员密码，同时写入
+    // REST 管理员密码
     if (adminPwd.value) {
       payload['rest.password'] = adminPwd.value
-      payload['rcon.password'] = adminPwd.value
     }
     if (webPwd.value) payload['web.password'] = webPwd.value
+    // PalDefender 端口与 Token（Token 留空表示不修改，脱敏占位符由后端忽略）
+    payload['paldefender.port'] = String(pdPort.value)
+    if (pdToken.value) payload['paldefender.token'] = pdToken.value
     // 备份间隔：分钟转秒
     payload['save.backup_interval'] = String(backupInterval.value * 60)
     await api.saveSettings(payload)
     message.success('设置已保存')
     adminPwd.value = ''
     webPwd.value = ''
+    pdToken.value = ''
     load()
   } catch (e: any) {
     message.error(e.message)
@@ -430,10 +464,19 @@ async function doUpdate() {
 </script>
 
 <style scoped>
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 .help-icon {
   font-size: 15px;
   color: var(--n-text-color-3, #999);
   cursor: help;
+}
+.tooltip-content {
+  max-width: 300px;
+  line-height: 1.6;
 }
 :deep(.n-tooltip) {
   background: #1f1f1f !important;

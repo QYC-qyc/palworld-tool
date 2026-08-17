@@ -183,9 +183,9 @@ func fileExists(p string) bool {
 
 // syncConnectionSettings 将游戏配置中的网络项同步到面板连接设置，
 // 避免「游戏配置」与「系统设置」两处的端口/密码不一致导致面板连不上游戏服。
-// 面板本地启停游戏服时，REST/RCON 必然在本机：
-//   - AdminPassword 同步到 rest.password 与 rcon.password
-//   - RESTAPIPort/RCONPort 同步为 127.0.0.1 + 端口（地址为空、本机、或本机公网 IP 时）
+// 面板本地启停游戏服时，REST 必然在本机：
+//   - AdminPassword 同步到 rest.password
+//   - RESTAPIPort 同步为 127.0.0.1 + 端口（地址为空、本机、或本机公网 IP 时）
 func syncConnectionSettings(s map[string]string) {
 	if db == nil {
 		return
@@ -217,16 +217,10 @@ func syncConnectionSettings(s map[string]string) {
 
 	if adminPwd, ok := s["AdminPassword"]; ok && adminPwd != "" {
 		updates[service.SettingRestPassword] = adminPwd
-		updates[service.SettingRconPassword] = adminPwd
 	}
 	if port, ok := s["RESTAPIPort"]; ok && port != "" {
 		if hostIsLocal(existing[service.SettingRestAddress]) {
 			updates[service.SettingRestAddress] = "http://127.0.0.1:" + port
-		}
-	}
-	if port, ok := s["RCONPort"]; ok && port != "" {
-		if hostIsLocal(existing[service.SettingRconAddress]) {
-			updates[service.SettingRconAddress] = "127.0.0.1:" + port
 		}
 	}
 

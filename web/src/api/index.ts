@@ -70,10 +70,6 @@ export const api = {
   removeWhitelist: (p: any) =>
     request('/api/whitelist', { method: 'DELETE', body: JSON.stringify(p) }),
 
-  getRconCommands: () => request<any[]>('/api/rcon'),
-  sendRcon: (command: string, content = '') =>
-    request('/api/rcon/send', { method: 'POST', body: JSON.stringify({ command, content }) }),
-
   getBackups: () => request<any[]>('/api/backup'),
   deleteBackup: (id: string) => request(`/api/backup/${id}`, { method: 'DELETE' }),
   restoreBackup: (id: string) =>
@@ -86,6 +82,66 @@ export const api = {
     request('/api/unbanip', { method: 'POST', body: JSON.stringify({ ip }) }),
 
   sync: (from = 'all') => request(`/api/sync?from=${from}`, { method: 'POST' }),
+
+  // PalDefender REST API 代理（前缀 /api/paldefender/api）
+  pdVersion: () => request<any>('/api/paldefender/api/version'),
+  pdGetPlayers: () => request<any>('/api/paldefender/api/players'),
+  pdGetPlayer: (id: string) => request<any>(`/api/paldefender/api/players/${encodeURIComponent(id)}`),
+  pdKick: (id: string, reason = '') =>
+    request(`/api/paldefender/api/players/${encodeURIComponent(id)}/kick`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  pdBan: (id: string, reason = '', ip = false) =>
+    request(`/api/paldefender/api/players/${encodeURIComponent(id)}/ban`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, ip }),
+    }),
+  pdUnban: (userId: string, reason = '') =>
+    request(`/api/paldefender/api/unban/${encodeURIComponent(userId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  pdBanIP: (ip: string, reason = '') =>
+    request(`/api/paldefender/api/banip/${encodeURIComponent(ip)}`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  pdUnbanIP: (ip: string, reason = '') =>
+    request(`/api/paldefender/api/unbanip/${encodeURIComponent(ip)}`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  pdBanlist: (query?: Record<string, string | number | boolean>) => {
+    const qs = query
+      ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(query).map(([k, v]) => [k, String(v)]))).toString()
+      : ''
+    return request<any>(`/api/paldefender/api/banlist${qs}`)
+  },
+  pdBroadcast: (message: string) =>
+    request('/api/paldefender/api/broadcast', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    }),
+  pdAlert: (message: string) =>
+    request('/api/paldefender/api/alert', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    }),
+  pdMessage: (userId: string, message: string, sendType?: string) =>
+    request('/api/paldefender/api/message', {
+      method: 'POST',
+      body: JSON.stringify({ userId, message, sendType: sendType || 'PlayerChat' }),
+    }),
+  pdGuilds: () => request<any>('/api/paldefender/api/guilds'),
+  pdGuild: (id: string) => request<any>(`/api/paldefender/api/guilds/${encodeURIComponent(id)}`),
+  pdDeleteBase: (id: string) =>
+    request(`/api/paldefender/api/deletebase/${encodeURIComponent(id)}`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
+  pdReloadConfig: () =>
+    request('/api/paldefender/api/reload-config', { method: 'POST', body: JSON.stringify({}) }),
 
   // 面板动态设置
   getSettings: () => request<Record<string, any>>('/api/settings'),
