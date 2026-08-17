@@ -32,7 +32,7 @@
           <div class="control-row">
             <n-radio-group v-model:value="mapMode" size="small" name="mapmode">
               <n-radio-button value="palpagos">主世界</n-radio-button>
-              <n-radio-button value="feybreak">天坠之地</n-radio-button>
+              <n-radio-button value="feybreak">世界树</n-radio-button>
               <n-radio-button value="auto">自动</n-radio-button>
             </n-radio-group>
           </div>

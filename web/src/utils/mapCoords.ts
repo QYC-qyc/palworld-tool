@@ -29,13 +29,13 @@ export const MAP_CONFIGS: Record<
     landScape: LAND_SCAPE,
     tilesUrl: '/map/tiles/{z}/{x}/{y}.webp',
     pointsUrl: '/data/map-points.json',
-    label: '帕鲁帕戈斯',
+    label: '主世界',
   },
   feybreak: {
     landScape: FEYBREAK_LAND_SCAPE,
     tilesUrl: '/map/tiles-feybreak/{z}/{x}/{y}.webp',
     pointsUrl: '/data/map-points-feybreak.json',
-    label: '天坠之地',
+    label: '世界树',
   },
 }
 
