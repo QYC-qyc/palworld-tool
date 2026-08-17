@@ -50,7 +50,7 @@
         </n-space>
       </n-layout-header>
       <n-layout-content class="content" content-style="padding: 12px;">
-        <div class="content-inner">
+        <div class="content-inner" :class="{ 'content-inner--wide': isWide }">
           <router-view />
         </div>
       </n-layout-content>
@@ -76,6 +76,9 @@ const message = useMessage()
 const serverOk = ref(false)
 
 const activeKey = computed(() => route.path)
+// 需要全宽展示的页面（地图等）
+const WIDE_ROUTES = ['/playermap']
+const isWide = computed(() => WIDE_ROUTES.includes(route.path))
 
 const menuOptions = [
   { label: '仪表盘', key: '/dashboard' },
@@ -151,5 +154,8 @@ onUnmounted(() => window.removeEventListener('resize', checkMobile))
 .content-inner {
   max-width: 1200px;
   margin: 0 auto;
+}
+.content-inner--wide {
+  max-width: none;
 }
 </style>

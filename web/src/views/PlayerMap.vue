@@ -478,7 +478,8 @@ onUnmounted(() => {
 }
 .map-container {
   width: 100%;
-  height: 70vh;
+  height: calc(100vh - 180px);
+  min-height: 480px;
   background: #102536;
   border-radius: 8px;
   overflow: hidden;
