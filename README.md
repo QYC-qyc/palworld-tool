@@ -2,11 +2,12 @@
 
 幻兽帕鲁（Palworld）服务器管理与反作弊面板。
 
-- 🖥️ **服务器管理**：在线玩家、公会、背包/帕鲁数据、踢封禁、RCON 控制台、白名单、广播、关服
+- 🖥️ **服务器管理**：在线玩家地图位置、公会、背包/帕鲁数据、踢封禁、RCON 控制台、白名单、广播、关服
 - 🎮 **SteamCMD 管理**：面板内一键安装/更新服务端，启动、停止、重启，无需手写命令
+- 🗺️ **交互地图**：Leaflet 世界地图，实时显示在线玩家位置，点击查看详情
 - 🛡️ **反作弊**：帕鲁属性/天赋/灵魂越界、Boss 帕鲁、复制帕鲁、非法物品、堆叠异常、瞬移、同 IP 多开等检测，支持警告/踢出/封禁/IP 封禁
 - 💾 **存档备份与回档**：定时备份，一键回滚到任意备份（自动停服、安全备份、恢复、启服）
-- ⚙️ **可视化配置**：游戏参数、连接、密码、反作弊开关等全部在面板设置
+- ⚙️ **可视化配置**：117 个游戏参数按 8 个页签分类，字段含中文说明和取值范围
 - 🐧 **纯 Linux 原生**：无需 Wine 或 Windows 兼容层
 
 ## 工作方式
@@ -157,9 +158,10 @@ docker compose pull && docker compose up -d   # 更新
 |---|---|
 | 仪表盘 | 在线人数、服务器 FPS、快捷操作、反作弊统计 |
 | 游戏服 | 配置 SteamCMD 目录与安装目录，安装/更新服务端，启动/停止/重启，查看实时日志 |
-| 游戏配置 | 可视化编辑 `PalWorldSettings.ini`，按页签分类，字段含说明，保存可自动重启 |
-| 玩家 | 在线/存档玩家列表，查看背包、帕鲁，执行踢封禁 |
-| 公会 | 公会信息与成员 |
+| 游戏配置 | 可视化编辑 `PalWorldSettings.ini`，117 个参数按服务器/世界/玩家/帕鲁/战斗/经济/据点/公会分类，字段含取值范围和 ini 键名提示 |
+| 玩家 | 在线/存档玩家列表，查看背包物品图标、帕鲁详情、最后在线时间，执行踢封禁 |
+| 玩家地图 | Leaflet 交互地图，实时显示在线玩家位置，点击查看昵称/等级/坐标 |
+| 公会 | 公会信息与成员列表，点击查看详情 |
 | 封禁列表 | 管理玩家与 IP 封禁 |
 | RCON 控制台 | 在线执行游戏服命令 |
 | 备份管理 | 存档备份列表，支持一键回档 |
@@ -169,12 +171,22 @@ docker compose pull && docker compose up -d   # 更新
 
 > **首次使用建议**：先在「反作弊规则」中关闭自动封禁/踢出，只保留警告，观察一段时间确认检测准确后再开启处罚。
 
+## 开发
+
+详细开发约定见 [docs/开发约定.md](docs/开发约定.md)。
+
+清理旧 GitHub Release：
+
+```bash
+GITHUB_TOKEN=ghp_xxx scripts/cleanup-releases.sh 5
+```
+
 ## 致谢
 
-- [palworld-server-tool](https://github.com/zaigie/palworld-server-tool) —— 存档解析与管理框架参考
+- [palworld-server-tool](https://github.com/zaigie/palworld-server-tool) —— 存档解析与管理框架参考（`_palworld-server-tool/`）
 - [PalDefender](https://github.com/Ultimeit/PalDefender) —— 反作弊设计理念参考
 - [palworld-save-tools](https://github.com/cheahjs/palworld-save-tools) —— 存档格式解析
-- 帕鲁 ID 数据参考 [paldeck.cc](https://paldeck.cc)
+- [LootLab](https://lootlab.cn/palworld) —— 配置参数范围、图标、地图数据参考
 
 ## 许可证
 
