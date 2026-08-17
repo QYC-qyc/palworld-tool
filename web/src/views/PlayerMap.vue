@@ -4,6 +4,7 @@
       <n-space align="center" justify="space-between">
         <n-space align="center">
           <span class="map-title">玩家地图</span>
+          <n-tag size="small" type="info" :bordered="false">{{ currentMapLabel }}</n-tag>
           <n-tag size="small" type="success" :bordered="false">在线 {{ onlineCount }} 人</n-tag>
           <n-tag size="small" :bordered="false">可见玩家 {{ visiblePlayerCount }} 人</n-tag>
           <n-tag size="small" :bordered="false">据点 {{ baseCount }} 个</n-tag>
@@ -28,6 +29,14 @@
         </div>
 
         <div v-show="!collapsed" class="control-panel__body">
+          <div class="control-row">
+            <n-radio-group v-model:value="mapMode" size="small" name="mapmode">
+              <n-radio-button value="palpagos">主世界</n-radio-button>
+              <n-radio-button value="feybreak">天坠之地</n-radio-button>
+              <n-radio-button value="auto">自动</n-radio-button>
+            </n-radio-group>
+          </div>
+
           <div class="control-row">
             <n-select
               v-model:value="searchValue"
@@ -85,7 +94,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { api } from '@/api'
 import {
-  LAND_SCAPE,
+  MAP_CONFIGS,
   toMapPosition,
   fromMapPosition,
   toMapDistance,
@@ -93,8 +102,17 @@ import {
   mergeMapPlayers,
   selectVisibleMapPlayers,
   buildPlayerGuildMap,
+  detectMap,
+  pointInMap,
+  type MapKey,
 } from '@/utils/mapCoords'
 import { clusterBases, type BaseMarker } from '@/utils/mapCluster'
+
+// 两张图共用同一 Leaflet Simple CRS 归一化空间
+const MAP_BOUNDS: L.LatLngBoundsExpression = [
+  [0, 0],
+  [-256, 256],
+]
 
 // ---------- 响应式状态 ----------
 const mapEl = ref<HTMLElement>()
@@ -104,6 +122,11 @@ const collapsed = ref(false)
 const players = ref<any[]>([])
 const guilds = ref<any[]>([])
 const onlineUids = ref<Set<string>>(new Set())
+const onlinePlayers = ref<any[]>([])
+
+// 当前地图与切换模式。默认进入页面显示主世界。
+const currentMap = ref<MapKey>('palpagos')
+const mapMode = ref<'palpagos' | 'feybreak' | 'auto'>('palpagos')
 
 const showPlayer = ref(true)
 const showBase = ref(true)
@@ -116,12 +139,19 @@ const mouseCoords = ref('-')
 
 // ---------- Leaflet 实例 ----------
 let map: L.Map | null = null
+let tileLayer: L.TileLayer | null = null
 let playerLayer: L.LayerGroup | null = null
 let baseLayer: L.LayerGroup | null = null
 let bossLayer: L.LayerGroup | null = null
 let fastTravelLayer: L.LayerGroup | null = null
-let pointsLoaded = false
 let timer: number | null = null
+
+// POI 按地图缓存，避免重复 fetch
+const pointsCache: Record<MapKey, any> = {
+  palpagos: null,
+  feybreak: null,
+}
+const pointsLoading = new Set<MapKey>()
 
 // ---------- 图标 ----------
 const playerIcon = L.icon({
@@ -149,10 +179,15 @@ const fastTravelIcon = L.icon({
 
 // ---------- 统计 ----------
 const onlineCount = computed(() => onlineUids.value.size)
-const visiblePlayerCount = computed(
-  () => selectVisibleMapPlayers(players.value, onlineUids.value, visibility.value).length,
-)
+const currentMapLabel = computed(() => MAP_CONFIGS[currentMap.value].label)
+const visiblePlayerCount = computed(() => {
+  const m = currentMap.value
+  return selectVisibleMapPlayers(players.value, onlineUids.value, visibility.value).filter(
+    (p) => pointInMap(Number(p.location_x), Number(p.location_y), m),
+  ).length
+})
 const rawBaseMarkers = computed<BaseMarker[]>(() => {
+  const m = currentMap.value
   const out: BaseMarker[] = []
   guilds.value.forEach((g) => {
     const camps: any[] = Array.isArray(g?.base_camp) ? g.base_camp : []
@@ -160,9 +195,11 @@ const rawBaseMarkers = computed<BaseMarker[]>(() => {
       const x = Number(c.location_x)
       const y = Number(c.location_y)
       if (!Number.isFinite(x) || !Number.isFinite(y) || (x === 0 && y === 0)) return
+      // 只保留落在当前地图边界内的据点
+      if (!pointInMap(x, y, m)) return
       out.push({
         key: `${g.admin_player_uid}:${c.id}`,
-        position: toMapPosition([x, y]),
+        position: toMapPosition([x, y], m),
         camp: c,
         guildName: g.name,
         level: g.base_camp_level,
@@ -174,21 +211,26 @@ const rawBaseMarkers = computed<BaseMarker[]>(() => {
 })
 const baseCount = computed(() => rawBaseMarkers.value.length)
 
-// ---------- 搜索选项 ----------
+// ---------- 搜索选项（仅当前地图内的玩家/据点） ----------
 const searchOptions = computed(() => {
+  const m = currentMap.value
   const opts: { label: string; value: string }[] = []
   players.value
-    .filter((p) => hasMapLocation(p))
+    .filter(
+      (p) =>
+        hasMapLocation(p) &&
+        pointInMap(Number(p.location_x), Number(p.location_y), m),
+    )
     .forEach((p) => {
       opts.push({
         label: `玩家: ${p.nickname || p.player_uid}`,
         value: `player:${p.player_uid}`,
       })
     })
-  rawBaseMarkers.value.forEach((m) => {
+  rawBaseMarkers.value.forEach((bm) => {
     opts.push({
-      label: `据点: ${m.guildName || '未知公会'}-${m.camp?.id ?? ''}`,
-      value: `base:${m.key}`,
+      label: `据点: ${bm.guildName || '未知公会'}-${bm.camp?.id ?? ''}`,
+      value: `base:${bm.key}`,
     })
   })
   return opts
@@ -197,12 +239,13 @@ const searchOptions = computed(() => {
 function onSearchSelect(value: string | null) {
   if (!value || !map) return
   const [type, id] = value.split(':')
+  const m = currentMap.value
   let pos: [number, number] | undefined
   if (type === 'player') {
     const p = players.value.find((x) => x.player_uid === id)
-    if (p) pos = toMapPosition([Number(p.location_x), Number(p.location_y)])
+    if (p) pos = toMapPosition([Number(p.location_x), Number(p.location_y)], m)
   } else if (type === 'base') {
-    pos = rawBaseMarkers.value.find((m) => m.key === id)?.position
+    pos = rawBaseMarkers.value.find((bm) => bm.key === id)?.position
   }
   if (pos) map.setView(pos, 5)
 }
@@ -213,11 +256,16 @@ function drawPlayers() {
   playerLayer.clearLayers()
   if (!showPlayer.value) return
 
+  const m = currentMap.value
   const guildMap = buildPlayerGuildMap(guilds.value)
   const list = selectVisibleMapPlayers(players.value, onlineUids.value, visibility.value)
   list.forEach((p) => {
+    const x = Number(p.location_x)
+    const y = Number(p.location_y)
+    // 只渲染落在当前地图内的玩家，避免另一张图的坐标映射到错误位置
+    if (!pointInMap(x, y, m)) return
     const online = onlineUids.value.has(p.player_uid)
-    const pos = toMapPosition([Number(p.location_x), Number(p.location_y)])
+    const pos = toMapPosition([x, y], m)
     const icon = L.icon({
       ...playerIcon.options,
       className: online ? 'player-marker' : 'player-marker player-offline',
@@ -231,8 +279,8 @@ function drawPlayers() {
     })
     const guild = guildMap.get(p.player_uid)
     const guildName = guild?.name || '无公会'
-    const wx = Math.round(Number(p.location_x))
-    const wy = Math.round(Number(p.location_y))
+    const wx = Math.round(x)
+    const wy = Math.round(y)
     const ping = p.ping != null ? Math.round(Number(p.ping)) : '-'
     marker.bindPopup(
       `<div class="map-popup">
@@ -256,6 +304,7 @@ function drawBases() {
   baseLayer.clearLayers()
   if (!showBase.value) return
 
+  const m = currentMap.value
   const zoom = map.getZoom()
   const clusters = clusterBases(rawBaseMarkers.value, zoom)
 
@@ -271,10 +320,10 @@ function drawBases() {
       const marker = L.marker(c.position, { icon })
       const items = c.markers
         .map(
-          (m) =>
+          (bm) =>
             `<div class="map-popup__row"><span>${escapeHtml(
-              m.guildName || '未知公会',
-            )}</span><b>Lv.${m.level ?? '-'} · #${m.camp?.id ?? ''}</b></div>`,
+              bm.guildName || '未知公会',
+            )}</span><b>Lv.${bm.level ?? '-'} · #${bm.camp?.id ?? ''}</b></div>`,
         )
         .join('')
       marker.bindPopup(
@@ -282,24 +331,24 @@ function drawBases() {
       )
       marker.addTo(baseLayer!)
     } else {
-      const m = c.markers[0]
-      const marker = L.marker(m.position, { icon: baseIcon })
-      const members = (m.members || []).slice(0, 8).map(escapeHtml).join('、')
+      const bm = c.markers[0]
+      const marker = L.marker(bm.position, { icon: baseIcon })
+      const members = (bm.members || []).slice(0, 8).map(escapeHtml).join('、')
       marker.bindPopup(
         `<div class="map-popup">
-          <div class="map-popup__title">${escapeHtml(m.guildName || '未知公会')}</div>
-          <div class="map-popup__row"><span>据点等级</span><b>Lv.${m.level ?? '-'}</b></div>
-          <div class="map-popup__row"><span>据点 ID</span><b>${m.camp?.id ?? '-'}</b></div>
-          <div class="map-popup__row"><span>范围</span><b>${Math.round(Number(m.camp?.area) || 0)}</b></div>
+          <div class="map-popup__title">${escapeHtml(bm.guildName || '未知公会')}</div>
+          <div class="map-popup__row"><span>据点等级</span><b>Lv.${bm.level ?? '-'}</b></div>
+          <div class="map-popup__row"><span>据点 ID</span><b>${bm.camp?.id ?? '-'}</b></div>
+          <div class="map-popup__row"><span>范围</span><b>${Math.round(Number(bm.camp?.area) || 0)}</b></div>
           ${members ? `<div class="map-popup__members">成员：${members}</div>` : ''}
         </div>`,
       )
       marker.addTo(baseLayer!)
 
       // zoom >= 5 时画据点范围圆圈
-      if (zoom >= 5 && m.camp?.area) {
-        L.circle(m.position, {
-          radius: toMapDistance(Number(m.camp.area)),
+      if (zoom >= 5 && bm.camp?.area) {
+        L.circle(bm.position, {
+          radius: toMapDistance(Number(bm.camp.area), m),
           color: '#18a058',
           fillColor: '#18a058',
           fillOpacity: 0.1,
@@ -310,24 +359,107 @@ function drawBases() {
   })
 }
 
-// ---------- 静态点（Boss/传送） ----------
-async function loadPoints() {
-  if (pointsLoaded) return
+// ---------- 静态点（Boss/传送），按地图缓存 ----------
+function renderPoints(mapKey: MapKey) {
+  // 仅渲染当前地图，避免切图竞态把旧图 POI 画进来
+  if (mapKey !== currentMap.value) return
+  const data = pointsCache[mapKey]
+  if (!data) return
+  bossLayer?.clearLayers()
+  ;(data.boss_tower || []).forEach((pt: [number, number]) => {
+    L.marker(toMapPosition(pt, mapKey), { icon: bossIcon }).addTo(bossLayer!)
+  })
+  fastTravelLayer?.clearLayers()
+  ;(data.fast_travel || []).forEach((pt: [number, number]) => {
+    L.marker(toMapPosition(pt, mapKey), { icon: fastTravelIcon }).addTo(fastTravelLayer!)
+  })
+}
+
+async function loadPoints(mapKey: MapKey) {
+  if (pointsCache[mapKey]) {
+    renderPoints(mapKey)
+    return
+  }
+  if (pointsLoading.has(mapKey)) return
+  pointsLoading.add(mapKey)
   try {
-    const resp = await fetch('/data/map-points.json')
+    const resp = await fetch(MAP_CONFIGS[mapKey].pointsUrl)
     const data = await resp.json()
-    bossLayer?.clearLayers()
-    ;(data.boss_tower || []).forEach((pt: [number, number]) => {
-      L.marker(toMapPosition(pt), { icon: bossIcon }).addTo(bossLayer!)
-    })
-    fastTravelLayer?.clearLayers()
-    ;(data.fast_travel || []).forEach((pt: [number, number]) => {
-      L.marker(toMapPosition(pt), { icon: fastTravelIcon }).addTo(fastTravelLayer!)
-    })
-    pointsLoaded = true
+    pointsCache[mapKey] = data
+    renderPoints(mapKey)
   } catch (e) {
     // 静态点加载失败不影响主功能
-    console.warn('加载地图静态点失败', e)
+    console.warn(`加载地图静态点失败 (${mapKey})`, e)
+  } finally {
+    pointsLoading.delete(mapKey)
+  }
+}
+
+// ---------- 瓦片层构建（切换地图时 remove + 重建） ----------
+function buildTileLayer(mapKey: MapKey) {
+  if (tileLayer) {
+    map?.removeLayer(tileLayer)
+    tileLayer = null
+  }
+  if (!map) return
+  tileLayer = L.tileLayer(MAP_CONFIGS[mapKey].tilesUrl, {
+    tileSize: 256,
+    noWrap: true,
+    bounds: MAP_BOUNDS,
+  }).addTo(map)
+}
+
+/**
+ * 切换到指定地图：重建瓦片、清空并重绘所有图层、保持当前缩放。
+ */
+async function switchMap(mapKey: MapKey) {
+  if (!map) return
+  const zoom = map.getZoom()
+  const needRebuild = mapKey !== currentMap.value || !tileLayer
+
+  currentMap.value = mapKey
+  if (needRebuild) {
+    buildTileLayer(mapKey)
+  }
+
+  playerLayer?.clearLayers()
+  baseLayer?.clearLayers()
+  bossLayer?.clearLayers()
+  fastTravelLayer?.clearLayers()
+
+  drawPlayers()
+  drawBases()
+
+  // POI 图层若处于显示状态，重建当前地图的标记
+  if (showBoss.value || showFastTravel.value) {
+    await loadPoints(mapKey)
+  }
+
+  map.setView([-128, 128], zoom)
+  map.invalidateSize()
+}
+
+/**
+ * 自动模式：根据在线玩家坐标判定多数所在地图。
+ * 平票或无在线玩家时保持当前地图。
+ */
+function detectAutoMap() {
+  const list = onlinePlayers.value.filter(hasMapLocation)
+  if (list.length === 0) {
+    drawPlayers()
+    return
+  }
+  const counts: Record<MapKey, number> = { palpagos: 0, feybreak: 0 }
+  list.forEach((p) => {
+    counts[detectMap(Number(p.location_x), Number(p.location_y))]++
+  })
+  let winner: MapKey = currentMap.value
+  if (counts.feybreak > counts.palpagos) winner = 'feybreak'
+  else if (counts.palpagos > counts.feybreak) winner = 'palpagos'
+  if (winner !== currentMap.value) {
+    switchMap(winner)
+  } else {
+    drawPlayers()
   }
 }
 
@@ -339,7 +471,6 @@ async function loadAll() {
     players.value = Array.isArray(ps) ? ps : []
     guilds.value = Array.isArray(gs) ? gs : []
     await refreshOnline()
-    drawPlayers()
     drawBases()
   } catch (e) {
     console.error(e)
@@ -355,8 +486,13 @@ async function refreshOnline() {
     onlineUids.value = new Set(
       list.map((p: any) => p.player_uid).filter(Boolean),
     )
+    onlinePlayers.value = list
     players.value = mergeMapPlayers(players.value, list)
-    drawPlayers()
+    if (mapMode.value === 'auto') {
+      detectAutoMap()
+    } else {
+      drawPlayers()
+    }
   } catch (e) {
     // 静默：在线接口偶发失败不打断
     console.warn('刷新在线玩家失败', e)
@@ -384,7 +520,7 @@ watch(showBase, (v) => {
 watch(showBoss, async (v) => {
   if (!map || !bossLayer) return
   if (v) {
-    await loadPoints()
+    await loadPoints(currentMap.value)
     bossLayer.addTo(map)
   } else {
     map.removeLayer(bossLayer)
@@ -393,7 +529,7 @@ watch(showBoss, async (v) => {
 watch(showFastTravel, async (v) => {
   if (!map || !fastTravelLayer) return
   if (v) {
-    await loadPoints()
+    await loadPoints(currentMap.value)
     fastTravelLayer.addTo(map)
   } else {
     map.removeLayer(fastTravelLayer)
@@ -401,15 +537,19 @@ watch(showFastTravel, async (v) => {
 })
 watch(visibility, () => drawPlayers())
 
+// 切换地图模式：手动选项直接切图；auto 则立即按在线玩家判定
+watch(mapMode, (mode) => {
+  if (mode === 'auto') {
+    detectAutoMap()
+  } else {
+    switchMap(mode)
+  }
+})
+
 // ---------- 生命周期 ----------
 onMounted(async () => {
   await nextTick()
   if (!mapEl.value) return
-
-  const bounds: L.LatLngBoundsExpression = [
-    [0, 0],
-    [-256, 256],
-  ]
 
   map = L.map(mapEl.value, {
     crs: L.CRS.Simple,
@@ -419,15 +559,12 @@ onMounted(async () => {
     maxZoom: 6,
     zoomControl: true,
     attributionControl: false,
-    maxBounds: bounds,
+    maxBounds: MAP_BOUNDS,
     maxBoundsViscosity: 1.0,
   })
 
-  L.tileLayer('/map/tiles/{z}/{x}/{y}.webp', {
-    tileSize: 256,
-    noWrap: true,
-    bounds,
-  }).addTo(map)
+  // 初始瓦片为主世界
+  buildTileLayer(currentMap.value)
 
   playerLayer = L.layerGroup().addTo(map)
   baseLayer = L.layerGroup().addTo(map)
@@ -437,9 +574,9 @@ onMounted(async () => {
   // zoom 变化时重绘据点聚合
   map.on('zoomend', () => drawBases())
 
-  // 鼠标移动反算游戏坐标
+  // 鼠标移动反算游戏坐标（按当前地图边界）
   map.on('mousemove', (e: L.LeafletMouseEvent) => {
-    const [wx, wy] = fromMapPosition([e.latlng.lat, e.latlng.lng])
+    const [wx, wy] = fromMapPosition([e.latlng.lat, e.latlng.lng], currentMap.value)
     mouseCoords.value = `${Math.round(wx)}, ${Math.round(wy)}`
   })
 
