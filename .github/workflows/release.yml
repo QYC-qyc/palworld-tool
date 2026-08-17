@@ -92,6 +92,11 @@ jobs:
           TAG: ${{ github.event.ref }}
         run: |
           set +e
+          # 如果 tag 又被重新推送回来（同名重发版），不删 release，避免竞态
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
+            echo "tag ${TAG} 仍存在（可能重新推送），跳过删除 release"
+            exit 0
+          fi
           rid=$(gh api -H "Accept: application/vnd.github+json" \
             "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null)
           if [ -n "$rid" ] && [ "$rid" != "null" ]; then
