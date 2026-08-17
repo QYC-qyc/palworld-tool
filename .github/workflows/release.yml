@@ -59,11 +59,27 @@ jobs:
           tar -czf paladmin_linux_arm64.tar.gz -C dist paladmin web data sav_cli paladmin.service
 
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            paladmin_linux_amd64.tar.gz
-            paladmin_linux_arm64.tar.gz
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -e
+          # 创建 release（若已存在则忽略）
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "Release $TAG" \
+            || echo "release $TAG 已存在，继续上传"
+          # 逐个上传，失败重试 5 次（覆盖同名文件）
+          for f in paladmin_linux_amd64.tar.gz paladmin_linux_arm64.tar.gz; do
+            for attempt in 1 2 3 4 5; do
+              if gh release upload "$TAG" "$f" --clobber; then
+                echo "$f 上传成功"
+                break
+              fi
+              echo "$f 上传失败，第 $attempt 次重试..."
+              sleep $((attempt * 5))
+            done
+          done
 
   cleanup:
     # 删除 tag 时，同步删除对应的 GitHub Release
