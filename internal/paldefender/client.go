@@ -113,6 +113,11 @@ func (c *Client) do(method, path string, query url.Values, body any) ([]byte, er
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		// 连接被拒绝通常是 REST API 未启用或游戏服/PalDefender 未运行
+		errStr := err.Error()
+		if strings.Contains(errStr, "connection refused") || strings.Contains(errStr, "connectex") {
+			return nil, fmt.Errorf("无法连接 PalDefender REST API（%s）：请确认游戏服已启动、PalDefender 已加载，且 RESTConfig.json 中 Enabled=true 后重启过服务器", c.baseURL)
+		}
 		return nil, fmt.Errorf("paldefender: 请求失败: %w", err)
 	}
 	defer resp.Body.Close()

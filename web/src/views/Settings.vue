@@ -320,7 +320,14 @@ async function generateToken() {
     const res = await api.createPalDefenderToken('PalAdmin')
     pdToken.value = res.token
     pdTokenSet.value = true
-    message.success(`Token 已生成并写入 ${res.tokens_dir}，请点击保存设置`)
+    if (res.rest_enabled === false) {
+      message.warning(
+        `Token 已生成，并已自动启用 REST API（写入 ${res.rest_config || 'RESTConfig.json'}）。请重启游戏服使配置生效，然后点击保存设置`,
+        { duration: 8000 },
+      )
+    } else {
+      message.success(`Token 已生成并写入 ${res.tokens_dir}，请点击保存设置`)
+    }
   } catch (e: any) {
     message.error(e.message)
   } finally {
