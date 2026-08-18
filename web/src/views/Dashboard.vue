@@ -21,6 +21,29 @@
       </n-gi>
     </n-grid>
 
+    <n-card title="运行模式" size="small">
+      <n-space align="center" :size="12" :wrap="false">
+        <n-text strong>游戏服版本：</n-text>
+        <n-radio-group v-model:value="runMode" @update:value="onModeChange">
+          <n-radio-button value="linux">原生 Linux</n-radio-button>
+          <n-radio-button value="windows">Windows（Wine/PalDefender）</n-radio-button>
+        </n-radio-group>
+        <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:420px">
+          <template #trigger>
+            <n-icon :component="HelpCircleOutline" style="font-size:18px;color:var(--n-text-color-3,#999);cursor:help" />
+          </template>
+          <div style="line-height:1.7">
+            <div><b>原生 Linux 版：</b>直接运行 PalServer.sh，<b>性能和稳定性最好、内存占用低</b>，无需 Wine；
+              但无法使用 PalDefender（Windows DLL 反作弊）。</div>
+            <div style="margin-top:6px"><b>Windows 版（Wine）：</b>通过 Wine 运行 Windows 服务端以加载
+              PalDefender 反作弊（实时拦截作弊、封禁/私聊/删据点等）；<b>内存占用更高、性能略低</b>，
+              需先安装 Wine、Windows 版游戏服和 PalDefender DLL。</div>
+            <div style="margin-top:6px">切换版本后需在「游戏服」页安装对应版本，并重启游戏服。</div>
+          </div>
+        </n-tooltip>
+      </n-space>
+    </n-card>
+
     <n-card title="快捷操作" size="small">
       <n-space>
         <n-button @click="openBroadcast">全服广播</n-button>
@@ -71,17 +94,56 @@
 import { onMounted, ref } from 'vue'
 import {
   NSpace, NCard, NGrid, NGi, NStatistic, NButton, NInput, NModal,
-  NPopconfirm, useMessage,
+  NPopconfirm, NRadioGroup, NRadioButton, NTooltip, NIcon, useMessage, useDialog,
 } from 'naive-ui'
+import { HelpCircleOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
 
 const message = useMessage()
+const dialog = useDialog()
 const server = ref<any>({})
 const metrics = ref<any>({})
 const broadcastMsg = ref('')
 const showBroadcast = ref(false)
 const sending = ref(false)
 const syncing = ref(false)
+const runMode = ref<'linux' | 'windows'>('linux')
+
+async function loadMode() {
+  try {
+    const s = await api.getSettings()
+    runMode.value = s['paldefender.wine_mode'] === 'true' ? 'windows' : 'linux'
+  } catch {}
+}
+
+function onModeChange(v: 'linux' | 'windows') {
+  const wantWindows = v === 'windows'
+  const previous = runMode.value
+  dialog.warning({
+    title: wantWindows ? '切换到 Windows（Wine）模式？' : '切换到原生 Linux 模式？',
+    content: wantWindows
+      ? '将用 Wine 启动 Windows 版服务端以加载 PalDefender 反作弊。请确保已安装 Wine、Windows 版游戏服和 PalDefender DLL，且已在「游戏配置」中检查对应版本配置，然后重启游戏服。'
+      : '将用原生 PalServer.sh 启动（性能更好，但无法使用 PalDefender）。请在「游戏服」页确认已安装 Linux 版，并重启游戏服。',
+    positiveText: '确认切换',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await api.saveSettings({ 'paldefender.wine_mode': wantWindows ? 'true' : 'false' })
+        runMode.value = v
+        message.success('已切换，请安装对应版本并重启游戏服')
+      } catch (e: any) {
+        runMode.value = previous
+        message.error(e.message)
+      }
+    },
+    onNegativeClick: () => {
+      runMode.value = previous
+    },
+    onMaskClick: () => {
+      runMode.value = previous
+    },
+  })
+}
 
 async function loadAll() {
   try { server.value = await api.getServer() } catch {}
@@ -141,5 +203,5 @@ async function doShutdown() {
   }
 }
 
-onMounted(loadAll)
+onMounted(() => { loadAll(); loadMode() })
 </script>
