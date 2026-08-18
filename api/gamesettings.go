@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -18,8 +17,9 @@ const iniFallbackPath = "/www/palworld-tool/game/Pal/Saved/Config/LinuxServer/Pa
 
 // iniPath 解析 PalWorldSettings.ini 的完整路径：
 //  1. 环境变量 PALWORLD_INI_PATH 显式指定时优先；
-//  2. 否则在用户配置的游戏安装目录下查找 Pal/Saved/Config/<平台>/PalWorldSettings.ini；
-//  3. 都没有时使用兜底默认路径。
+//  2. 否则按面板 PalDefender 模式选择平台目录（开启 Wine 模式用 WindowsServer，否则 LinuxServer）；
+//  3. 若该模式对应的文件不存在但另一平台的存在，则用已存在的那个（兼容只装了一个版本的情况）；
+//  4. 都没有时返回当前模式对应的默认路径（保存时自动创建）。
 func iniPath() string {
 	if p := os.Getenv("PALWORLD_INI_PATH"); p != "" {
 		return p
@@ -36,21 +36,27 @@ func iniPath() string {
 		return iniFallbackPath
 	}
 
-	// 优先 LinuxServer，其次 WindowsServer
-	candidates := []string{
-		filepath.Join(installDir, "Pal", "Saved", "Config", "LinuxServer", "PalWorldSettings.ini"),
-		filepath.Join(installDir, "Pal", "Saved", "Config", "WindowsServer", "PalWorldSettings.ini"),
+	linuxPath := filepath.Join(installDir, "Pal", "Saved", "Config", "LinuxServer", "PalWorldSettings.ini")
+	windowsPath := filepath.Join(installDir, "Pal", "Saved", "Config", "WindowsServer", "PalWorldSettings.ini")
+
+	// PalDefender(Wine) 模式对应 Windows 版服务端
+	wineMode := false
+	if db != nil {
+		wineMode = strings.EqualFold(service.GetSetting(db, service.SettingPalDefenderWineMode), "true")
 	}
-	for _, p := range candidates {
-		if fileExists(p) {
-			return p
-		}
+
+	primary, secondary := linuxPath, windowsPath
+	if wineMode {
+		primary, secondary = windowsPath, linuxPath
 	}
-	// 文件尚未生成（游戏服未首次启动）时返回默认候选路径，保存时会自动创建
-	if runtime.GOOS == "windows" {
-		return candidates[1]
+	if fileExists(primary) {
+		return primary
 	}
-	return candidates[0]
+	if fileExists(secondary) {
+		return secondary
+	}
+	// 两个文件都尚未生成（游戏服未首次启动），返回当前模式对应路径，保存时自动创建
+	return primary
 }
 
 type gameSettingsAPI struct{}
