@@ -143,7 +143,7 @@ func isEditableKey(k string) bool {
 	case service.SettingWebPassword, service.SettingRestAddress, service.SettingRestUsername,
 		service.SettingRestPassword, service.SettingSavePath, service.SettingProcessMode,
 		service.SettingProcessService, service.SettingProcessContainer,
-		service.SettingPalDefenderEnabled, service.SettingPalDefenderHost,
+		service.SettingPalDefenderHost,
 		service.SettingPalDefenderPort, service.SettingPalDefenderToken,
 		"save.backup_interval":
 		return true

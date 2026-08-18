@@ -16,7 +16,6 @@ const (
 	SettingProcessService   = "process.service"
 	SettingProcessContainer = "process.container"
 
-	SettingPalDefenderEnabled  = "paldefender.enabled"
 	SettingPalDefenderHost     = "paldefender.host"
 	SettingPalDefenderPort     = "paldefender.port"
 	SettingPalDefenderToken    = "paldefender.token"
@@ -35,7 +34,6 @@ func DefaultSettings() map[string]string {
 		SettingProcessService:   "palworld",
 		SettingProcessContainer: "palworld",
 
-		SettingPalDefenderEnabled:  "false",
 		SettingPalDefenderHost:     "127.0.0.1",
 		SettingPalDefenderPort:     "17993",
 		SettingPalDefenderToken:    "",

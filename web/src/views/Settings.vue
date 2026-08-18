@@ -28,10 +28,6 @@
 
     <n-card title="PalDefender 反作弊" size="small">
       <n-form label-placement="left" label-width="140">
-        <n-form-item label="启用 REST API">
-          <n-switch :value="form['paldefender.enabled'] === 'true'"
-            @update:value="(v) => (form['paldefender.enabled'] = v ? 'true' : 'false')" />
-        </n-form-item>
         <n-form-item label="API 主机">
           <n-input v-model:value="form['paldefender.host']" placeholder="127.0.0.1" />
         </n-form-item>
@@ -48,8 +44,8 @@
                   <n-icon :component="HelpCircleOutline" class="help-icon" />
                 </template>
                 <div class="tooltip-content">
-                  在游戏目录 Pal/Binaries/Win64/PalDefender/RESTAPI/Tokens/ 下手动创建令牌 JSON，
-                  复制其 Token 字段粘贴于此。请勿将 17993 端口暴露到公网。
+                  点击右侧「生成 Token」自动写入 PalDefender 令牌，也可手动粘贴已有 Token。
+                  REST API 的启用/端口在游戏配置中设置。请勿将 API 端口暴露到公网。
                 </div>
               </n-tooltip>
             </span>
@@ -320,14 +316,10 @@ async function generateToken() {
     const res = await api.createPalDefenderToken('PalAdmin')
     pdToken.value = res.token
     pdTokenSet.value = true
-    if (res.rest_enabled === false) {
-      message.warning(
-        `Token 已生成，并已自动启用 REST API（写入 ${res.rest_config || 'RESTConfig.json'}）。请重启游戏服使配置生效，然后点击保存设置`,
-        { duration: 8000 },
-      )
-    } else {
-      message.success(`Token 已生成并写入 ${res.tokens_dir}，请点击保存设置`)
-    }
+    message.success(
+      `Token 已生成并写入 ${res.tokens_dir}。请确保已在游戏配置中启用 PalDefender REST API，然后点击保存设置`,
+      { duration: 6000 },
+    )
   } catch (e: any) {
     message.error(e.message)
   } finally {

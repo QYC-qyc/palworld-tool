@@ -106,47 +106,12 @@ func (p *palDefenderAPI) createToken(c *gin.Context) {
 		return
 	}
 
-	// 自动启用 REST API：写入/更新 RESTConfig.json，确保 Enabled=true
-	restDir := filepath.Join(st.Win64Path, "PalDefender", "RESTAPI")
-	restConfigPath := filepath.Join(restDir, "RESTConfig.json")
-	restEnabled := false
-	if existing, err := os.ReadFile(restConfigPath); err == nil {
-		var cfg map[string]any
-		if json.Unmarshal(existing, &cfg) == nil {
-			if v, ok := cfg["Enabled"].(bool); ok && v {
-				restEnabled = true
-			} else {
-				cfg["Enabled"] = true
-				if out, err := json.MarshalIndent(cfg, "", "  "); err == nil {
-					_ = os.WriteFile(restConfigPath, out, 0644)
-				}
-			}
-		}
-	} else {
-		// 不存在则创建最小配置：本机回环、默认端口、CORS 放行本机
-		defaultCfg := map[string]any{
-			"Enabled":        true,
-			"BindAddress":    "127.0.0.1",
-			"Port":           17993,
-			"ConsoleLogging": true,
-			"CORS": map[string]any{
-				"Enabled":     true,
-				"AllowedOrigins": []string{"http://127.0.0.1", "http://localhost"},
-			},
-		}
-		if out, err := json.MarshalIndent(defaultCfg, "", "  "); err == nil {
-			_ = os.WriteFile(restConfigPath, out, 0644)
-		}
-	}
-
 	_ = audit.Add(db, "web", "paldefender_create_token", filename, "生成 REST API Token", "success")
 	c.JSON(http.StatusOK, gin.H{
-		"success":      true,
-		"token":        token,
-		"token_file":   filename,
-		"tokens_dir":   tokensDir,
-		"rest_enabled": restEnabled, // false 表示本次新启用，需要重启游戏服才生效
-		"rest_config":  restConfigPath,
+		"success":    true,
+		"token":      token,
+		"token_file": filename,
+		"tokens_dir": tokensDir,
 	})
 }
 

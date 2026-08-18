@@ -31,12 +31,8 @@ type Client struct {
 }
 
 // Load 从面板动态设置中读取 PalDefender 配置并构建客户端。
-// 当未启用或 Token 为空时返回 ErrNotConfigured。
+// Token 为空即视为未配置（REST 的启停由 PalDefender 自身 RESTConfig.json 决定）。
 func Load(db *bbolt.DB) (*Client, error) {
-	enabled := service.GetSetting(db, service.SettingPalDefenderEnabled)
-	if !strings.EqualFold(enabled, "true") {
-		return nil, ErrNotConfigured
-	}
 	token := service.GetSetting(db, service.SettingPalDefenderToken)
 	if token == "" {
 		return nil, ErrNotConfigured
