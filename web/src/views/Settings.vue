@@ -43,13 +43,13 @@
               </n-tooltip>
             </span>
           </template>
-          <n-space align="center" :size="8" :wrap="false">
+          <div style="display:flex;align-items:center;gap:8px;min-height:28px">
             <n-switch :value="form['paldefender.wine_mode'] === 'true'"
               @update:value="onToggleWineMode" />
             <n-text depth="3" style="font-size:13px">
               {{ form['paldefender.wine_mode'] === 'true' ? 'Wine（Windows 版）' : '原生 Linux 版' }}
             </n-text>
-          </n-space>
+          </div>
         </n-form-item>
         <n-form-item label="API 主机">
           <n-input v-model:value="form['paldefender.host']" placeholder="127.0.0.1" />
