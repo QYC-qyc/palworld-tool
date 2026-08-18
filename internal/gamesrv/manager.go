@@ -257,8 +257,12 @@ func (m *Manager) Start() error {
 		}
 	}
 
-	// 是否用 Wine 启动 Windows 版服务端（由面板 PalDefender 模式开关决定）
+	// 是否用 Wine 启动 Windows 版服务端（由面板 PalDefender 模式开关决定）。
+	// 开启模式时缺任何前置条件都直接报错，不回退原生启动。
 	useWine, wineErr := m.shouldUseWine()
+	if wineErr != nil {
+		return wineErr
+	}
 	var exe string
 	if useWine {
 		exe = m.winServerExePath()
@@ -273,10 +277,6 @@ func (m *Manager) Start() error {
 		}
 		if _, statErr := os.Stat(exe); statErr != nil {
 			return errors.New("服务端未安装，请先在面板点击安装")
-		}
-		if wineErr != "" {
-			// 开启了 PalDefender 模式但条件不满足，已回退原生启动
-			m.logBuf.WriteString("警告：" + wineErr + "，已回退原生 Linux 服务端启动，PalDefender 不生效\n")
 		}
 	}
 
@@ -350,30 +350,42 @@ func (m *Manager) wineModeEnabled() bool {
 }
 
 // shouldUseWine 判断是否用 Wine 启动 Windows 版服务端。
-// 由面板设置 paldefender.wine_mode 决定（开启 PalDefender 时使用）。
-// 同时校验 Wine、Windows 版 exe、d3d9.dll 是否就绪，未就绪则回退原生并记录原因。
-func (m *Manager) shouldUseWine() (bool, string) {
+// 未开启 PalDefender 模式时返回 (false, nil)（用原生 Linux 启动）。
+// 开启模式时逐项校验前置条件，缺任何一项都返回错误（阻止启动），
+// 错误信息说明缺什么以及去哪里安装/下载。
+func (m *Manager) shouldUseWine() (bool, error) {
 	if runtime.GOOS == "windows" {
-		return false, ""
+		return false, nil
 	}
-	// 未开启 Wine 模式
 	if !m.wineModeEnabled() {
-		return false, ""
+		return false, nil
 	}
-	// 开启了 Wine 模式，检查前置条件
+	// 1) Wine
 	if _, err := exec.LookPath("wine64"); err != nil {
 		if _, err2 := exec.LookPath("wine"); err2 != nil {
-			return false, "已开启 PalDefender 模式但未安装 Wine"
+			return false, errors.New("PalDefender 模式需要 Wine：请在「PalDefender」页点击「一键安装 Wine」")
 		}
 	}
+	// 2) Windows 版服务端 exe
+	if m.cfg.InstallDir == "" {
+		return false, errors.New("PalDefender 模式需要 Windows 版服务端：请先配置游戏安装目录")
+	}
 	if _, err := os.Stat(m.winServerExePath()); err != nil {
-		return false, "已开启 PalDefender 模式但未找到 Windows 版服务端（PalServer-Win64-Shipping-Cmd.exe）"
+		return false, errors.New("PalDefender 模式需要 Windows 版服务端：请在「游戏服」页点击「安装/更新」（将自动下载 Windows 版）")
 	}
+	// 3) PalDefender DLL（d3d9.dll + PalDefender.dll）
 	win64 := filepath.Join(m.cfg.InstallDir, "Pal", "Binaries", "Win64")
+	missing := []string{}
 	if _, err := os.Stat(filepath.Join(win64, "d3d9.dll")); err != nil {
-		return false, "已开启 PalDefender 模式但未安装 PalDefender DLL"
+		missing = append(missing, "d3d9.dll")
 	}
-	return true, ""
+	if _, err := os.Stat(filepath.Join(win64, "PalDefender.dll")); err != nil {
+		missing = append(missing, "PalDefender.dll")
+	}
+	if len(missing) > 0 {
+		return false, fmt.Errorf("PalDefender 模式缺少 %s：请在「PalDefender」页点击「安装 PalDefender」", strings.Join(missing, "、"))
+	}
+	return true, nil
 }
 
 // winServerExePath 返回 Windows 版服务端路径
