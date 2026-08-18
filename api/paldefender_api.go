@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"paladmin/internal/paldefender"
+	"paladmin/service"
 	"paladmin/service/audit"
 )
 
@@ -391,4 +392,40 @@ func (p *palDefenderAPI) apiReloadConfig(c *gin.Context) {
 	}
 	_ = audit.Add(db, "web", "paldefender_reload", "", "热重载配置", "success")
 	pdRaw(c, raw)
+}
+
+// applyAntiCheatConfig 把面板的 PalDefender 反作弊开关写入其 Config.json，
+// 并尝试通过 REST API 热重载。仅在 Windows/Wine 模式且 PD 已安装时生效；
+// 失败只记录日志，不阻断设置保存（游戏服重启后也会读取 Config.json）。
+func applyAntiCheatConfig() {
+	if gameAPI == nil {
+		return
+	}
+	pd := &palDefenderAPI{}
+	st := pd.detectAt("")
+	if st.Win64Path == "" {
+		return
+	}
+	enabled := service.GetSetting(db, service.SettingPalDefenderAntiCheat) != "false" // 默认开
+	kick := service.GetSetting(db, service.SettingPalDefenderCheatersKick) == "true"
+	ban := service.GetSetting(db, service.SettingPalDefenderCheatersBan) == "true"
+	ipban := service.GetSetting(db, service.SettingPalDefenderCheatersIPBan) == "true"
+
+	configPath := filepath.Join(st.Win64Path, "PalDefender", "Config.json")
+	cfg := map[string]any{}
+	if existing, err := os.ReadFile(configPath); err == nil {
+		_ = json.Unmarshal(existing, &cfg)
+	}
+	cfg["shouldWarnCheaters"] = enabled
+	cfg["shouldKickCheaters"] = enabled && kick
+	cfg["shouldBanCheaters"] = enabled && ban
+	cfg["shouldIPBanCheaters"] = enabled && ipban
+	if out, err := json.MarshalIndent(cfg, "", "  "); err == nil {
+		_ = os.WriteFile(configPath, out, 0644)
+	}
+
+	// 尝试热重载（PD 在线时立即生效）
+	if client, err := paldefender.Load(db); err == nil {
+		_, _ = client.ReloadConfig()
+	}
 }

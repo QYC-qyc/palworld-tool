@@ -107,6 +107,20 @@ func saveSettings(c *gin.Context) {
 	all, _ := service.GetAllSettings(db)
 	config.ApplyToViper(all)
 
+	// 若改动了 PalDefender 反作弊选项，写入其 Config.json 并热重载
+	antiCheatKeys := map[string]bool{
+		service.SettingPalDefenderAntiCheat:    true,
+		service.SettingPalDefenderCheatersKick: true,
+		service.SettingPalDefenderCheatersBan:  true,
+		service.SettingPalDefenderCheatersIPBan: true,
+	}
+	for k := range updates {
+		if antiCheatKeys[k] {
+			applyAntiCheatConfig()
+			break
+		}
+	}
+
 	_ = audit.Add(db, "web", "settings_update", "", "更新面板动态配置", "success")
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }
@@ -145,9 +159,9 @@ func isEditableKey(k string) bool {
 		service.SettingProcessService, service.SettingProcessContainer,
 		service.SettingPalDefenderHost,
 		service.SettingPalDefenderPort, service.SettingPalDefenderToken,
-		service.SettingPalDefenderWineMode,
-		service.SettingDetectEnabled, service.SettingDetectBanOnDetect,
-		service.SettingDetectKickOnDetect,
+		service.SettingPalDefenderWineMode, service.SettingPalDefenderAntiCheat,
+		service.SettingPalDefenderCheatersKick, service.SettingPalDefenderCheatersBan,
+		service.SettingPalDefenderCheatersIPBan,
 		"save.backup_interval":
 		return true
 	}

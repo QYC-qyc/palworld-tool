@@ -21,12 +21,11 @@ const (
 	SettingPalDefenderToken    = "paldefender.token"
 	SettingPalDefenderBasePath = "paldefender.base_path"
 	// SettingPalDefenderWineMode 为 true 时用 Wine 启动 Windows 版服务端（启用 PalDefender）
-	SettingPalDefenderWineMode = "paldefender.wine_mode"
-
-	// 反作弊检测（外部监控与存档审计）
-	SettingDetectEnabled      = "detect.enabled"        // 总开关
-	SettingDetectBanOnDetect  = "detect.ban_on_detect"  // 检测到即封禁（否则仅踢出）
-	SettingDetectKickOnDetect = "detect.kick_on_detect" // 检测到即踢出
+	SettingPalDefenderWineMode       = "paldefender.wine_mode"
+	SettingPalDefenderAntiCheat      = "paldefender.anticheat_enabled" // PalDefender 反作弊总开关
+	SettingPalDefenderCheatersKick   = "paldefender.cheaters_kick"     // 检测到作弊者踢出
+	SettingPalDefenderCheatersBan    = "paldefender.cheaters_ban"      // 检测到作弊者封禁
+	SettingPalDefenderCheatersIPBan  = "paldefender.cheaters_ipban"    // 检测到作弊者 IP 封禁
 )
 
 // DefaultSettings 返回需要在数据库中初始化的默认键（首次启动时从 viper 同步）
@@ -47,9 +46,10 @@ func DefaultSettings() map[string]string {
 		SettingPalDefenderBasePath: "/v1/pdapi",
 		SettingPalDefenderWineMode: "false",
 
-		SettingDetectEnabled:      "true",
-		SettingDetectBanOnDetect:  "false",
-		SettingDetectKickOnDetect: "true",
+		SettingPalDefenderAntiCheat:     "true",
+		SettingPalDefenderCheatersKick:  "true",
+		SettingPalDefenderCheatersBan:   "false",
+		SettingPalDefenderCheatersIPBan: "false",
 	}
 }
 

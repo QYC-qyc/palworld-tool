@@ -74,49 +74,57 @@
       </n-form>
     </n-card>
 
-    <n-card title="反作弊检测" size="small">
+    <n-card title="反作弊（PalDefender）" size="small">
       <n-form label-placement="left" label-width="180">
         <n-form-item>
           <template #label>
             <span class="field-label">
-              启用违规检测
-              <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:340px">
+              启用反作弊
+              <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:360px">
                 <template #trigger>
                   <n-icon :component="HelpCircleOutline" class="help-icon" />
                 </template>
                 <div class="tooltip-content">
-                  外部监控与存档审计：在线轮询检测等级突变、同 IP 多开，存档解析后检测帕鲁非法属性、
-                  复制帕鲁、物品堆叠异常。检测到的玩家将按下方设置踢出或封禁（封禁通过 PalDefender 执行）。
+                  由 PalDefender 在游戏进程内实时检测作弊（非法属性、违禁物品、作弊指令等）。
+                  需在 Windows(Wine) 模式下安装 PalDefender。关闭后下方处置选项均不生效，
+                  保存时会写入 PalDefender/Config.json 并热重载。
                 </div>
               </n-tooltip>
             </span>
           </template>
-          <n-switch :value="form['detect.enabled'] === 'true'"
-            @update:value="(v) => (form['detect.enabled'] = v ? 'true' : 'false')" />
-        </n-form-item>
-        <n-form-item label="检测到即封禁">
-          <n-switch :value="form['detect.ban_on_detect'] === 'true'"
-            @update:value="(v) => (form['detect.ban_on_detect'] = v ? 'true' : 'false')">
-            <template #checked>封禁</template>
-            <template #unchecked>不封禁</template>
-          </n-switch>
+          <n-switch :value="form['paldefender.anticheat_enabled'] !== 'false'"
+            @update:value="(v) => (form['paldefender.anticheat_enabled'] = v ? 'true' : 'false')" />
         </n-form-item>
         <n-form-item>
           <template #label>
             <span class="field-label">
               检测到即踢出
-              <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:300px">
+              <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
                 <template #trigger>
                   <n-icon :component="HelpCircleOutline" class="help-icon" />
                 </template>
-                未开启封禁时，检测到异常只踢出玩家（优先 PalDefender，失败回退官方 REST）。
+                检测到作弊行为时自动踢出玩家（对应 Config.json 的 shouldKickCheaters）。
               </n-tooltip>
             </span>
           </template>
-          <n-switch :value="form['detect.kick_on_detect'] === 'true'"
-            @update:value="(v) => (form['detect.kick_on_detect'] = v ? 'true' : 'false')">
+          <n-switch :value="form['paldefender.cheaters_kick'] === 'true'"
+            @update:value="(v) => (form['paldefender.cheaters_kick'] = v ? 'true' : 'false')">
             <template #checked>踢出</template>
             <template #unchecked>不踢出</template>
+          </n-switch>
+        </n-form-item>
+        <n-form-item label="检测到即封禁">
+          <n-switch :value="form['paldefender.cheaters_ban'] === 'true'"
+            @update:value="(v) => (form['paldefender.cheaters_ban'] = v ? 'true' : 'false')">
+            <template #checked>封禁</template>
+            <template #unchecked>不封禁</template>
+          </n-switch>
+        </n-form-item>
+        <n-form-item label="同时封禁 IP">
+          <n-switch :value="form['paldefender.cheaters_ipban'] === 'true'"
+            @update:value="(v) => (form['paldefender.cheaters_ipban'] = v ? 'true' : 'false')">
+            <template #checked>IP 封禁</template>
+            <template #unchecked>不封 IP</template>
           </n-switch>
         </n-form-item>
       </n-form>

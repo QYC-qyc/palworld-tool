@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"paladmin/internal/database"
-	"paladmin/internal/detect"
 	"paladmin/internal/paldefender"
 	"paladmin/internal/tool"
 	"paladmin/service"
@@ -52,11 +51,6 @@ func putPlayers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	// 触发轻量存档反作弊检测（配置从面板设置读取）
-	go func() {
-		cfg := detect.ConfigFromSettings(func(k string) string { return service.GetSetting(db, k) })
-		detect.RunSaveCheck(db, cfg, players)
-	}()
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }
 
