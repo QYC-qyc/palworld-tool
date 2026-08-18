@@ -66,6 +66,25 @@ func DefaultConfig() *Config {
 	}
 }
 
+// ConfigFromSettings 以默认配置为基础，用面板动态设置（bbolt）覆盖
+// detect.enabled / detect.ban_on_detect / detect.kick_on_detect。
+func ConfigFromSettings(get func(string) string) *Config {
+	cfg := DefaultConfig()
+	if get == nil {
+		return cfg
+	}
+	if v := get("detect.enabled"); v != "" {
+		cfg.Enabled = strings.EqualFold(v, "true")
+	}
+	if v := get("detect.ban_on_detect"); v != "" {
+		cfg.BanOnDetect = strings.EqualFold(v, "true")
+	}
+	if v := get("detect.kick_on_detect"); v != "" {
+		cfg.KickOnDetect = strings.EqualFold(v, "true")
+	}
+	return cfg
+}
+
 // RunOnlineCheck 执行一次在线检测
 func RunOnlineCheck(db *bbolt.DB, cfg *Config) {
 	if cfg == nil || !cfg.Enabled {

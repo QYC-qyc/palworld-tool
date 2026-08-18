@@ -20,6 +20,11 @@ const (
 	SettingPalDefenderPort     = "paldefender.port"
 	SettingPalDefenderToken    = "paldefender.token"
 	SettingPalDefenderBasePath = "paldefender.base_path"
+
+	// 反作弊检测（外部监控与存档审计）
+	SettingDetectEnabled      = "detect.enabled"        // 总开关
+	SettingDetectBanOnDetect  = "detect.ban_on_detect"  // 检测到即封禁（否则仅踢出）
+	SettingDetectKickOnDetect = "detect.kick_on_detect" // 检测到即踢出
 )
 
 // DefaultSettings 返回需要在数据库中初始化的默认键（首次启动时从 viper 同步）
@@ -38,6 +43,10 @@ func DefaultSettings() map[string]string {
 		SettingPalDefenderPort:     "17993",
 		SettingPalDefenderToken:    "",
 		SettingPalDefenderBasePath: "/v1/pdapi",
+
+		SettingDetectEnabled:      "true",
+		SettingDetectBanOnDetect:  "false",
+		SettingDetectKickOnDetect: "true",
 	}
 }
 

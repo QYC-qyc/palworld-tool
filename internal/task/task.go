@@ -19,6 +19,14 @@ import (
 
 var detectCfg = detect.DefaultConfig()
 
+// currentDetectConfig 每次从面板设置读取最新反作弊配置（开关改动即时生效）。
+func currentDetectConfig() *detect.Config {
+	if dbRef == nil {
+		return detectCfg
+	}
+	return detect.ConfigFromSettings(func(k string) string { return service.GetSetting(dbRef, k) })
+}
+
 var (
 	scheduler gocron.Scheduler
 	dbRef     *bbolt.DB
@@ -53,7 +61,7 @@ func SyncPlayersOnce() {
 		checkAndKickPlayers(online)
 	}
 	// 轻量外部反作弊检测
-	go detect.RunOnlineCheck(dbRef, detectCfg)
+	go detect.RunOnlineCheck(dbRef, currentDetectConfig())
 }
 
 // SyncSavOnce 执行一次存档同步
@@ -185,9 +193,9 @@ func Schedule() error {
 	if detectInterval <= 0 {
 		detectInterval = 10
 	}
-	go detect.RunOnlineCheck(dbRef, detectCfg)
+	go detect.RunOnlineCheck(dbRef, currentDetectConfig())
 	if _, err := s.NewJob(gocron.DurationJob(time.Duration(detectInterval)*time.Second),
-		gocron.NewTask(func() { detect.RunOnlineCheck(dbRef, detectCfg) })); err != nil {
+		gocron.NewTask(func() { detect.RunOnlineCheck(dbRef, currentDetectConfig()) })); err != nil {
 		logger.Errorf("注册反作弊检测任务失败: %v", err)
 	}
 	s.Start()
