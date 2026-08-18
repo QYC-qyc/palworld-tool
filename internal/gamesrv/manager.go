@@ -33,15 +33,20 @@ type Config struct {
 
 // Status 游戏服状态
 type Status struct {
-	Installed  bool   `json:"installed"`   // 服务端可执行文件存在
-	SteamReady bool   `json:"steam_ready"` // steamcmd 可执行文件存在
-	Running    bool   `json:"running"`     // 服务端进程在运行
-	Updating   bool   `json:"updating"`    // 正在安装/更新
-	PID        int    `json:"pid,omitempty"`
-	ServerExe  string `json:"server_exe"` // 服务端可执行文件路径
-	SteamExe   string `json:"steam_exe"`  // steamcmd 可执行文件路径
-	InstallDir string `json:"install_dir"`
-	State      string `json:"state,omitempty"`
+	Installed       bool   `json:"installed"`         // 当前模式所需的服务端已安装
+	LinuxInstalled  bool   `json:"linux_installed"`   // 原生 Linux 版已安装
+	WindowsInstalled bool  `json:"windows_installed"` // Windows 版已安装
+	SteamReady      bool   `json:"steam_ready"`
+	Running         bool   `json:"running"`
+	Updating        bool   `json:"updating"`
+	PID             int    `json:"pid,omitempty"`
+	ServerExe       string `json:"server_exe"`
+	LinuxExe        string `json:"linux_exe"`
+	WindowsExe      string `json:"windows_exe"`
+	SteamExe        string `json:"steam_exe"`
+	InstallDir      string `json:"install_dir"`
+	WineMode        bool   `json:"wine_mode"` // 当前是否 PalDefender/Wine 模式
+	State           string `json:"state,omitempty"`
 }
 
 // Manager 管理游戏服进程与 SteamCMD
@@ -104,8 +109,21 @@ func (m *Manager) GetStatus() (*Status, error) {
 	st := &Status{
 		InstallDir: m.cfg.InstallDir,
 	}
-	st.ServerExe = m.serverExePath()
 	st.SteamExe = m.steamCmdExe()
+	// 两个版本的服务端路径都计算
+	if runtime.GOOS != "windows" {
+		st.LinuxExe = filepath.Join(m.cfg.InstallDir, "PalServer.sh")
+	} else {
+		st.LinuxExe = ""
+	}
+	st.WindowsExe = m.winServerExePath()
+	st.WineMode = m.wineModeEnabled()
+	// 当前模式实际使用的 exe
+	if st.WineMode {
+		st.ServerExe = st.WindowsExe
+	} else {
+		st.ServerExe = m.serverExePath()
+	}
 
 	// steamcmd 是否存在
 	if st.SteamExe != "" {
@@ -113,12 +131,20 @@ func (m *Manager) GetStatus() (*Status, error) {
 			st.SteamReady = true
 		}
 	}
-	// 服务端是否已安装
-	if st.ServerExe != "" {
-		if info, err := os.Stat(st.ServerExe); err == nil && !info.IsDir() {
-			st.Installed = true
+	// Linux 版是否已安装
+	if st.LinuxExe != "" {
+		if info, err := os.Stat(st.LinuxExe); err == nil && !info.IsDir() {
+			st.LinuxInstalled = true
 		}
 	}
+	// Windows 版是否已安装
+	if st.WindowsExe != "" {
+		if info, err := os.Stat(st.WindowsExe); err == nil && !info.IsDir() {
+			st.WindowsInstalled = true
+		}
+	}
+	// 当前模式所需版本是否已安装
+	st.Installed = st.WineMode && st.WindowsInstalled || !st.WineMode && st.LinuxInstalled
 	// 是否在更新
 	if m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid) {
 		st.Updating = true
@@ -141,8 +167,9 @@ func (m *Manager) GetStatus() (*Status, error) {
 	return st, nil
 }
 
-// Install 用 SteamCMD 安装/更新游戏服（阻塞直到完成，实时输出日志）
-func (m *Manager) Install() error {
+// Install 用 SteamCMD 安装/更新游戏服（阻塞直到完成，实时输出日志）。
+// platform 为 "windows" 时下载 Windows 版服务端，其他（含空）下载当前平台/Linux 版。
+func (m *Manager) Install(platform string) error {
 	steamExe := m.steamCmdExe()
 	if steamExe == "" {
 		return errors.New("未配置 SteamCMD 路径")
@@ -156,11 +183,12 @@ func (m *Manager) Install() error {
 	if m.isUpdating() {
 		return errors.New("正在安装/更新中")
 	}
-	// 开启 PalDefender/Wine 模式时，校验前置条件（Wine 已安装）
-	if m.wineModeEnabled() {
+	windows := strings.EqualFold(platform, "windows")
+	// 安装 Windows 版需要 Wine（用于后续运行）
+	if windows {
 		if _, err := exec.LookPath("wine64"); err != nil {
 			if _, err2 := exec.LookPath("wine"); err2 != nil {
-				return errors.New("PalDefender 模式需要先安装 Wine（面板 PalDefender 页可一键安装）")
+				return errors.New("安装 Windows 版需要先安装 Wine（面板 PalDefender 页可一键安装）")
 			}
 		}
 	}
@@ -186,13 +214,13 @@ func (m *Manager) Install() error {
 	}
 
 	// steamcmd +force_install_dir <dir> +login anonymous +app_update 2394010 validate +quit
-	// PalDefender(Wine) 模式下载 Windows 版服务端，否则下载当前平台（Linux）版
+	// 按用户选择的版本下载（windows 强制 Windows 版，否则当前平台/Linux 版）
 	args := []string{
 		"+force_install_dir", m.cfg.InstallDir,
 		"+login", "anonymous",
 	}
-	if m.wineModeEnabled() {
-		m.logBuf.WriteString("PalDefender 模式：安装 Windows 版服务端\n")
+	if windows {
+		m.logBuf.WriteString("安装 Windows 版服务端（Wine/PalDefender）\n")
 		args = append(args, "+@sSteamCmdForcePlatformType", "windows")
 	} else if runtime.GOOS != "windows" {
 		m.logBuf.WriteString("安装 Linux 原生版服务端\n")

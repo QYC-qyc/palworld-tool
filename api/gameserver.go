@@ -70,9 +70,13 @@ func (g *gameServerAPI) verify(c *gin.Context) {
 	})
 }
 
-// install 用 SteamCMD 安装/更新游戏服
+// install 用 SteamCMD 安装/更新游戏服；body 可选 {"platform":"windows"|"linux"}
 func (g *gameServerAPI) install(c *gin.Context) {
-	if err := g.mgr.Install(); err != nil {
+	var req struct {
+		Platform string `json:"platform"`
+	}
+	_ = c.ShouldBindJSON(&req)
+	if err := g.mgr.Install(req.Platform); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}

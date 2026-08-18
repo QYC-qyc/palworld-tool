@@ -43,11 +43,13 @@
               </n-tooltip>
             </span>
           </template>
-          <n-switch :value="form['paldefender.wine_mode'] === 'true'"
-            @update:value="onToggleWineMode">
-            <template #checked>Wine（Windows 端）</template>
-            <template #unchecked>原生 Linux 端</template>
-          </n-switch>
+          <n-space align="center" :size="8" :wrap="false">
+            <n-switch :value="form['paldefender.wine_mode'] === 'true'"
+              @update:value="onToggleWineMode" />
+            <n-text depth="3" style="font-size:13px">
+              {{ form['paldefender.wine_mode'] === 'true' ? 'Wine（Windows 版）' : '原生 Linux 版' }}
+            </n-text>
+          </n-space>
         </n-form-item>
         <n-form-item label="API 主机">
           <n-input v-model:value="form['paldefender.host']" placeholder="127.0.0.1" />

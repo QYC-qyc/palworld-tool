@@ -20,9 +20,19 @@
             {{ status.status?.steam_ready ? '已就绪' : '未找到' }}
           </n-tag>
         </n-descriptions-item>
-        <n-descriptions-item label="服务端">
-          <n-tag :type="status.status?.installed ? 'success' : 'warning'" size="small">
-            {{ status.status?.installed ? '已安装' : '未安装' }}
+        <n-descriptions-item label="Linux 原生版">
+          <n-tag :type="status.status?.linux_installed ? 'success' : 'warning'" size="small">
+            {{ status.status?.linux_installed ? '已安装' : '未安装' }}
+          </n-tag>
+        </n-descriptions-item>
+        <n-descriptions-item label="Windows 版（Wine）">
+          <n-tag :type="status.status?.windows_installed ? 'success' : 'warning'" size="small">
+            {{ status.status?.windows_installed ? '已安装' : '未安装' }}
+          </n-tag>
+        </n-descriptions-item>
+        <n-descriptions-item label="当前模式">
+          <n-tag :type="status.status?.wine_mode ? 'warning' : 'info'" size="small">
+            {{ status.status?.wine_mode ? 'PalDefender（Windows）' : '原生 Linux' }}
           </n-tag>
         </n-descriptions-item>
       </n-descriptions>
@@ -95,7 +105,7 @@
     <!-- 操作 -->
     <n-card title="操作" size="small">
       <n-space>
-        <n-button type="info" :loading="acting === 'install'" @click="doInstall">
+        <n-button type="info" :loading="acting === 'install'" @click="openInstall">
           安装 / 更新游戏服
         </n-button>
         <n-button type="success" :disabled="!canStart" :loading="acting==='start'" @click="doStart">
@@ -120,11 +130,36 @@
       <pre class="logs">{{ logs || '暂无日志' }}</pre>
     </n-card>
 
+    <!-- 选择安装版本 -->
+    <n-modal v-model:show="showVersionModal" preset="card" title="选择游戏服版本"
+      style="max-width:520px" :mask-closable="true">
+      <n-space vertical :size="14">
+        <n-text depth="3">请选择要安装/更新的游戏服版本。两个版本可同时安装在同一目录，按需切换。</n-text>
+        <n-radio-group v-model:value="installPlatform">
+          <n-space vertical>
+            <n-radio value="linux">
+              原生 Linux 版 <n-text depth="3" style="font-size:12px">（默认，性能更好）</n-text>
+            </n-radio>
+            <n-radio value="windows">
+              Windows 版（Wine / PalDefender）
+              <n-text depth="3" style="font-size:12px">（用于 PalDefender 反作弊，需先安装 Wine）</n-text>
+            </n-radio>
+          </n-space>
+        </n-radio-group>
+        <n-space justify="end">
+          <n-button @click="showVersionModal = false">取消</n-button>
+          <n-button type="primary" :loading="acting === 'install'" @click="doInstall">
+            开始安装
+          </n-button>
+        </n-space>
+      </n-space>
+    </n-modal>
+
     <!-- 安装/更新进度弹窗 -->
     <n-modal v-model:show="showInstallModal" preset="card" title="安装 / 更新游戏服"
       style="max-width:680px" :mask-closable="false">
       <n-space vertical :size="12">
-        <n-text>正在通过 SteamCMD 下载/更新游戏服，首次安装可能需要几分钟，请耐心等待。</n-text>
+        <n-text>正在通过 SteamCMD 下载/更新游戏服（{{ installPlatform === 'windows' ? 'Windows 版' : 'Linux 原生版' }}），首次安装可能需要几分钟，请耐心等待。</n-text>
         <pre class="logs logs-modal">{{ installLogs || '等待输出...' }}</pre>
         <n-space>
           <n-button size="small" @click="loadLogs">刷新日志</n-button>
@@ -143,7 +178,7 @@ import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
   NForm, NFormItem, NInput, NButton, NGrid, NGi, NText, NModal,
-  NTooltip, NIcon, useMessage,
+  NTooltip, NIcon, NRadioGroup, NRadio, useMessage,
 } from 'naive-ui'
 import { HelpCircleOutline } from '@vicons/ionicons5'
 import { gameApi, type GameServerStatus, type GameServerConfig } from '@/api/gameserver'
@@ -229,7 +264,21 @@ async function loadLogs() {
   } catch { /* ignore */ }
 }
 
+const showVersionModal = ref(false)
+const installPlatform = ref<'linux' | 'windows'>('linux')
+
+function openInstall() {
+  if (!cfg.steamcmd_path || !cfg.install_dir) {
+    message.warning('请先填写 SteamCMD 路径和安装目录')
+    return
+  }
+  // 默认选中当前模式对应的版本
+  installPlatform.value = status.value?.status?.wine_mode ? 'windows' : 'linux'
+  showVersionModal.value = true
+}
+
 async function doInstall() {
+  showVersionModal.value = false
   if (!cfg.steamcmd_path || !cfg.install_dir) {
     message.warning('请先填写 SteamCMD 路径和安装目录')
     return
@@ -239,7 +288,7 @@ async function doInstall() {
   showInstallModal.value = true
   installLogs.value = ''
   try {
-    const r = await gameApi.install()
+    const r = await gameApi.install(installPlatform.value)
     message.info(r.message || '已开始安装')
     // 开始轮询日志和状态
     if (installTimer) clearInterval(installTimer)
