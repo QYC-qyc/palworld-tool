@@ -247,8 +247,14 @@ func (m *Manager) Start() error {
 		if exe == "" {
 			return errors.New("未配置安装目录")
 		}
-		if _, statErr := os.Stat(exe); statErr != nil || statErr != nil && os.IsNotExist(statErr) {
+		if _, statErr := os.Stat(exe); statErr != nil {
 			return errors.New("服务端未安装，请先在面板点击安装")
+		}
+		// 装了 PalDefender DLL 但不是 Wine 模式（Linux 原生服务端无 Windows exe）
+		if m.hasPalDefenderDLL() {
+			m.logBuf.WriteString("警告：检测到 PalDefender DLL 但未找到 Windows 版服务端，" +
+				"PalDefender 不会生效。如需使用请安装 Windows 版服务端并通过 Wine 启动，" +
+				"或在 PalDefender 页面卸载 DLL\n")
 		}
 	}
 
@@ -315,17 +321,29 @@ func (m *Manager) Start() error {
 	return nil
 }
 
-// shouldUseWine 检测是否应使用 Wine 模式
+// shouldUseWine 检测是否应使用 Wine 模式。
+// 必须同时满足：安装了 PalDefender hook（d3d9.dll）且存在 Windows 版服务端 exe。
+// 仅检测到 DLL 而无 exe 时（如 Linux 原生服务端误装 DLL），不切换 Wine，回退原生启动。
 func (m *Manager) shouldUseWine() bool {
 	if runtime.GOOS == "windows" {
 		return false
 	}
 	win64 := filepath.Join(m.cfg.InstallDir, "Pal", "Binaries", "Win64")
-	// 如果 d3d9.dll 存在（PalDefender 的 hook），使用 Wine
-	if _, err := os.Stat(filepath.Join(win64, "d3d9.dll")); err == nil {
-		return true
+	if _, err := os.Stat(filepath.Join(win64, "d3d9.dll")); err != nil {
+		return false
 	}
-	return false
+	// d3d9.dll 存在，还需确认 Windows 版 exe 存在
+	if _, err := os.Stat(m.winServerExePath()); err != nil {
+		return false
+	}
+	return true
+}
+
+// hasPalDefenderDLL 仅检测是否安装了 PalDefender hook（用于状态提示）。
+func (m *Manager) hasPalDefenderDLL() bool {
+	win64 := filepath.Join(m.cfg.InstallDir, "Pal", "Binaries", "Win64")
+	_, err := os.Stat(filepath.Join(win64, "d3d9.dll"))
+	return err == nil
 }
 
 // winServerExePath 返回 Windows 版服务端路径
