@@ -125,6 +125,10 @@ const (
 )
 
 func saveGameServerConfig(cfg gamesrv.Config) {
+	// 同步到 viper，供 internal/tool 等只读 viper 的模块（如存档路径推导）使用
+	viper.Set("gamesrv.steamcmd_path", cfg.SteamCmdPath)
+	viper.Set("gamesrv.install_dir", cfg.InstallDir)
+	viper.Set("gamesrv.extra_args", cfg.ExtraArgs)
 	if db == nil {
 		return
 	}

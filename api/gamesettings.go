@@ -33,6 +33,10 @@ func iniPath() string {
 		installDir = os.Getenv("GAMESRV__INSTALL_DIR")
 	}
 	if installDir == "" {
+		// 未配置安装目录时，兜底路径也按运行模式区分平台
+		if db != nil && strings.EqualFold(service.GetSetting(db, service.SettingPalDefenderWineMode), "true") {
+			return "/www/palworld-tool/game/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini"
+		}
 		return iniFallbackPath
 	}
 

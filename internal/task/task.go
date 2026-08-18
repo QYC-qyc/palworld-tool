@@ -84,12 +84,17 @@ func backupTask() {
 	logger.Infof("自动备份完成: %s", path)
 }
 
-// isGameRunning 检查游戏服进程是否在运行
+// isGameRunning 检查游戏服进程是否在运行（按面板运行模式选择进程名）
 func isGameRunning() bool {
 	if runtime.GOOS == "windows" {
 		return false
 	}
-	out, err := exec.Command("pgrep", "-f", "PalServer-Linux-Shipping").Output()
+	pattern := "PalServer-Linux-Shipping"
+	if dbRef != nil && strings.EqualFold(
+		service.GetSetting(dbRef, service.SettingPalDefenderWineMode), "true") {
+		pattern = "PalServer-Win64-Shipping-Cmd.exe"
+	}
+	out, err := exec.Command("pgrep", "-f", pattern).Output()
 	if err != nil {
 		return false
 	}

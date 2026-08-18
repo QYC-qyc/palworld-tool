@@ -505,12 +505,21 @@ func (m *Manager) Restart() error {
 	return m.Start()
 }
 
+// palProcessPattern 返回当前模式下游戏进程的 pgrep/pkill 匹配串。
+// Linux 原生为 PalServer-Linux-Shipping，Wine/Windows 版为 Shipping-Cmd.exe。
+func (m *Manager) palProcessPattern() string {
+	if m.wineModeEnabled() {
+		return "PalServer-Win64-Shipping-Cmd.exe"
+	}
+	return "PalServer-Linux-Shipping"
+}
+
 // findRunningProcesses 查找正在运行的 PalServer 进程 PID
 func (m *Manager) findRunningProcesses() []int {
 	if runtime.GOOS == "windows" {
 		return nil
 	}
-	out, err := exec.Command("pgrep", "-f", "PalServer-Linux-Shipping").Output()
+	out, err := exec.Command("pgrep", "-f", m.palProcessPattern()).Output()
 	if err != nil {
 		return nil
 	}
@@ -532,13 +541,19 @@ func (m *Manager) killAllPalServer() error {
 		}
 		return nil
 	}
+	pattern := m.palProcessPattern()
 	// 先尝试 SIGTERM 优雅退出
-	_ = exec.Command("pkill", "-TERM", "-f", "PalServer-Linux-Shipping").Run()
+	_ = exec.Command("pkill", "-TERM", "-f", pattern).Run()
 	time.Sleep(3 * time.Second)
 	// 仍在运行则 SIGKILL 强杀
-	_ = exec.Command("pkill", "-KILL", "-f", "PalServer-Linux-Shipping").Run()
-	// 同时停止包装脚本
-	_ = exec.Command("pkill", "-KILL", "-f", "PalServer.sh").Run()
+	_ = exec.Command("pkill", "-KILL", "-f", pattern).Run()
+	if m.wineModeEnabled() {
+		// Wine 模式下同时结束残留的 Wine 进程（匹配安装目录下的 Windows 服务端）
+		_ = exec.Command("wineserver", "-k").Run()
+	} else {
+		// 原生模式同时停止包装脚本
+		_ = exec.Command("pkill", "-KILL", "-f", "PalServer.sh").Run()
+	}
 	return nil
 }
 
