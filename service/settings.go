@@ -20,6 +20,8 @@ const (
 	SettingPalDefenderPort     = "paldefender.port"
 	SettingPalDefenderToken    = "paldefender.token"
 	SettingPalDefenderBasePath = "paldefender.base_path"
+	// SettingPalDefenderWineMode 为 true 时用 Wine 启动 Windows 版服务端（启用 PalDefender）
+	SettingPalDefenderWineMode = "paldefender.wine_mode"
 
 	// 反作弊检测（外部监控与存档审计）
 	SettingDetectEnabled      = "detect.enabled"        // 总开关
@@ -43,6 +45,7 @@ func DefaultSettings() map[string]string {
 		SettingPalDefenderPort:     "17993",
 		SettingPalDefenderToken:    "",
 		SettingPalDefenderBasePath: "/v1/pdapi",
+		SettingPalDefenderWineMode: "false",
 
 		SettingDetectEnabled:      "true",
 		SettingDetectBanOnDetect:  "false",

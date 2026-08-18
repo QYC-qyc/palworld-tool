@@ -28,6 +28,27 @@
 
     <n-card title="PalDefender 反作弊" size="small">
       <n-form label-placement="left" label-width="140">
+        <n-form-item>
+          <template #label>
+            <span class="field-label">
+              PalDefender 模式
+              <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:360px">
+                <template #trigger>
+                  <n-icon :component="HelpCircleOutline" class="help-icon" />
+                </template>
+                <div class="tooltip-content">
+                  开启后用 Wine 启动 Windows 版服务端以加载 PalDefender 反作弊；关闭则使用原生 Linux 服务端。
+                  需先安装 Windows 版服务端、Wine 与 PalDefender DLL。切换后需重启游戏服。
+                </div>
+              </n-tooltip>
+            </span>
+          </template>
+          <n-switch :value="form['paldefender.wine_mode'] === 'true'"
+            @update:value="(v) => (form['paldefender.wine_mode'] = v ? 'true' : 'false')">
+            <template #checked>Wine（Windows 端）</template>
+            <template #unchecked>原生 Linux 端</template>
+          </n-switch>
+        </n-form-item>
         <n-form-item label="API 主机">
           <n-input v-model:value="form['paldefender.host']" placeholder="127.0.0.1" />
         </n-form-item>

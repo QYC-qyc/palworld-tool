@@ -50,6 +50,8 @@ type Manager struct {
 	serverCmd *exec.Cmd
 	updateCmd *exec.Cmd
 	logBuf    *ringLog
+	// getSetting 读取面板动态设置（由 deps 注入），用于判断 Wine 模式等
+	getSetting func(string) string
 }
 
 func NewManager() *Manager {
@@ -61,6 +63,11 @@ func (m *Manager) SetConfig(cfg Config) {
 }
 func (m *Manager) ConfigValue() Config { return m.cfg }
 func (m *Manager) Available() bool    { return true }
+
+// SetSettingGetter 注入面板设置读取函数
+func (m *Manager) SetSettingGetter(f func(string) string) {
+	m.getSetting = f
+}
 
 // steamCmdExe 返回 SteamCMD 可执行文件路径：
 // 若配置的是目录，则在目录下查找 steamcmd.sh/steamcmd.exe；
@@ -233,15 +240,15 @@ func (m *Manager) Start() error {
 		}
 	}
 
-	// 检测是否使用 Wine 模式（安装了 PalDefender DLL 时自动切换）
-	useWine := m.shouldUseWine()
+	// 是否用 Wine 启动 Windows 版服务端（由面板 PalDefender 模式开关决定）
+	useWine, wineErr := m.shouldUseWine()
 	var exe string
 	if useWine {
 		exe = m.winServerExePath()
 		if _, statErr := os.Stat(exe); statErr != nil {
 			return fmt.Errorf("Wine 模式：未找到 Windows 版服务端 %s", exe)
 		}
-		m.logBuf.WriteString("检测到 PalDefender，使用 Wine 启动 Windows 版服务端\n")
+		m.logBuf.WriteString("PalDefender 模式：使用 Wine 启动 Windows 版服务端\n")
 	} else {
 		exe = m.serverExePath()
 		if exe == "" {
@@ -250,11 +257,9 @@ func (m *Manager) Start() error {
 		if _, statErr := os.Stat(exe); statErr != nil {
 			return errors.New("服务端未安装，请先在面板点击安装")
 		}
-		// 装了 PalDefender DLL 但不是 Wine 模式（Linux 原生服务端无 Windows exe）
-		if m.hasPalDefenderDLL() {
-			m.logBuf.WriteString("警告：检测到 PalDefender DLL 但未找到 Windows 版服务端，" +
-				"PalDefender 不会生效。如需使用请安装 Windows 版服务端并通过 Wine 启动，" +
-				"或在 PalDefender 页面卸载 DLL\n")
+		if wineErr != "" {
+			// 开启了 PalDefender 模式但条件不满足，已回退原生启动
+			m.logBuf.WriteString("警告：" + wineErr + "，已回退原生 Linux 服务端启动，PalDefender 不生效\n")
 		}
 	}
 
@@ -321,29 +326,31 @@ func (m *Manager) Start() error {
 	return nil
 }
 
-// shouldUseWine 检测是否应使用 Wine 模式。
-// 必须同时满足：安装了 PalDefender hook（d3d9.dll）且存在 Windows 版服务端 exe。
-// 仅检测到 DLL 而无 exe 时（如 Linux 原生服务端误装 DLL），不切换 Wine，回退原生启动。
-func (m *Manager) shouldUseWine() bool {
+// shouldUseWine 判断是否用 Wine 启动 Windows 版服务端。
+// 由面板设置 paldefender.wine_mode 决定（开启 PalDefender 时使用）。
+// 同时校验 Wine、Windows 版 exe、d3d9.dll 是否就绪，未就绪则回退原生并记录原因。
+func (m *Manager) shouldUseWine() (bool, string) {
 	if runtime.GOOS == "windows" {
-		return false
+		return false, ""
+	}
+	// 未开启 Wine 模式
+	if m.getSetting == nil || !strings.EqualFold(m.getSetting("paldefender.wine_mode"), "true") {
+		return false, ""
+	}
+	// 开启了 Wine 模式，检查前置条件
+	if _, err := exec.LookPath("wine64"); err != nil {
+		if _, err2 := exec.LookPath("wine"); err2 != nil {
+			return false, "已开启 PalDefender 模式但未安装 Wine"
+		}
+	}
+	if _, err := os.Stat(m.winServerExePath()); err != nil {
+		return false, "已开启 PalDefender 模式但未找到 Windows 版服务端（PalServer-Win64-Shipping-Cmd.exe）"
 	}
 	win64 := filepath.Join(m.cfg.InstallDir, "Pal", "Binaries", "Win64")
 	if _, err := os.Stat(filepath.Join(win64, "d3d9.dll")); err != nil {
-		return false
+		return false, "已开启 PalDefender 模式但未安装 PalDefender DLL"
 	}
-	// d3d9.dll 存在，还需确认 Windows 版 exe 存在
-	if _, err := os.Stat(m.winServerExePath()); err != nil {
-		return false
-	}
-	return true
-}
-
-// hasPalDefenderDLL 仅检测是否安装了 PalDefender hook（用于状态提示）。
-func (m *Manager) hasPalDefenderDLL() bool {
-	win64 := filepath.Join(m.cfg.InstallDir, "Pal", "Binaries", "Win64")
-	_, err := os.Stat(filepath.Join(win64, "d3d9.dll"))
-	return err == nil
+	return true, ""
 }
 
 // winServerExePath 返回 Windows 版服务端路径
