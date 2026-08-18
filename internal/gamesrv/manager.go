@@ -156,6 +156,14 @@ func (m *Manager) Install() error {
 	if m.isUpdating() {
 		return errors.New("正在安装/更新中")
 	}
+	// 开启 PalDefender/Wine 模式时，校验前置条件（Wine 已安装）
+	if m.wineModeEnabled() {
+		if _, err := exec.LookPath("wine64"); err != nil {
+			if _, err2 := exec.LookPath("wine"); err2 != nil {
+				return errors.New("PalDefender 模式需要先安装 Wine（面板 PalDefender 页可一键安装）")
+			}
+		}
+	}
 	if err := os.MkdirAll(m.cfg.InstallDir, 0755); err != nil {
 		return fmt.Errorf("创建安装目录失败: %w", err)
 	}
@@ -178,12 +186,21 @@ func (m *Manager) Install() error {
 	}
 
 	// steamcmd +force_install_dir <dir> +login anonymous +app_update 2394010 validate +quit
+	// PalDefender(Wine) 模式下载 Windows 版服务端，否则下载当前平台（Linux）版
 	args := []string{
 		"+force_install_dir", m.cfg.InstallDir,
 		"+login", "anonymous",
+	}
+	if m.wineModeEnabled() {
+		m.logBuf.WriteString("PalDefender 模式：安装 Windows 版服务端\n")
+		args = append(args, "+@sSteamCmdForcePlatformType", "windows")
+	} else if runtime.GOOS != "windows" {
+		m.logBuf.WriteString("安装 Linux 原生版服务端\n")
+	}
+	args = append(args,
 		"+app_update", steamAppID, "validate",
 		"+quit",
-	}
+	)
 	cmd := exec.Command(steamExe, args...)
 	cmd.Dir = steamDir
 	cmd.SysProcAttr = newSysProcAttr(true)
@@ -326,6 +343,12 @@ func (m *Manager) Start() error {
 	return nil
 }
 
+// wineModeEnabled 仅根据面板设置判断是否开启了 PalDefender/Wine 模式（不校验前置条件）。
+func (m *Manager) wineModeEnabled() bool {
+	return runtime.GOOS != "windows" && m.getSetting != nil &&
+		strings.EqualFold(m.getSetting("paldefender.wine_mode"), "true")
+}
+
 // shouldUseWine 判断是否用 Wine 启动 Windows 版服务端。
 // 由面板设置 paldefender.wine_mode 决定（开启 PalDefender 时使用）。
 // 同时校验 Wine、Windows 版 exe、d3d9.dll 是否就绪，未就绪则回退原生并记录原因。
@@ -334,7 +357,7 @@ func (m *Manager) shouldUseWine() (bool, string) {
 		return false, ""
 	}
 	// 未开启 Wine 模式
-	if m.getSetting == nil || !strings.EqualFold(m.getSetting("paldefender.wine_mode"), "true") {
+	if !m.wineModeEnabled() {
 		return false, ""
 	}
 	// 开启了 Wine 模式，检查前置条件

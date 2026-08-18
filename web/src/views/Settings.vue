@@ -38,13 +38,13 @@
                 </template>
                 <div class="tooltip-content">
                   开启后用 Wine 启动 Windows 版服务端以加载 PalDefender 反作弊；关闭则使用原生 Linux 服务端。
-                  需先安装 Windows 版服务端、Wine 与 PalDefender DLL。切换后需重启游戏服。
+                  切换版本后需在「游戏服」页重新安装对应版本，并装好 Wine/PalDefender DLL，再重启游戏服。
                 </div>
               </n-tooltip>
             </span>
           </template>
           <n-switch :value="form['paldefender.wine_mode'] === 'true'"
-            @update:value="(v) => (form['paldefender.wine_mode'] = v ? 'true' : 'false')">
+            @update:value="onToggleWineMode">
             <template #checked>Wine（Windows 端）</template>
             <template #unchecked>原生 Linux 端</template>
           </n-switch>
@@ -292,12 +292,30 @@ import { onMounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NForm, NFormItem, NInput, NSwitch, NGrid, NGi,
   NSelect, NButton, NTag, NText, NAlert, NModal, NProgress,
-  NTooltip, NIcon, NInputNumber, useMessage,
+  NTooltip, NIcon, NInputNumber, useMessage, useDialog,
 } from 'naive-ui'
 import { HelpCircleOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
 
 const message = useMessage()
+const dialog = useDialog()
+
+function onToggleWineMode(v: boolean) {
+  const target = v ? 'true' : 'false'
+  if (form['paldefender.wine_mode'] === target) return
+  dialog.warning({
+    title: v ? '切换到 PalDefender（Windows）模式？' : '切换到原生 Linux 模式？',
+    content: v
+      ? '将用 Wine 启动 Windows 版服务端。请确保已在「游戏服」页重新安装 Windows 版服务端，并安装 Wine 与 PalDefender DLL，然后重启游戏服。'
+      : '将启动原生 Linux 版服务端。请在「游戏服」页重新安装 Linux 版服务端，然后重启游戏服。',
+    positiveText: '确认切换',
+    negativeText: '取消',
+    onPositiveClick: () => {
+      form['paldefender.wine_mode'] = target
+      message.info('已切换，请保存设置后重新安装对应版本的游戏服')
+    },
+  })
+}
 const form = reactive<Record<string, any>>({})
 const saving = ref(false)
 const testing = ref<string>('')
