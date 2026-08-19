@@ -32,3 +32,8 @@ func gracefulStop(cmd *exec.Cmd, timeout time.Duration) error {
 	}
 	return cmd.Process.Kill()
 }
+
+// diskFreeGB Windows 下不检查（在线更新仅支持 Linux）
+func diskFreeGB(path string) (float64, error) {
+	return 0, nil
+}

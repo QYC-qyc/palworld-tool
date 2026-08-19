@@ -8,6 +8,16 @@ import (
 	"time"
 )
 
+// diskFreeGB 返回 path 所在分区的可用空间（GB）
+func diskFreeGB(path string) (float64, error) {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs(path, &st); err != nil {
+		return 0, err
+	}
+	// Bfree * Bsize = 可用字节
+	return float64(st.Bavail) * float64(st.Bsize) / 1024 / 1024 / 1024, nil
+}
+
 func newSysProcAttr(hide bool) *syscall.SysProcAttr {
 	return &syscall.SysProcAttr{Setpgid: true}
 }

@@ -208,6 +208,13 @@ func (m *Manager) Install(platform string) error {
 	if err := checkWritable(installDir); err != nil {
 		return fmt.Errorf("安装目录不可写: %w", err)
 	}
+	// 磁盘空间检查（游戏服务端约需 5GB+）
+	if free, err := diskFreeGB(installDir); err == nil {
+		m.logBuf.WriteString(fmt.Sprintf("安装目录可用空间：%.1f GB\n", free))
+		if free < 5 {
+			m.logBuf.WriteString("警告：可用空间不足 5GB，可能导致下载失败\n")
+		}
+	}
 
 	steamDir := filepath.Dir(steamExe)
 
@@ -262,11 +269,43 @@ func (m *Manager) Install(platform string) error {
 	go m.pipeLog(stdout)
 
 	go func() {
-		_ = cmd.Wait()
+		err := cmd.Wait()
 		m.logBuf.WriteString("=== SteamCMD 结束 ===\n")
+		// 安装失败时，把 SteamCMD 的 stderr.txt 末尾内容读出来，定位具体写入失败的文件
+		if err != nil {
+			m.appendSteamcmdError(steamDir)
+		}
 		m.updateCmd = nil
 	}()
 	return nil
+}
+
+// appendSteamcmdError 读取 SteamCMD 的 logs/stderr.txt 末尾若干行并写入面板日志，
+// 用于诊断 Disk write failure 等错误（其中含具体失败文件路径）。
+func (m *Manager) appendSteamcmdError(steamDir string) {
+	candidates := []string{
+		filepath.Join(steamDir, "logs", "stderr.txt"),
+		filepath.Join(steamDir, "..", "logs", "stderr.txt"),
+	}
+	for _, p := range candidates {
+		data, err := os.ReadFile(p)
+		if err != nil || len(data) == 0 {
+			continue
+		}
+		lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+		// 只取最后 15 行
+		if len(lines) > 15 {
+			lines = lines[len(lines)-15:]
+		}
+		m.logBuf.WriteString(fmt.Sprintf("--- SteamCMD stderr（%s）---\n", p))
+		for _, l := range lines {
+			l = strings.TrimSpace(ansiColorRegex.ReplaceAllString(l, ""))
+			if l != "" {
+				m.logBuf.WriteString(l + "\n")
+			}
+		}
+		return
+	}
 }
 
 func (m *Manager) isUpdating() bool {
