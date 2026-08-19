@@ -145,7 +145,6 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 	tmpTar := filepath.Join(os.TempDir(), asset)
 	defer os.Remove(tmpTar)
 
-	// 逐镜像下载，带进度
 	var totalSize int64
 	for _, a := range rel.Assets {
 		if a.BrowserDownloadURL == downloadURL {
@@ -153,12 +152,20 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 		}
 	}
 
+	// 下载前测速：对各镜像发起小范围请求，按响应速度排序
+	onProgress(Progress{Stage: "download", Message: "正在测速选择最快镜像..."})
+	rankedMirrors := rankMirrors(downloadURL)
+	if len(rankedMirrors) == 0 {
+		rankedMirrors = dlMirrors
+	}
+
 	var lastErr error
-	for i, prefix := range dlMirrors {
+	for i, prefix := range rankedMirrors {
 		url := prefix + downloadURL
-		onProgress(Progress{Stage: "download", Message: fmt.Sprintf("镜像 %d/%d 下载中...", i+1, len(dlMirrors)), Percent: 0, Version: rel.TagName})
+		label := mirrorLabel(prefix)
+		onProgress(Progress{Stage: "download", Message: fmt.Sprintf("镜像 %d/%d（%s）下载中...", i+1, len(rankedMirrors), label), Percent: 0, Version: rel.TagName})
 		if err := downloadWithProgress(url, tmpTar, totalSize, func(pct float64, speed string) {
-			onProgress(Progress{Stage: "download", Message: "下载中 " + speed, Percent: pct, Version: rel.TagName})
+			onProgress(Progress{Stage: "download", Message: fmt.Sprintf("%s 下载中 %s", label, speed), Percent: pct, Version: rel.TagName})
 		}); err != nil {
 			lastErr = err
 			onProgress(Progress{Stage: "download", Message: "该镜像失败，切换中..."})
@@ -266,4 +273,78 @@ func downloadWithProgress(url, dst string, totalSize int64, onProgress func(floa
 func fileExists(p string) bool {
 	_, err := os.Stat(p)
 	return err == nil
+}
+
+// mirrorLabel 返回镜像的可读名称（空串表示 GitHub 直连）。
+func mirrorLabel(prefix string) string {
+	switch {
+	case strings.Contains(prefix, "ghfast.top"):
+		return "ghfast.top"
+	case strings.Contains(prefix, "gh-proxy.com"):
+		return "gh-proxy.com"
+	case strings.Contains(prefix, "ghproxy.net"):
+		return "ghproxy.net"
+	case prefix == "":
+		return "GitHub 直连"
+	default:
+		return strings.TrimSuffix(strings.TrimPrefix(prefix, "https://"), "/")
+	}
+}
+
+// rankMirrors 对各下载镜像测速，返回按速度从快到慢排序的前缀列表。
+// 测速方法：对每个镜像的同一资源发起带 Range 的小请求（下载约 1MB），
+// 测量耗时与实际下载速率，失败/超时的镜像被剔除。GitHub 直连始终作为兜底放最后。
+func rankMirrors(downloadURL string) []string {
+	type result struct {
+		prefix string
+		speed  float64 // MB/s
+	}
+	probeCli := &http.Client{Timeout: 6 * time.Second}
+	var results []result
+
+	for _, prefix := range dlMirrors {
+		url := prefix + downloadURL
+		// 请求前 1MB 用于测速（Range 0-1048575）
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			continue
+		}
+		req.Header.Set("User-Agent", userAgent)
+		req.Header.Set("Range", "bytes=0-1048575")
+		start := time.Now()
+		resp, err := probeCli.Do(req)
+		if err != nil {
+			continue
+		}
+		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		elapsed := time.Since(start).Seconds()
+		// 2xx 或 206（部分内容）才算有效
+		if (resp.StatusCode != 200 && resp.StatusCode != 206) || elapsed <= 0 || len(body) == 0 {
+			continue
+		}
+		speed := float64(len(body)) / elapsed / 1024 / 1024
+		results = append(results, result{prefix: prefix, speed: speed})
+	}
+
+	// 按速度降序排序（简单插入排序，镜像数量少）
+	for i := 1; i < len(results); i++ {
+		for j := i; j > 0 && results[j].speed > results[j-1].speed; j-- {
+			results[j], results[j-1] = results[j-1], results[j]
+		}
+	}
+
+	// 确保 GitHub 直连（空串）在列表末尾作为兜底
+	hasDirect := false
+	ranked := make([]string, 0, len(results)+1)
+	for _, r := range results {
+		ranked = append(ranked, r.prefix)
+		if r.prefix == "" {
+			hasDirect = true
+		}
+	}
+	if !hasDirect {
+		ranked = append(ranked, "")
+	}
+	return ranked
 }
