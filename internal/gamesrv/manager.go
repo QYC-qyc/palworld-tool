@@ -233,50 +233,61 @@ func (m *Manager) Install(platform string) error {
 		m.logBuf.WriteString(fmt.Sprintf("警告: SteamCMD 初始化返回错误: %v（继续尝试安装）\n", err))
 	}
 
-	// steamcmd +force_install_dir <dir> +login anonymous +app_update 2394010 validate +quit
-	// 按用户选择的版本下载（windows 强制 Windows 版，否则当前平台/Linux 版）。
-	// 注意：@sSteamCmdForcePlatformType 必须小写 s 开头，且放在 force_install_dir/login 之后。
-	// 平台覆盖参数以 +@ 形式传入，须放在 +force_install_dir/+app_update 之前。
-	args := []string{}
+	// 构造 SteamCMD 参数。平台覆盖必须在 +login 之后、+app_update 之前。
+	buildArgs := func() []string {
+		args := []string{
+			"+force_install_dir", installDir,
+			"+login", "anonymous",
+		}
+		if windows {
+			args = append(args,
+				"+@sSteamCmdForcePlatformType", "windows",
+				"+@sSteamCmdForcePlatformBitness", "64",
+			)
+		}
+		args = append(args, "+app_update", steamAppID, "validate", "+quit")
+		return args
+	}
 	if windows {
 		m.logBuf.WriteString(fmt.Sprintf("安装 Windows 版服务端到 %s（Wine/PalDefender）\n", installDir))
-		args = append(args,
-			"+@sSteamCmdForcePlatformType", "windows",
-			"+@sSteamCmdForcePlatformBitness", "64",
-		)
 	} else if runtime.GOOS != "windows" {
 		m.logBuf.WriteString("安装 Linux 原生版服务端\n")
 	}
-	args = append(args,
-		"+force_install_dir", installDir,
-		"+login", "anonymous",
-		"+app_update", steamAppID, "validate",
-		"+quit",
-	)
-	cmd := exec.Command(steamExe, args...)
-	cmd.Dir = steamDir
-	cmd.SysProcAttr = newSysProcAttr(true)
 
-	stdout, _ := cmd.StdoutPipe()
-	cmd.Stderr = cmd.Stdout
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("启动 SteamCMD 失败: %w", err)
-	}
-	m.updateCmd = cmd
-	m.logBuf.WriteString(fmt.Sprintf("=== SteamCMD 开始安装/更新 (app %s) ===\n", steamAppID))
-
-	// 实时收集输出
-	go m.pipeLog(stdout)
-
-	go func() {
-		err := cmd.Wait()
-		m.logBuf.WriteString("=== SteamCMD 结束 ===\n")
-		// 安装失败时，把 SteamCMD 的 stderr.txt 末尾内容读出来，定位具体写入失败的文件
-		if err != nil {
-			m.appendSteamcmdError(steamDir)
+	runInstall := func(args []string) error {
+		cmd := exec.Command(steamExe, args...)
+		cmd.Dir = steamDir
+		cmd.SysProcAttr = newSysProcAttr(true)
+		stdout, _ := cmd.StdoutPipe()
+		cmd.Stderr = cmd.Stdout
+		if err := cmd.Start(); err != nil {
+			return fmt.Errorf("启动 SteamCMD 失败: %w", err)
 		}
+		m.updateCmd = cmd
+		go m.pipeLog(stdout)
+		return cmd.Wait()
+	}
+
+	m.logBuf.WriteString(fmt.Sprintf("=== SteamCMD 开始安装/更新 (app %s) ===\n", steamAppID))
+	var err error
+	err = runInstall(buildArgs())
+	if err != nil && windows {
+		// Windows 版在 Linux 上下载偶发 Disk write failure（SteamCMD 平台缓存问题），
+		// 清理缓存后重试一次
+		m.logBuf.WriteString("安装失败，清理 SteamCMD 缓存后重试...\n")
+		_ = os.RemoveAll(filepath.Join(steamDir, "appcache"))
+		_ = os.RemoveAll(filepath.Join(steamDir, "depotcache"))
+		_ = os.RemoveAll(filepath.Join(steamDir, "logs"))
+		time.Sleep(2 * time.Second)
+		err = runInstall(buildArgs())
+	}
+	m.logBuf.WriteString("=== SteamCMD 结束 ===\n")
+	if err != nil {
+		m.appendSteamcmdError(steamDir)
 		m.updateCmd = nil
-	}()
+		return fmt.Errorf("SteamCMD 安装失败: %w（详见上方日志）", err)
+	}
+	m.updateCmd = nil
 	return nil
 }
 
