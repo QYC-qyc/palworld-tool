@@ -169,18 +169,22 @@
     <n-modal v-model:show="showVersionModal" preset="card" title="选择游戏服版本"
       style="max-width:520px" :mask-closable="true">
       <n-space vertical :size="14">
-        <n-text depth="3">请选择要安装/更新的游戏服版本。两个版本可同时安装在同一目录，按需切换。</n-text>
+        <n-text depth="3">请选择要安装/更新的游戏服版本。两版本文件相互独立，可同时安装、按需切换。</n-text>
         <n-radio-group v-model:value="installPlatform">
           <n-space vertical>
             <n-radio value="linux">
-              原生 Linux 版 <n-text depth="3" style="font-size:12px">（默认，性能更好）</n-text>
+              原生 Linux 版 <n-text depth="3" style="font-size:12px">（默认，性能更好，装在安装目录根）</n-text>
             </n-radio>
             <n-radio value="windows">
               Windows 版（Wine / PalDefender）
-              <n-text depth="3" style="font-size:12px">（用于 PalDefender 反作弊，需先安装 Wine）</n-text>
+              <n-text depth="3" style="font-size:12px">（用于 PalDefender 反作弊，需先安装 Wine，装在安装目录下的 PalServer-Win 子目录）</n-text>
             </n-radio>
           </n-space>
         </n-radio-group>
+        <n-alert v-if="installPlatform === 'windows'" type="info" :show-icon="true" style="margin-top:4px">
+          Windows 版将安装到 <b>{{ cfg.install_dir ? cfg.install_dir + '/PalServer-Win' : '安装目录/PalServer-Win' }}</b>，
+          与 Linux 版隔离，互不影响。
+        </n-alert>
         <n-space justify="end">
           <n-button @click="showVersionModal = false">取消</n-button>
           <n-button type="primary" :loading="acting === 'install'" @click="doInstall">

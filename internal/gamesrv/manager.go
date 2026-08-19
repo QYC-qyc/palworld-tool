@@ -192,7 +192,12 @@ func (m *Manager) Install(platform string) error {
 			}
 		}
 	}
-	if err := os.MkdirAll(m.cfg.InstallDir, 0755); err != nil {
+	// Windows 版装到独立子目录，避免与 Linux 版文件互相覆盖
+	installDir := m.cfg.InstallDir
+	if windows {
+		installDir = m.winInstallDir()
+	}
+	if err := os.MkdirAll(installDir, 0755); err != nil {
 		return fmt.Errorf("创建安装目录失败: %w", err)
 	}
 
@@ -214,13 +219,14 @@ func (m *Manager) Install(platform string) error {
 	}
 
 	// steamcmd +force_install_dir <dir> +login anonymous +app_update 2394010 validate +quit
-	// 按用户选择的版本下载（windows 强制 Windows 版，否则当前平台/Linux 版）
+	// 按用户选择的版本下载（windows 强制 Windows 版，否则当前平台/Linux 版）。
+	// 注意：@sSteamCmdForcePlatformType 必须小写 s 开头，且放在 force_install_dir/login 之后。
 	args := []string{
-		"+force_install_dir", m.cfg.InstallDir,
+		"+force_install_dir", installDir,
 		"+login", "anonymous",
 	}
 	if windows {
-		m.logBuf.WriteString("安装 Windows 版服务端（Wine/PalDefender）\n")
+		m.logBuf.WriteString(fmt.Sprintf("安装 Windows 版服务端到 %s（Wine/PalDefender）\n", installDir))
 		args = append(args, "+@sSteamCmdForcePlatformType", "windows")
 	} else if runtime.GOOS != "windows" {
 		m.logBuf.WriteString("安装 Linux 原生版服务端\n")
@@ -402,7 +408,7 @@ func (m *Manager) shouldUseWine() (bool, error) {
 		return false, errors.New("PalDefender 模式需要 Windows 版服务端：请在「游戏服」页点击「安装/更新」（将自动下载 Windows 版）")
 	}
 	// 3) PalDefender DLL（d3d9.dll + PalDefender.dll）
-	win64 := filepath.Join(m.cfg.InstallDir, "Pal", "Binaries", "Win64")
+	win64 := filepath.Join(m.winInstallDir(), "Pal", "Binaries", "Win64")
 	missing := []string{}
 	if _, err := os.Stat(filepath.Join(win64, "d3d9.dll")); err != nil {
 		missing = append(missing, "d3d9.dll")
@@ -416,12 +422,23 @@ func (m *Manager) shouldUseWine() (bool, error) {
 	return true, nil
 }
 
-// winServerExePath 返回 Windows 版服务端路径
-func (m *Manager) winServerExePath() string {
+// winInstallDir 返回 Windows 版服务端的独立安装目录。
+// Windows 版与 Linux 版必须分目录存放，否则 SteamCMD 文件会互相覆盖。
+// 默认在游戏安装目录下的 PalServer-Win 子目录。
+func (m *Manager) winInstallDir() string {
 	if m.cfg.InstallDir == "" {
 		return ""
 	}
-	return filepath.Join(m.cfg.InstallDir, "Pal", "Binaries", "Win64", "PalServer-Win64-Shipping-Cmd.exe")
+	return filepath.Join(m.cfg.InstallDir, "PalServer-Win")
+}
+
+// winServerExePath 返回 Windows 版服务端路径
+func (m *Manager) winServerExePath() string {
+	winDir := m.winInstallDir()
+	if winDir == "" {
+		return ""
+	}
+	return filepath.Join(winDir, "Pal", "Binaries", "Win64", "PalServer-Win64-Shipping-Cmd.exe")
 }
 
 // ensureRunUser 确定启动游戏服使用的非 root 用户：

@@ -125,7 +125,7 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 			if gameDir == "" && gameAPI != nil {
 				gameDir = gameAPI.mgr.ConfigValue().InstallDir
 			}
-			win64 = filepath.Join(gameDir, "Pal", "Binaries", "Win64")
+			win64 = filepath.Join(gameDir, "PalServer-Win", "Pal", "Binaries", "Win64")
 			if err := os.MkdirAll(win64, 0755); err != nil {
 				pdTask.Lock()
 				pdTask.errMsg = "创建目录失败: " + err.Error()
@@ -398,7 +398,8 @@ func (p *palDefenderAPI) detectAt(gameDir string) pdStatus {
 	}
 
 	if gameDir != "" {
-		win64 := filepath.Join(gameDir, "Pal", "Binaries", "Win64")
+		// Windows 版装在独立子目录 PalServer-Win
+		win64 := filepath.Join(gameDir, "PalServer-Win", "Pal", "Binaries", "Win64")
 		if info, err := os.Stat(win64); err == nil && info.IsDir() {
 			st.Win64Path = win64
 			st.Installed = true
