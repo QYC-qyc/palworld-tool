@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -17,6 +18,9 @@ import (
 
 // Palworld Steam APP ID
 const steamAppID = "2394010"
+
+// ansiColorRegex 匹配 ANSI 转义序列（如 SteamCMD 输出的 [0m）
+var ansiColorRegex = regexp.MustCompile("\x1b\\[[0-9;]*[a-zA-Z]")
 
 // Config 游戏服与 SteamCMD 配置（用户在面板填写）
 type Config struct {
@@ -200,6 +204,10 @@ func (m *Manager) Install(platform string) error {
 	if err := os.MkdirAll(installDir, 0755); err != nil {
 		return fmt.Errorf("创建安装目录失败: %w", err)
 	}
+	// 可写性检查：在目标目录创建临时文件（避免 Disk write failure 才发现）
+	if err := checkWritable(installDir); err != nil {
+		return fmt.Errorf("安装目录不可写: %w", err)
+	}
 
 	steamDir := filepath.Dir(steamExe)
 
@@ -221,17 +229,20 @@ func (m *Manager) Install(platform string) error {
 	// steamcmd +force_install_dir <dir> +login anonymous +app_update 2394010 validate +quit
 	// 按用户选择的版本下载（windows 强制 Windows 版，否则当前平台/Linux 版）。
 	// 注意：@sSteamCmdForcePlatformType 必须小写 s 开头，且放在 force_install_dir/login 之后。
-	args := []string{
-		"+force_install_dir", installDir,
-		"+login", "anonymous",
-	}
+	// 平台覆盖参数以 +@ 形式传入，须放在 +force_install_dir/+app_update 之前。
+	args := []string{}
 	if windows {
 		m.logBuf.WriteString(fmt.Sprintf("安装 Windows 版服务端到 %s（Wine/PalDefender）\n", installDir))
-		args = append(args, "+@sSteamCmdForcePlatformType", "windows")
+		args = append(args,
+			"+@sSteamCmdForcePlatformType", "windows",
+			"+@sSteamCmdForcePlatformBitness", "64",
+		)
 	} else if runtime.GOOS != "windows" {
 		m.logBuf.WriteString("安装 Linux 原生版服务端\n")
 	}
 	args = append(args,
+		"+force_install_dir", installDir,
+		"+login", "anonymous",
 		"+app_update", steamAppID, "validate",
 		"+quit",
 	)
@@ -581,11 +592,32 @@ func (m *Manager) Logs(lines int) string {
 
 // ---- helpers ----
 
+// pipeLog 实时读取子进程输出并写入环形日志。
+// SteamCMD 的进度条用 '\r' 回车刷新（无 '\n'），因此按字节读取并把 '\r'、'\n'
+// 都作为换行处理，确保下载百分比能实时显示。去掉 ANSI 转义序列。
 func (m *Manager) pipeLog(rc io.ReadCloser) {
-	scanner := bufio.NewScanner(rc)
-	scanner.Buffer(make([]byte, 1024*1024), 1024*1024)
-	for scanner.Scan() {
-		m.logBuf.WriteString(scanner.Text() + "\n")
+	reader := bufio.NewReaderSize(rc, 4096)
+	var line []byte
+	flush := func() {
+		s := strings.TrimRight(string(line), " \t\r\n")
+		if s != "" {
+			// 去除简单 ANSI 转义（如 [0m）
+			s = ansiColorRegex.ReplaceAllString(s, "")
+			m.logBuf.WriteString(s + "\n")
+		}
+		line = line[:0]
+	}
+	for {
+		b, err := reader.ReadByte()
+		if err != nil {
+			flush()
+			return
+		}
+		if b == '\n' || b == '\r' {
+			flush()
+		} else {
+			line = append(line, b)
+		}
 	}
 }
 
@@ -594,6 +626,17 @@ func (m *Manager) isAlive(pid int) bool {
 		return false
 	}
 	return processAlive(pid)
+}
+
+// checkWritable 在目录中创建并删除临时文件，验证可写性
+func checkWritable(dir string) error {
+	f, err := os.CreateTemp(dir, ".paladmin-wtest-*")
+	if err != nil {
+		return err
+	}
+	name := f.Name()
+	f.Close()
+	return os.Remove(name)
 }
 
 // ringLog 简易环形日志缓冲
