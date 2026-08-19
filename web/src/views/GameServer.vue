@@ -130,20 +130,14 @@
         </n-grid>
         <n-space align="center" :size="12" wrap>
           <n-button type="primary" @click="saveConfig">保存配置</n-button>
-          <n-button @click="verifyPath('all')" :loading="verifying === 'all'">全部验证</n-button>
+          <n-button @click="verifyPath('all')" :loading="verifying === 'all'">验证路径</n-button>
           <n-text v-if="verifyResult.steamExe || verifyResult.serverExe" depth="3" style="font-size:12px">
-            已识别：SteamCMD {{ verifyResult.steamExe || '-' }} ｜ 服务端 {{ verifyResult.serverExe || '-' }}
+            识别到：SteamCMD {{ verifyResult.steamExe || '-' }} ｜ 服务端 {{ verifyResult.serverExe || '-' }}
+          </n-text>
+          <n-text v-else-if="verifyResult.checked" depth="3" style="font-size:12px">
+            未识别到 SteamCMD 或服务端，请检查路径
           </n-text>
         </n-space>
-
-        <div v-if="verifyResult.checked" class="verify-result">
-          <n-tag size="small" :type="verifyResult.linux ? 'success' : 'default'" round :bordered="false" style="margin-right:8px">
-            Linux {{ verifyResult.linux ? '✓ ' + verifyResult.linuxExe : '未安装' }}
-          </n-tag>
-          <n-tag size="small" :type="verifyResult.windows ? 'success' : 'default'" round :bordered="false">
-            Windows {{ verifyResult.windows ? '✓ ' + verifyResult.windowsExe : '未安装' }}
-          </n-tag>
-        </div>
       </n-form>
     </n-card>
 
@@ -240,11 +234,7 @@ const verifyResult = reactive<{
   steamExe: string
   serverExe: string
   checked: boolean
-  linux: boolean
-  linuxExe: string
-  windows: boolean
-  windowsExe: string
-}>({ steamExe: '', serverExe: '', checked: false, linux: false, linuxExe: '', windows: false, windowsExe: '' })
+}>({ steamExe: '', serverExe: '', checked: false })
 const cfg = reactive<GameServerConfig>({
   steamcmd_path: '',
   install_dir: '',
@@ -292,10 +282,6 @@ async function verifyPath(target: 'steam' | 'server' | 'all') {
     const res = await gameApi.verify(cfg)
     verifyResult.steamExe = res.steam_exe || ''
     verifyResult.serverExe = res.server_exe || ''
-    verifyResult.linux = !!res.linux_server_ok
-    verifyResult.linuxExe = res.linux_server_exe || ''
-    verifyResult.windows = !!res.windows_server_ok
-    verifyResult.windowsExe = res.windows_server_exe || ''
     verifyResult.checked = true
     const checkSteam = target === 'steam' || target === 'all'
     const checkServer = target === 'server' || target === 'all'

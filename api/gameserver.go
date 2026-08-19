@@ -19,6 +19,8 @@ func newGameServerAPI() (*gameServerAPI, error) {
 
 // status 返回游戏服与 SteamCMD 状态
 func (g *gameServerAPI) status(c *gin.Context) {
+	// 确保 mgr 持有最新的已保存配置（install_dir 等），否则路径判断会失效
+	g.mgr.SetConfig(loadGameServerConfig())
 	st, err := g.mgr.GetStatus()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
