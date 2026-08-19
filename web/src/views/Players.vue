@@ -1,29 +1,68 @@
 <template>
-  <n-space vertical>
-    <n-card title="在线玩家" size="small">
-      <n-data-table :columns="onlineCols" :data="online" :bordered="false" size="small" />
-    </n-card>
-    <n-card title="全部玩家（存档）" size="small">
-      <n-data-table
-        :columns="playerCols"
-        :data="players"
-        :bordered="false"
-        size="small"
-        :row-props="rowProps"
-      />
+  <n-space vertical :size="16">
+    <PageHeader title="玩家" subtitle="在线玩家与存档玩家管理">
+      <n-button @click="loadAll" :loading="loading">
+        <template #icon><n-icon :component="RefreshOutline" /></template>
+        刷新
+      </n-button>
+    </PageHeader>
+
+    <n-card size="small">
+      <n-space vertical :size="12">
+        <n-input v-model:value="search" placeholder="搜索昵称 / SteamID" clearable style="max-width:320px">
+          <template #prefix><n-icon :component="SearchOutline" /></template>
+        </n-input>
+        <n-tabs type="line" animated v-model:value="tab">
+          <n-tab-pane name="online">
+            <template #tab>
+              在线玩家
+              <n-badge :value="online.length" :max="999" type="success" style="margin-left:6px" />
+            </template>
+            <n-data-table
+              :columns="onlineCols"
+              :data="filteredOnline"
+              :bordered="false"
+              size="small"
+              :row-props="rowProps"
+            />
+          </n-tab-pane>
+          <n-tab-pane name="all">
+            <template #tab>
+              全部玩家
+              <n-badge :value="players.length" :max="999" type="default" style="margin-left:6px" />
+            </template>
+            <n-data-table
+              :columns="playerCols"
+              :data="filteredPlayers"
+              :bordered="false"
+              size="small"
+              :row-props="rowProps"
+            />
+          </n-tab-pane>
+        </n-tabs>
+      </n-space>
     </n-card>
 
-    <n-drawer v-model:show="showDetail" :width="640">
-      <n-drawer-content :title="`玩家详情 - ${detail?.nickname || ''}`" closable>
-        <n-descriptions v-if="detail" :column="1" bordered size="small">
-          <n-descriptions-item label="PlayerUID">{{ detail.player_uid }}</n-descriptions-item>
-          <n-descriptions-item label="SteamID">{{ detail.steam_id }}</n-descriptions-item>
-          <n-descriptions-item label="等级">{{ detail.level }}</n-descriptions-item>
-          <n-descriptions-item label="HP">{{ detail.hp }} / {{ detail.max_hp }}</n-descriptions-item>
-          <n-descriptions-item label="IP">{{ detail.ip }}</n-descriptions-item>
-          <n-descriptions-item label="最后在线">{{ formatTime(detail.last_online || detail.save_last_online) }}</n-descriptions-item>
-        </n-descriptions>
-        <n-tabs type="line" animated style="margin-top:16px">
+    <n-drawer v-model:show="showDetail" :width="isMobile ? '100%' : 640" placement="right">
+      <n-drawer-content closable>
+        <template #header>
+          <div class="drawer-title">
+            <span>{{ detail?.nickname || '玩家详情' }}</span>
+            <n-tag v-if="isOnline(detail)" size="small" type="success" round :bordered="false">在线</n-tag>
+          </div>
+        </template>
+
+        <n-tabs type="line" animated v-model:value="detailTab">
+          <n-tab-pane name="basic" tab="基本信息">
+            <n-descriptions v-if="detail" :column="1" bordered size="small">
+              <n-descriptions-item label="PlayerUID">{{ detail.player_uid }}</n-descriptions-item>
+              <n-descriptions-item label="SteamID">{{ detail.steam_id }}</n-descriptions-item>
+              <n-descriptions-item label="等级">{{ detail.level }}</n-descriptions-item>
+              <n-descriptions-item label="HP">{{ detail.hp }} / {{ detail.max_hp }}</n-descriptions-item>
+              <n-descriptions-item label="IP">{{ detail.ip }}</n-descriptions-item>
+              <n-descriptions-item label="最后在线">{{ formatTime(detail.last_online || detail.save_last_online) }}</n-descriptions-item>
+            </n-descriptions>
+          </n-tab-pane>
           <n-tab-pane name="pals" :tab="`帕鲁 (${detail?.pals?.length || 0})`">
             <n-data-table
               v-if="detail?.pals?.length"
@@ -45,17 +84,25 @@
             <n-text v-else depth="3" style="font-size:12px">暂无物品数据</n-text>
           </n-tab-pane>
         </n-tabs>
-        <n-divider>操作</n-divider>
-        <n-space>
+
+        <n-divider>管理操作</n-divider>
+        <n-space wrap>
           <n-button type="warning" ghost @click="openAct('kick', detail)">踢出</n-button>
           <n-button type="error" ghost @click="openAct('ban', detail)">封禁</n-button>
           <n-button @click="openAct('unban', detail)">解封</n-button>
-          <n-button type="error" @click="openAct('ipban', detail)">IP封禁</n-button>
+          <n-tooltip v-if="!isWindows" trigger="hover" placement="top">
+            <template #trigger>
+              <n-button type="error" disabled>IP封禁</n-button>
+            </template>
+            IP 封禁需要 PalDefender（Windows 模式）
+          </n-tooltip>
+          <n-button v-else type="error" @click="openAct('ipban', detail)">IP封禁</n-button>
         </n-space>
       </n-drawer-content>
     </n-drawer>
 
-    <n-modal v-model:show="act.show" preset="card" :title="act.title" style="max-width:460px">
+    <!-- Windows 模式：带原因/IP 的操作弹窗 -->
+    <n-modal v-if="isWindows" v-model:show="act.show" preset="card" :title="act.title" style="max-width:460px">
       <n-space vertical>
         <n-input v-if="act.kind === 'ipban'" v-model:value="act.ip" placeholder="IP 地址（默认使用该玩家 IP）" />
         <n-input v-model:value="act.reason" type="textarea" :autosize="{ minRows: 2 }"
@@ -80,19 +127,29 @@ import { h, onMounted, reactive, ref, computed } from 'vue'
 import {
   NSpace, NCard, NDataTable, NDrawer, NDrawerContent, NDescriptions, NDescriptionsItem,
   NButton, NDivider, NTag, NTabs, NTabPane, NImage, NText, NModal, NInput, NSwitch,
-  useMessage,
+  NBadge, NIcon, useMessage, useDialog,
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
+import { SearchOutline, RefreshOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
+import { useRunMode } from '@/composables/useRunMode'
+import PageHeader from '@/components/PageHeader.vue'
 
 const message = useMessage()
+const dialog = useDialog()
+const { isWindows } = useRunMode()
+const isMobile = ref(window.innerWidth < 768)
+
 const players = ref<any[]>([])
 const online = ref<any[]>([])
+const loading = ref(false)
 const showDetail = ref(false)
 const detail = ref<any>(null)
 const itemMap = ref<Record<string, any>>({})
+const search = ref('')
+const tab = ref<'online' | 'all'>('online')
+const detailTab = ref('basic')
 
-// 操作弹框
 const act = reactive({
   show: false,
   kind: '' as 'kick' | 'ban' | 'unban' | 'ipban' | '',
@@ -104,14 +161,12 @@ const act = reactive({
   target: null as any,
 })
 
-// 加载物品图标映射
 fetch('/data/item_list.json').then(r => r.json()).then((data: any[]) => {
   const m: Record<string, any> = {}
   data.forEach(i => { m[i.id] = i })
   itemMap.value = m
 }).catch(() => {})
 
-// 物品列表（合并所有容器）
 const itemRows = computed(() => {
   if (!detail.value?.items) return []
   const containers = [
@@ -134,9 +189,24 @@ const itemRows = computed(() => {
 
 const itemCount = computed(() => itemRows.value.length)
 
+function matchSearch(p: any): boolean {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return true
+  return (
+    String(p.nickname || '').toLowerCase().includes(q) ||
+    String(p.steam_id || '').toLowerCase().includes(q)
+  )
+}
+const filteredOnline = computed(() => online.value.filter(matchSearch))
+const filteredPlayers = computed(() => players.value.filter(matchSearch))
+
+function isOnline(p: any): boolean {
+  if (!p) return false
+  return online.value.some((o) => o.player_uid === p.player_uid || o.steam_id === p.steam_id)
+}
+
 function formatTime(t: string): string {
   if (!t) return '-'
-  // ISO时间或时间戳
   const d = new Date(t)
   if (isNaN(d.getTime())) return t
   const now = Date.now()
@@ -157,6 +227,12 @@ const onlineCols: DataTableColumns<any> = [
 
 const playerCols: DataTableColumns<any> = [
   { title: '昵称', key: 'nickname' },
+  {
+    title: '状态', key: 'online', width: 90,
+    render: (r) => isOnline(r)
+      ? h(NTag, { size: 'small', type: 'success', round: true, bordered: false }, { default: () => '在线' })
+      : h(NTag, { size: 'small', round: true, bordered: false }, { default: () => '离线' }),
+  },
   { title: '等级', key: 'level', width: 80 },
   { title: 'SteamID', key: 'steam_id', width: 170 },
   { title: '帕鲁数', key: 'pals', width: 90, render: (r) => r.pals?.length ?? 0 },
@@ -168,7 +244,7 @@ const palCols: DataTableColumns<any> = [
   { title: '攻击', key: 'melee', width: 70 },
   { title: '防御', key: 'defense', width: 70 },
   {
-    title: '标记', key: 'is_boss', width: 140,
+    title: '标记', key: 'is_boss', width: 160,
     render: (r) => h('span', { style: 'display:flex;gap:4px' }, [
       r.is_boss ? h(NTag, { size: 'small', type: 'error' }, { default: () => 'Boss' }) : null,
       r.is_tower ? h(NTag, { size: 'small', type: 'warning' }, { default: () => '塔主' }) : null,
@@ -181,7 +257,7 @@ const itemCols: DataTableColumns<any> = [
   {
     title: '图标', key: 'icon', width: 50,
     render: (r) => r.itemInfo?.icon
-      ? h(NImage, { src: r.itemInfo.icon, width: 32, height: 32, objectFit: 'contain', style: 'object-fit:contain' })
+      ? h(NImage, { src: r.itemInfo.icon, width: 32, height: 32, objectFit: 'contain' })
       : null,
   },
   { title: '物品', key: 'ItemId', render: (r) => r.itemInfo?.name || r.ItemId },
@@ -195,6 +271,7 @@ function rowProps(row: any) {
     onClick: async () => {
       try {
         detail.value = await api.getPlayer(row.player_uid)
+        detailTab.value = 'basic'
         showDetail.value = true
       } catch (e: any) {
         message.error(e.message)
@@ -216,13 +293,41 @@ const ACT_TITLE: Record<string, string> = {
 }
 
 function openAct(kind: 'kick' | 'ban' | 'unban' | 'ipban', p: any) {
-  act.kind = kind
-  act.title = ACT_TITLE[kind]
-  act.reason = ''
-  act.ip = p.ip || ''
-  act.ipBan = false
-  act.target = p
-  act.show = true
+  if (isWindows.value) {
+    act.kind = kind
+    act.title = ACT_TITLE[kind]
+    act.reason = ''
+    act.ip = p.ip || ''
+    act.ipBan = false
+    act.target = p
+    act.show = true
+    return
+  }
+  // Linux 官方 REST：简单确认
+  const labelMap: Record<string, string> = {
+    kick: '踢出', ban: '封禁', unban: '解封', ipban: 'IP封禁',
+  }
+  const action = labelMap[kind]
+  dialog.warning({
+    title: `确认${action}玩家？`,
+    content: `确定要${action}玩家 ${p.nickname || p.player_uid} 吗？`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: () => doOfficialAction(kind, p),
+  })
+}
+
+async function doOfficialAction(kind: 'kick' | 'ban' | 'unban' | 'ipban', p: any) {
+  try {
+    if (kind === 'kick') await api.kickPlayerOfficial(p.player_uid)
+    else if (kind === 'ban') await api.banPlayerOfficial(p.player_uid)
+    else if (kind === 'unban') await api.unbanPlayerOfficial(p.player_uid)
+    else return
+    message.success('操作成功')
+    await refreshAfterAction(p)
+  } catch (e: any) {
+    message.error(e.message)
+  }
 }
 
 async function confirmAct() {
@@ -241,10 +346,7 @@ async function confirmAct() {
     else if (act.kind === 'ipban') await api.pdBanIP(act.ip.trim(), reason)
     message.success('操作成功')
     act.show = false
-    // 刷新详情与列表
-    try { detail.value = await api.getPlayer(p.player_uid) } catch {}
-    try { players.value = await api.getPlayers() } catch {}
-    try { online.value = await api.getOnline() } catch {}
+    await refreshAfterAction(p)
   } catch (e: any) {
     message.error(e.message)
   } finally {
@@ -252,8 +354,35 @@ async function confirmAct() {
   }
 }
 
-onMounted(async () => {
+async function refreshAfterAction(p: any) {
+  try { detail.value = await api.getPlayer(p.player_uid) } catch {}
   try { players.value = await api.getPlayers() } catch {}
   try { online.value = await api.getOnline() } catch {}
-})
+}
+
+async function loadAll() {
+  loading.value = true
+  try {
+    const [pl, on] = await Promise.all([
+      api.getPlayers().catch(() => []),
+      api.getOnline().catch(() => []),
+    ])
+    players.value = pl
+    online.value = on
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadAll)
 </script>
+
+<style scoped>
+.drawer-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+}
+</style>

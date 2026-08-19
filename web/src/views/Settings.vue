@@ -26,16 +26,12 @@
       </n-form>
     </n-card>
 
-    <n-card title="PalDefender 反作弊" size="small">
+    <n-alert v-if="!isWindows" type="info" :show-icon="false" class="pd-unavailable">
+      当前为原生 Linux 模式，PalDefender 不可用。仪表盘可切换模式。
+    </n-alert>
+
+    <n-card v-if="isWindows" title="PalDefender 反作弊" size="small">
       <n-form label-placement="left" label-width="140">
-        <n-form-item>
-          <template #label>
-            <span class="field-label">运行模式</span>
-          </template>
-          <n-text depth="3" style="font-size:13px">
-            在「仪表盘」页切换 原生 Linux / Windows(Wine) 模式；此处仅配置 API 连接。
-          </n-text>
-        </n-form-item>
         <n-form-item label="API 主机">
           <n-input v-model:value="form['paldefender.host']" placeholder="127.0.0.1" />
         </n-form-item>
@@ -74,7 +70,7 @@
       </n-form>
     </n-card>
 
-    <n-card title="反作弊（PalDefender）" size="small">
+    <n-card v-if="isWindows" title="反作弊（PalDefender）" size="small">
       <n-form label-placement="left" label-width="180">
         <n-form-item>
           <template #label>
@@ -291,8 +287,10 @@ import {
 } from 'naive-ui'
 import { HelpCircleOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
+import { useRunMode } from '@/composables/useRunMode'
 
 const message = useMessage()
+const { isWindows } = useRunMode()
 
 const form = reactive<Record<string, any>>({})
 const saving = ref(false)

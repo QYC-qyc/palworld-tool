@@ -1,4 +1,17 @@
 <template>
+  <EmptyState
+    v-if="!isWindows"
+    title="PalDefender 仅在 Windows(Wine) 模式下可用"
+    description="PalDefender 是 Windows DLL 反作弊，需通过 Wine 启动 Windows 版服务端。切换到 Windows 模式后即可使用。"
+    :icon="ShieldOutline"
+  >
+    <n-button type="primary" @click="goSwitch">
+      <template #icon><n-icon :component="SwapHorizontalOutline" /></template>
+      去切换模式
+    </n-button>
+  </EmptyState>
+
+  <template v-else>
   <n-tabs v-model:value="activeTab" type="line" animated @update:value="onTab">
     <!-- Tab 1：安装与状态 -->
     <n-tab-pane name="install" tab="安装与状态">
@@ -350,6 +363,7 @@
       <n-text v-if="pdError" depth="3" style="font-size:12px;color:#d03050">{{ pdError }}</n-text>
     </n-space>
   </n-modal>
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -357,13 +371,23 @@ import { computed, h, onMounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
   NButton, NText, NModal, NProgress, NPopconfirm, NTabs, NTabPane,
-  NDataTable, NInput, NSelect, NSwitch, NFormItem, NSpin, NDivider,
+  NDataTable, NInput, NSelect, NSwitch, NFormItem, NSpin, NDivider, NIcon,
   useMessage,
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
+import { ShieldOutline, SwapHorizontalOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
+import { useRunMode } from '@/composables/useRunMode'
+import { useRouter } from 'vue-router'
+import EmptyState from '@/components/EmptyState.vue'
 
 const message = useMessage()
+const router = useRouter()
+const { isWindows } = useRunMode()
+
+function goSwitch() {
+  router.push('/dashboard')
+}
 
 /* ============ 通用工具 ============ */
 function formatTime(t: any): string {
@@ -1027,6 +1051,7 @@ async function reloadConfig() {
 
 /* ============ 挂载 ============ */
 onMounted(() => {
+  if (!isWindows.value) return
   refreshStatus()
   testConnection()
 })

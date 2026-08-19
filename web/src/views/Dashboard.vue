@@ -1,148 +1,166 @@
 <template>
   <n-space vertical :size="16">
-    <n-grid cols="1 s:2 m:4" responsive="screen" :x-gap="12" :y-gap="12">
-      <n-gi>
-        <n-card title="服务器名称" size="small"><n-statistic :value="server.name || '-'"/></n-card>
-      </n-gi>
-      <n-gi>
-        <n-card title="版本" size="small"><n-statistic :value="server.version || '-'"/></n-card>
-      </n-gi>
-      <n-gi>
-        <n-card title="在线人数" size="small">
-          <n-statistic :value="metrics.current_player_num || 0">
-            <template #suffix>/ {{ metrics.max_player_num || 0 }}</template>
-          </n-statistic>
-        </n-card>
-      </n-gi>
-      <n-gi>
-        <n-card title="服务器 FPS" size="small">
-          <n-statistic :value="metrics.server_fps || 0"/>
-        </n-card>
+    <PageHeader title="仪表盘" subtitle="服务器运行状态、模式切换与控制台" />
+
+    <n-grid cols="1 s:2 m:4" responsive="screen" :x-gap="14" :y-gap="14">
+      <n-gi v-for="card in statCards" :key="card.label">
+        <div class="stat-card" :style="{ '--accent': card.color }">
+          <div class="stat-card__icon">
+            <n-icon :component="card.icon" size="22" />
+          </div>
+          <div class="stat-card__body">
+            <div class="stat-card__label">{{ card.label }}</div>
+            <div class="stat-card__value">
+              {{ card.value }}
+              <span v-if="card.suffix" class="stat-card__suffix">{{ card.suffix }}</span>
+            </div>
+          </div>
+        </div>
       </n-gi>
     </n-grid>
 
-    <n-card title="运行模式" size="small">
-      <n-space align="center" :size="12" :wrap="false">
-        <n-text strong>游戏服版本：</n-text>
-        <n-radio-group v-model:value="runMode" @update:value="onModeChange">
-          <n-radio-button value="linux">原生 Linux</n-radio-button>
-          <n-radio-button value="windows">Windows（Wine/PalDefender）</n-radio-button>
-        </n-radio-group>
-        <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:420px">
-          <template #trigger>
-            <n-icon :component="HelpCircleOutline" style="font-size:18px;color:var(--n-text-color-3,#999);cursor:help" />
-          </template>
-          <div style="line-height:1.7">
-            <div><b>原生 Linux 版：</b>直接运行 PalServer.sh，<b>性能和稳定性最好、内存占用低</b>，无需 Wine；
-              但无法使用 PalDefender（Windows DLL 反作弊）。</div>
-            <div style="margin-top:6px"><b>Windows 版（Wine）：</b>通过 Wine 运行 Windows 服务端以加载
-              PalDefender 反作弊（实时拦截作弊、封禁/私聊/删据点等）；<b>内存占用更高、性能略低</b>，
-              需先安装 Wine、Windows 版游戏服和 PalDefender DLL。</div>
-            <div style="margin-top:6px">切换版本后需在「游戏服」页安装对应版本，并重启游戏服。</div>
-          </div>
-        </n-tooltip>
-      </n-space>
+    <n-card size="small">
+      <div class="mode-card">
+        <div class="mode-card__left">
+          <n-text strong style="font-size:15px">运行模式</n-text>
+          <n-text depth="3" style="font-size:12px;margin-top:2px">
+            当前：<b :style="{ color: isWindows ? '#2080f0' : '#18a058' }">{{ isWindows ? 'Windows / Wine（PalDefender）' : '原生 Linux' }}</b>
+          </n-text>
+        </div>
+        <n-space align="center" :size="10" :wrap="false">
+          <n-radio-group v-model:value="runMode" @update:value="onModeChange">
+            <n-radio-button value="linux">
+              <n-icon :component="LogoTux" style="vertical-align:-2px;margin-right:4px" />原生 Linux
+            </n-radio-button>
+            <n-radio-button value="windows">
+              <n-icon :component="LogoWindows" style="vertical-align:-2px;margin-right:4px" />Windows / Wine
+            </n-radio-button>
+          </n-radio-group>
+          <n-tooltip trigger="hover" placement="top" :show-arrow="false" width="trigger" style="max-width:420px">
+            <template #trigger>
+              <n-icon :component="HelpCircleOutline" class="help-icon" />
+            </template>
+            <div style="line-height:1.7;padding:4px 2px">
+              <div><b>原生 Linux：</b>直接运行 PalServer.sh，性能/稳定性最好、内存低，但无法用 PalDefender。</div>
+              <div style="margin-top:6px"><b>Windows(Wine)：</b>通过 Wine 运行 Windows 服务端以加载 PalDefender 反作弊，内存更高、性能略低。</div>
+              <div style="margin-top:6px">切换后需重启游戏服。</div>
+            </div>
+          </n-tooltip>
+        </n-space>
+      </div>
     </n-card>
 
-    <n-card title="快捷操作" size="small">
-      <n-space>
-        <n-button @click="openBroadcast">全服广播</n-button>
-        <n-button @click="doSync" :loading="syncing">立即同步</n-button>
-        <n-popconfirm @positive-click="doShutdown" positive-text="确定" negative-text="取消">
-          <template #trigger>
-            <n-button type="error" ghost>关闭服务器</n-button>
-          </template>
-          将发送 60 秒倒计时关服，确定？
-        </n-popconfirm>
-      </n-space>
+    <n-card title="控制台" size="small">
+      <n-grid cols="1 m:2" responsive="screen" :x-gap="20" :y-gap="16" item-responsive>
+        <n-gi>
+          <n-space vertical :size="12">
+            <n-text depth="3" style="font-size:12px">快捷操作</n-text>
+            <n-space>
+              <n-button @click="openBroadcast">
+                <template #icon><n-icon :component="MegaphoneOutline" /></template>
+                全服广播
+              </n-button>
+              <n-button @click="doSync" :loading="syncing">
+                <template #icon><n-icon :component="RefreshOutline" /></template>
+                立即同步
+              </n-button>
+              <n-popconfirm @positive-click="doShutdown" positive-text="确定关服" negative-text="取消">
+                <template #trigger>
+                  <n-button type="error" ghost>
+                    <template #icon><n-icon :component="PowerOutline" /></template>
+                    关闭服务器
+                  </n-button>
+                </template>
+                将发送 60 秒倒计时关服，确定？
+              </n-popconfirm>
+            </n-space>
+          </n-space>
+        </n-gi>
+        <n-gi>
+          <n-space vertical :size="12">
+            <n-text depth="3" style="font-size:12px">发送广播</n-text>
+            <n-input
+              v-model:value="broadcastMsg"
+              type="textarea"
+              :autosize="{ minRows: 2, maxRows: 4 }"
+              placeholder="输入广播消息，回车发送..."
+              @keydown.enter.exact.prevent="sendBroadcast"
+            />
+            <n-button type="primary" block :loading="sending" @click="sendBroadcast">
+              <template #icon><n-icon :component="SendOutline" /></template>
+              发送广播
+            </n-button>
+          </n-space>
+        </n-gi>
+      </n-grid>
     </n-card>
 
-    <n-card title="广播" size="small">
-      <n-space>
-        <n-input v-model:value="broadcastMsg" placeholder="输入广播消息..." @keyup.enter="sendBroadcast" />
-        <n-button type="primary" @click="sendBroadcast" :loading="sending">发送</n-button>
-      </n-space>
-    </n-card>
-
-    <n-grid cols="1 s:2" responsive="screen" :x-gap="12" :y-gap="12">
+    <n-grid cols="1 s:2" responsive="screen" :x-gap="14" :y-gap="14">
       <n-gi>
-        <n-card title="运行时长" size="small">
-          <n-statistic :value="Math.round((metrics.uptime || 0) / 3600)">
+        <n-card size="small">
+          <n-statistic label="运行时长">
+            {{ Math.round((metrics.uptime || 0) / 3600) }}
             <template #suffix>小时</template>
           </n-statistic>
         </n-card>
       </n-gi>
       <n-gi>
-        <n-card title="服务器帧时间" size="small">
-          <n-statistic :value="metrics.server_frame_time || 0">
+        <n-card size="small">
+          <n-statistic label="服务器帧时间">
+            {{ metrics.server_frame_time || 0 }}
             <template #suffix>ms</template>
           </n-statistic>
         </n-card>
       </n-gi>
     </n-grid>
-
-    <n-modal v-model:show="showBroadcast" preset="card" title="全服广播" style="max-width: 500px">
-      <n-input v-model:value="broadcastMsg" type="textarea" placeholder="输入广播消息..." />
-      <template #footer>
-        <n-button type="primary" @click="sendBroadcast" :loading="sending">发送</n-button>
-      </template>
-    </n-modal>
   </n-space>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
-  NSpace, NCard, NGrid, NGi, NStatistic, NButton, NInput, NModal,
-  NPopconfirm, NRadioGroup, NRadioButton, NTooltip, NIcon, useMessage, useDialog,
+  NSpace, NCard, NGrid, NGi, NStatistic, NButton, NInput,
+  NPopconfirm, NRadioGroup, NRadioButton, NTooltip, NIcon, NText,
+  useMessage,
 } from 'naive-ui'
-import { HelpCircleOutline } from '@vicons/ionicons5'
+import {
+  ServerOutline, GlobeOutline, PeopleOutline, SpeedometerOutline,
+  HelpCircleOutline, LogoTux, LogoWindows, MegaphoneOutline,
+  RefreshOutline, PowerOutline, SendOutline,
+} from '@vicons/ionicons5'
 import { api } from '@/api'
+import { useRunMode } from '@/composables/useRunMode'
+import PageHeader from '@/components/PageHeader.vue'
 
 const message = useMessage()
-const dialog = useDialog()
+const { isWindows, setMode } = useRunMode()
+
 const server = ref<any>({})
 const metrics = ref<any>({})
 const broadcastMsg = ref('')
-const showBroadcast = ref(false)
 const sending = ref(false)
 const syncing = ref(false)
-const runMode = ref<'linux' | 'windows'>('linux')
 
-async function loadMode() {
-  try {
-    const s = await api.getSettings()
-    runMode.value = s['paldefender.wine_mode'] === 'true' ? 'windows' : 'linux'
-  } catch {}
-}
+const runMode = computed<'linux' | 'windows'>({
+  get: () => (isWindows.value ? 'windows' : 'linux'),
+  set: () => {},
+})
+
+const statCards = computed(() => [
+  { label: '服务器名称', value: server.value.name || '-', icon: ServerOutline, color: '#4f46e5' },
+  { label: '版本', value: server.value.version || '-', icon: GlobeOutline, color: '#0ea5e9' },
+  {
+    label: '在线人数',
+    value: metrics.value.current_player_num || 0,
+    suffix: `/ ${metrics.value.max_player_num || 0}`,
+    icon: PeopleOutline,
+    color: '#10b981',
+  },
+  { label: '服务器 FPS', value: metrics.value.server_fps || 0, icon: SpeedometerOutline, color: '#f59e0b' },
+])
 
 function onModeChange(v: 'linux' | 'windows') {
-  const wantWindows = v === 'windows'
-  const previous = runMode.value
-  dialog.warning({
-    title: wantWindows ? '切换到 Windows（Wine）模式？' : '切换到原生 Linux 模式？',
-    content: wantWindows
-      ? '将用 Wine 启动 Windows 版服务端以加载 PalDefender 反作弊。请确保已安装 Wine、Windows 版游戏服和 PalDefender DLL，且已在「游戏配置」中检查对应版本配置，然后重启游戏服。'
-      : '将用原生 PalServer.sh 启动（性能更好，但无法使用 PalDefender）。请在「游戏服」页确认已安装 Linux 版，并重启游戏服。',
-    positiveText: '确认切换',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      try {
-        await api.saveSettings({ 'paldefender.wine_mode': wantWindows ? 'true' : 'false' })
-        runMode.value = v
-        message.success('已切换，请安装对应版本并重启游戏服')
-      } catch (e: any) {
-        runMode.value = previous
-        message.error(e.message)
-      }
-    },
-    onNegativeClick: () => {
-      runMode.value = previous
-    },
-    onMaskClick: () => {
-      runMode.value = previous
-    },
-  })
+  setMode(v === 'windows')
 }
 
 async function loadAll() {
@@ -150,36 +168,38 @@ async function loadAll() {
   try { metrics.value = await api.getMetrics() } catch {}
 }
 
-function openBroadcast() { showBroadcast.value = true }
-
 // 优先走 PalDefender 广播；若 PD 未配置/不可用，回退官方 REST broadcast
 async function sendBroadcastMsg(msg: string) {
   try {
     await api.pdBroadcast(msg)
-    return 'paldefender'
   } catch (e: any) {
     const msgText: string = e?.message || ''
     if (msgText.includes('未配置') || msgText.includes('PalDefender') || msgText.includes('paldefender')) {
       await api.broadcast(msg)
-      return 'official'
+    } else {
+      throw e
     }
-    throw e
   }
 }
 
 async function sendBroadcast() {
-  if (!broadcastMsg.value) return
+  if (!broadcastMsg.value.trim()) return
   sending.value = true
   try {
     await sendBroadcastMsg(broadcastMsg.value)
     message.success('广播已发送')
     broadcastMsg.value = ''
-    showBroadcast.value = false
   } catch (e: any) {
     message.error(e.message)
   } finally {
     sending.value = false
   }
+}
+
+function openBroadcast() {
+  // 焦点聚到广播输入框（已内联在控制台卡片）
+  const el = document.querySelector('textarea') as HTMLTextAreaElement | null
+  el?.focus()
 }
 
 async function doSync() {
@@ -203,5 +223,65 @@ async function doShutdown() {
   }
 }
 
-onMounted(() => { loadAll(); loadMode() })
+onMounted(loadAll)
 </script>
+
+<style scoped>
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--n-color, #fff);
+  border: 1px solid var(--n-border-color, #efeff5);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.stat-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+.stat-card__icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--accent);
+}
+.stat-card__label {
+  font-size: 12px;
+  color: var(--n-text-color-3, #999);
+}
+.stat-card__value {
+  font-size: 22px;
+  font-weight: 600;
+  margin-top: 2px;
+  line-height: 1.2;
+}
+.stat-card__suffix {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--n-text-color-3, #999);
+  margin-left: 2px;
+}
+.mode-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.mode-card__left {
+  display: flex;
+  flex-direction: column;
+}
+.help-icon {
+  font-size: 18px;
+  color: var(--n-text-color-3, #999);
+  cursor: help;
+}
+</style>

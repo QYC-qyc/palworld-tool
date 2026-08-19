@@ -1,41 +1,84 @@
 <template>
   <n-space vertical :size="16">
+    <PageHeader title="游戏服管理" :subtitle="status?.status?.install_dir ? `安装目录：${status.status.install_dir}` : '安装、启动、停止与更新游戏服'">
+      <n-button @click="refreshAll" :loading="loading">
+        <template #icon><n-icon :component="RefreshOutline" /></template>
+        刷新
+      </n-button>
+    </PageHeader>
+
     <n-alert type="info" :show-icon="false">
-      游戏服由你自行用 SteamCMD 安装。只需填写<strong>所在文件夹</strong>，面板会自动在其中查找
+      游戏服由你自行用 SteamCMD 安装。只需填写<strong>所在文件夹</strong>，面板会自动查找
       <code>steamcmd.sh</code>（Linux）/ <code>steamcmd.exe</code>（Windows）与游戏可执行文件。
-      点击「安装/更新」会执行：<code>steamcmd +force_install_dir &lt;游戏目录&gt; +login anonymous +app_update 2394010 validate +quit</code>
     </n-alert>
 
-    <!-- 状态 -->
+    <!-- 运行状态 -->
     <n-card title="运行状态" size="small">
-      <n-descriptions v-if="status" bordered :column="2" label-placement="left" size="small">
-        <n-descriptions-item label="状态">
-          <n-tag :type="stateType" size="small">{{ stateText }}</n-tag>
-        </n-descriptions-item>
-        <n-descriptions-item label="进程 PID">
-          {{ status.status?.pid || '-' }}
-        </n-descriptions-item>
-        <n-descriptions-item label="SteamCMD">
-          <n-tag :type="status.status?.steam_ready ? 'success' : 'error'" size="small">
-            {{ status.status?.steam_ready ? '已就绪' : '未找到' }}
-          </n-tag>
-        </n-descriptions-item>
-        <n-descriptions-item label="Linux 原生版">
-          <n-tag :type="status.status?.linux_installed ? 'success' : 'warning'" size="small">
-            {{ status.status?.linux_installed ? '已安装' : '未安装' }}
-          </n-tag>
-        </n-descriptions-item>
-        <n-descriptions-item label="Windows 版（Wine）">
-          <n-tag :type="status.status?.windows_installed ? 'success' : 'warning'" size="small">
-            {{ status.status?.windows_installed ? '已安装' : '未安装' }}
-          </n-tag>
-        </n-descriptions-item>
-        <n-descriptions-item label="当前模式">
-          <n-tag :type="status.status?.wine_mode ? 'warning' : 'info'" size="small">
-            {{ status.status?.wine_mode ? 'PalDefender（Windows）' : '原生 Linux' }}
-          </n-tag>
-        </n-descriptions-item>
-      </n-descriptions>
+      <n-grid cols="1 s:2 m:4" responsive="screen" :x-gap="16" :y-gap="16" item-responsive>
+        <n-gi>
+          <div class="status-cell">
+            <div class="status-cell__label">状态</div>
+            <StatusTag :status="stateStatus" />
+          </div>
+        </n-gi>
+        <n-gi>
+          <div class="status-cell">
+            <div class="status-cell__label">进程 PID</div>
+            <div class="status-cell__value">{{ status?.status?.pid || '-' }}</div>
+          </div>
+        </n-gi>
+        <n-gi>
+          <div class="status-cell">
+            <div class="status-cell__label">SteamCMD</div>
+            <n-tag :type="status?.status?.steam_ready ? 'success' : 'error'" size="small" round :bordered="false">
+              {{ status?.status?.steam_ready ? '已就绪' : '未找到' }}
+            </n-tag>
+          </div>
+        </n-gi>
+        <n-gi>
+          <div class="status-cell">
+            <div class="status-cell__label">当前模式</div>
+            <PlatformBadge platform="current" :is-windows="!!status?.status?.wine_mode" />
+          </div>
+        </n-gi>
+        <n-gi>
+          <div class="status-cell">
+            <div class="status-cell__label">Linux 原生版</div>
+            <PlatformBadge platform="linux" :installed="!!status?.status?.linux_installed" />
+          </div>
+        </n-gi>
+        <n-gi>
+          <div class="status-cell">
+            <div class="status-cell__label">Windows 版（Wine）</div>
+            <PlatformBadge platform="windows" :installed="!!status?.status?.windows_installed" />
+          </div>
+        </n-gi>
+      </n-grid>
+    </n-card>
+
+    <!-- 操作 -->
+    <n-card title="操作" size="small">
+      <n-space :size="10" wrap>
+        <n-button type="success" :disabled="!canStart" :loading="acting === 'start'" @click="doStart">
+          <template #icon><n-icon :component="PlayOutline" /></template>
+          启动
+        </n-button>
+        <n-button type="error" :disabled="!isRunning" :loading="acting === 'stop'" @click="doStop">
+          <template #icon><n-icon :component="StopOutline" /></template>
+          停止
+        </n-button>
+        <n-button type="warning" :disabled="!isRunning" :loading="acting === 'restart'" @click="doRestart">
+          <template #icon><n-icon :component="RefreshOutline" /></template>
+          重启
+        </n-button>
+        <n-button type="info" :loading="acting === 'install'" @click="openInstall">
+          <template #icon><n-icon :component="CloudDownloadOutline" /></template>
+          安装 / 更新游戏服
+        </n-button>
+      </n-space>
+      <n-text depth="3" style="font-size:12px;display:block;margin-top:10px">
+        提示：首次安装可能需要较长时间，请在日志中查看 SteamCMD 下载进度。安装完成后再启动。
+      </n-text>
     </n-card>
 
     <!-- 路径配置 -->
@@ -44,8 +87,7 @@
         <n-grid cols="1 s:2" :x-gap="16" responsive="screen">
           <n-gi>
             <n-form-item label="SteamCMD 目录">
-              <n-input v-model:value="cfg.steamcmd_path"
-                placeholder="文件夹，如 /root/steamcmd">
+              <n-input v-model:value="cfg.steamcmd_path" placeholder="文件夹，如 /root/steamcmd">
                 <template #suffix>
                   <n-button size="tiny" quaternary :loading="verifying === 'steam'" @click="verifyPath('steam')">
                     验证
@@ -56,8 +98,7 @@
           </n-gi>
           <n-gi>
             <n-form-item label="游戏安装目录">
-              <n-input v-model:value="cfg.install_dir"
-                placeholder="文件夹，如 /root/PalServer">
+              <n-input v-model:value="cfg.install_dir" placeholder="文件夹，如 /root/PalServer">
                 <template #suffix>
                   <n-button size="tiny" quaternary :loading="verifying === 'server'" @click="verifyPath('server')">
                     验证
@@ -77,11 +118,7 @@
                     </template>
                     <div class="tooltip-content">
                       端口、REST API 等网络参数请到「游戏配置」页修改，无需填写 -port。<br/>
-                      常用参数：<br/>
-                      <code>-publiclobby</code> 社区服务器；<br/>
-                      <code>-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS</code> 多线程优化；<br/>
-                      <code>-NumberOfWorkerThreadsServer=X</code> 工作线程数；<br/>
-                      <code>-logformat=text</code> 日志格式
+                      常用：<code>-publiclobby</code>；<code>-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS</code>
                     </div>
                   </n-tooltip>
                 </span>
@@ -91,43 +128,41 @@
             </n-form-item>
           </n-gi>
         </n-grid>
-        <n-button type="primary" @click="saveConfig">保存配置</n-button>
-        <n-button @click="verifyPath('all')" :loading="verifying === 'all'" style="margin-left:8px">
-          全部验证
-        </n-button>
-        <n-text depth="3" style="font-size:12px;margin-left:12px">
-          已识别：SteamCMD {{ verifyResult.steamExe || status?.status?.steam_exe || '-' }}
-          ｜ 服务端 {{ verifyResult.serverExe || status?.status?.server_exe || '-' }}
-        </n-text>
+        <n-space align="center" :size="12" wrap>
+          <n-button type="primary" @click="saveConfig">保存配置</n-button>
+          <n-button @click="verifyPath('all')" :loading="verifying === 'all'">全部验证</n-button>
+          <n-text v-if="verifyResult.steamExe || verifyResult.serverExe" depth="3" style="font-size:12px">
+            已识别：SteamCMD {{ verifyResult.steamExe || '-' }} ｜ 服务端 {{ verifyResult.serverExe || '-' }}
+          </n-text>
+        </n-space>
+
+        <div v-if="verifyResult.checked" class="verify-result">
+          <n-tag size="small" :type="verifyResult.linux ? 'success' : 'default'" round :bordered="false" style="margin-right:8px">
+            Linux {{ verifyResult.linux ? '✓ ' + verifyResult.linuxExe : '未安装' }}
+          </n-tag>
+          <n-tag size="small" :type="verifyResult.windows ? 'success' : 'default'" round :bordered="false">
+            Windows {{ verifyResult.windows ? '✓ ' + verifyResult.windowsExe : '未安装' }}
+          </n-tag>
+        </div>
       </n-form>
     </n-card>
 
-    <!-- 操作 -->
-    <n-card title="操作" size="small">
-      <n-space>
-        <n-button type="info" :loading="acting === 'install'" @click="openInstall">
-          安装 / 更新游戏服
-        </n-button>
-        <n-button type="success" :disabled="!canStart" :loading="acting==='start'" @click="doStart">
-          启动
-        </n-button>
-        <n-button type="warning" :disabled="!isRunning" :loading="acting==='stop'" @click="doStop">
-          停止
-        </n-button>
-        <n-button :disabled="!isRunning" :loading="acting==='restart'" @click="doRestart">
-          重启
-        </n-button>
-        <n-button @click="() => { loadLogs(); loadStatus(); }">刷新</n-button>
-      </n-space>
-      <n-text depth="3" style="font-size:12px;display:block;margin-top:8px">
-        提示：首次安装可能需要较长时间，请在日志中查看 SteamCMD 下载进度。安装完成后再启动。
-      </n-text>
-    </n-card>
-
     <!-- 日志 -->
-    <n-card title="日志" size="small">
-      <n-button size="tiny" @click="loadLogs" style="margin-bottom:8px">刷新日志</n-button>
-      <pre class="logs">{{ logs || '暂无日志' }}</pre>
+    <n-card size="small">
+      <template #header>
+        <n-space align="center" :size="8">
+          <n-icon :component="DocumentTextOutline" />
+          <span>日志</span>
+        </n-space>
+      </template>
+      <template #header-extra>
+        <n-space align="center" :size="12" :wrap="false">
+          <n-checkbox v-model:checked="autoScroll" size="small">自动滚动到底部</n-checkbox>
+          <n-button size="tiny" quaternary @click="clearLogs">清空显示</n-button>
+          <n-button size="tiny" @click="loadLogs">刷新</n-button>
+        </n-space>
+      </template>
+      <pre ref="logEl" class="logs">{{ logs || '暂无日志' }}</pre>
     </n-card>
 
     <!-- 选择安装版本 -->
@@ -164,7 +199,7 @@
         <n-space>
           <n-button size="small" @click="loadLogs">刷新日志</n-button>
           <n-button size="small" type="primary" @click="doStart"
-            :disabled="!(status?.status?.installed)" :loading="acting==='start'">
+            :disabled="!(status?.status?.installed)" :loading="acting === 'start'">
             安装完成，启动游戏服
           </n-button>
         </n-space>
@@ -174,44 +209,55 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import {
-  NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
-  NForm, NFormItem, NInput, NButton, NGrid, NGi, NText, NModal,
-  NTooltip, NIcon, NRadioGroup, NRadio, useMessage,
+  NSpace, NCard, NAlert, NTag, NForm, NFormItem, NInput, NButton, NGrid, NGi,
+  NText, NModal, NTooltip, NIcon, NRadioGroup, NRadio, NCheckbox, useMessage,
 } from 'naive-ui'
-import { HelpCircleOutline } from '@vicons/ionicons5'
+import {
+  HelpCircleOutline, CloudDownloadOutline, RefreshOutline, PlayOutline, StopOutline,
+  DocumentTextOutline,
+} from '@vicons/ionicons5'
 import { gameApi, type GameServerStatus, type GameServerConfig } from '@/api/gameserver'
+import PageHeader from '@/components/PageHeader.vue'
+import StatusTag from '@/components/StatusTag.vue'
+import PlatformBadge from '@/components/PlatformBadge.vue'
 
 const message = useMessage()
 const status = ref<GameServerStatus | null>(null)
 const logs = ref('')
 const acting = ref('')
+const loading = ref(false)
 const showInstallModal = ref(false)
 const installLogs = ref('')
 let installTimer: number | null = null
 const verifying = ref('')
-const verifyResult = reactive<{ steamExe: string; serverExe: string }>({ steamExe: '', serverExe: '' })
+const verifyResult = reactive<{
+  steamExe: string
+  serverExe: string
+  checked: boolean
+  linux: boolean
+  linuxExe: string
+  windows: boolean
+  windowsExe: string
+}>({ steamExe: '', serverExe: '', checked: false, linux: false, linuxExe: '', windows: false, windowsExe: '' })
 const cfg = reactive<GameServerConfig>({
   steamcmd_path: '',
   install_dir: '',
   extra_args: '',
 })
+const autoScroll = ref(true)
+const logEl = ref<HTMLElement | null>(null)
 
 const isRunning = computed(() => !!status.value?.status?.running)
 const isInstalled = computed(() => !!status.value?.status?.installed)
 const canStart = computed(() => isInstalled.value && !isRunning.value)
 const isUpdating = computed(() => !!status.value?.status?.updating)
 
-const stateText = computed(() => {
-  if (isUpdating.value) return '更新中'
-  if (isRunning.value) return '运行中'
-  return '已停止'
-})
-const stateType = computed(() => {
-  if (isUpdating.value) return 'warning'
-  if (isRunning.value) return 'success'
-  return 'default'
+const stateStatus = computed<'running' | 'stopped' | 'updating' | 'error'>(() => {
+  if (isUpdating.value) return 'updating'
+  if (isRunning.value) return 'running'
+  return 'stopped'
 })
 
 async function loadStatus() {
@@ -228,6 +274,7 @@ async function saveConfig() {
   message.success('配置已保存')
   verifyResult.steamExe = ''
   verifyResult.serverExe = ''
+  verifyResult.checked = false
   await loadStatus()
 }
 
@@ -241,11 +288,16 @@ async function verifyPath(target: 'steam' | 'server' | 'all') {
     const res = await gameApi.verify(cfg)
     verifyResult.steamExe = res.steam_exe || ''
     verifyResult.serverExe = res.server_exe || ''
+    verifyResult.linux = !!res.linux_server_ok
+    verifyResult.linuxExe = res.linux_server_exe || ''
+    verifyResult.windows = !!res.windows_server_ok
+    verifyResult.windowsExe = res.windows_server_exe || ''
+    verifyResult.checked = true
     const checkSteam = target === 'steam' || target === 'all'
     const checkServer = target === 'server' || target === 'all'
     if (checkSteam) {
       if (res.steam_ok) message.success(`SteamCMD 已找到：${res.steam_exe}`)
-      else message.error(`未在目录中找到 steamcmd.sh/steamcmd.exe`)
+      else message.error('未在目录中找到 steamcmd.sh/steamcmd.exe')
     }
     if (checkServer) {
       if (res.server_ok) message.success(`游戏服务端已找到：${res.server_exe}`)
@@ -261,18 +313,42 @@ async function loadLogs() {
   try {
     const r = await gameApi.logs()
     logs.value = r.logs || ''
+    if (autoScroll.value) {
+      await nextTick()
+      scrollLog()
+    }
   } catch { /* ignore */ }
 }
+function scrollLog() {
+  if (logEl.value) logEl.value.scrollTop = logEl.value.scrollHeight
+}
+function clearLogs() {
+  logs.value = ''
+}
+
+watch(logs, () => {
+  if (autoScroll.value) {
+    nextTick(scrollLog)
+  }
+})
 
 const showVersionModal = ref(false)
 const installPlatform = ref<'linux' | 'windows'>('linux')
+
+async function refreshAll() {
+  loading.value = true
+  try {
+    await Promise.all([loadStatus(), loadLogs()])
+  } finally {
+    loading.value = false
+  }
+}
 
 function openInstall() {
   if (!cfg.steamcmd_path || !cfg.install_dir) {
     message.warning('请先填写 SteamCMD 路径和安装目录')
     return
   }
-  // 默认选中当前模式对应的版本
   installPlatform.value = status.value?.status?.wine_mode ? 'windows' : 'linux'
   showVersionModal.value = true
 }
@@ -290,7 +366,6 @@ async function doInstall() {
   try {
     const r = await gameApi.install(installPlatform.value)
     message.info(r.message || '已开始安装')
-    // 开始轮询日志和状态
     if (installTimer) clearInterval(installTimer)
     const poll = async () => {
       await loadLogs()
@@ -331,18 +406,6 @@ async function doRestart() {
   finally { acting.value = '' }
 }
 
-// 更新期间轮询状态与日志
-function pollStatus() {
-  const t = setInterval(async () => {
-    await loadStatus()
-    await loadLogs()
-    if (!isUpdating.value) {
-      clearInterval(t)
-      await loadStatus()
-    }
-  }, 3000)
-}
-
 onMounted(async () => {
   await loadConfig()
   await loadStatus()
@@ -355,23 +418,37 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.status-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.status-cell__label {
+  font-size: 12px;
+  color: var(--n-text-color-3, #999);
+}
+.status-cell__value {
+  font-size: 15px;
+  font-weight: 500;
+}
 .logs {
   background: #1e1e1e;
   color: #d4d4d4;
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 12px;
-  max-height: 420px;
+  max-height: 460px;
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-all;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  margin: 0;
 }
 .logs-modal {
   max-height: 360px;
-  margin: 0;
 }
 code {
-  background: #f0f0f0;
+  background: rgba(127, 127, 127, 0.15);
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 12px;
@@ -390,6 +467,9 @@ code {
   padding: 1px 5px;
   border-radius: 3px;
   font-size: 12px;
+}
+.verify-result {
+  margin-top: 8px;
 }
 :deep(.n-tooltip) {
   background: #1f1f1f !important;

@@ -45,6 +45,23 @@ export const api = {
 
   getServer: () => request<any>('/api/server'),
   getMetrics: () => request<any>('/api/server/metrics'),
+
+  // 游戏服运行模式（轻量，供前端条件渲染）
+  getRunMode: () =>
+    request<{
+      wine_mode: boolean
+      linux_installed: boolean
+      windows_installed: boolean
+      running: boolean
+    }>('/api/gameserver/run-mode'),
+
+  // 官方 REST API 玩家操作（Linux 原生模式用）
+  kickPlayerOfficial: (uid: string) =>
+    request(`/api/player/${uid}/kick`, { method: 'POST' }),
+  banPlayerOfficial: (uid: string) =>
+    request(`/api/player/${uid}/ban`, { method: 'POST' }),
+  unbanPlayerOfficial: (uid: string) =>
+    request(`/api/player/${uid}/unban`, { method: 'POST' }),
   broadcast: (message: string) =>
     request('/api/server/broadcast', { method: 'POST', body: JSON.stringify({ message }) }),
   shutdown: (waittime: number, message: string) =>

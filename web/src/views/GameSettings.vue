@@ -1,16 +1,28 @@
 <template>
   <n-space vertical :size="16">
+    <PageHeader title="游戏配置" subtitle="修改 PalWorldSettings.ini，带“需重启”标记的项需重启生效" />
+
     <n-alert type="info" :show-icon="false">
       修改游戏服配置（PalWorldSettings.ini）。带 <n-text strong>需重启</n-text> 标记的项需重启游戏服生效，
-      保存时可勾选"保存并重启"。
+      保存时可选择"保存并重启"。
     </n-alert>
 
-    <n-tabs type="line" animated default-value="服务器">
-      <n-tab-pane v-for="g in groups" :key="g" :tab="g" :name="g">
-        <n-card size="small">
-          <n-form label-placement="top" v-if="fields[g]">
+    <n-input v-model:value="keyword" placeholder="搜索配置项（名称 / 字段名）" clearable>
+      <template #prefix>
+        <n-icon :component="SearchOutline" />
+      </template>
+    </n-input>
+
+    <n-tabs type="line" animated default-value="服务器" v-model:value="activeGroup">
+      <n-tab-pane v-for="g in groups" :key="g" :name="g">
+        <template #tab>
+          <n-icon :component="groupIcon(g)" style="vertical-align:-2px;margin-right:4px" />
+          {{ g }}
+        </template>
+        <n-card size="small" :title="g">
+          <n-form label-placement="top" v-if="filteredFields[g]?.length">
             <n-grid cols="1 s:2 m:2" responsive="screen" :x-gap="16">
-              <n-gi v-for="f in fields[g]" :key="f.key">
+              <n-gi v-for="f in filteredFields[g]" :key="f.key">
                 <n-form-item>
                   <template #label>
                     <span class="field-label">
@@ -23,22 +35,18 @@
                       </n-tooltip>
                     </span>
                   </template>
-                  <!-- 布尔开关 -->
                   <n-switch v-if="f.type === 'bool'"
                     :value="form[f.key] === 'True'"
                     @update:value="(v: boolean) => { form[f.key] = v ? 'True' : 'False'; markCustom(f.key) }" />
-                  <!-- 枚举下拉 -->
                   <n-select v-else-if="f.type === 'enum'"
                     :value="form[f.key]"
                     :options="f.options || []"
                     @update:value="(v: string) => onEnumChange(f.key, v)" />
-                  <!-- 多选下拉 -->
                   <n-select v-else-if="f.type === 'multi'"
                     :value="(form[f.key] || '').split(',').filter(Boolean)"
                     :options="f.options || []"
                     multiple
                     @update:value="(v: string[]) => { form[f.key] = v.join(','); markCustom(f.key) }" />
-                  <!-- 数字 -->
                   <n-input-number v-else-if="f.type === 'int'"
                     :value="toNum(form[f.key])"
                     :min="f.min ?? undefined"
@@ -53,14 +61,12 @@
                     :step="f.step ?? 0.1"
                     @update:value="(v: number | null) => { form[f.key] = String(v ?? 0); markCustom(f.key) }"
                     style="width:100%" />
-                  <!-- 禁用科技列表（多选） -->
                   <n-select v-else-if="f.key === 'DenyTechnologyList'"
                     :value="parseTechList(form[f.key])"
                     :options="techOptions"
                     multiple filterable
                     max-tag-count="responsive"
                     @update:value="(v: string[]) => { form[f.key] = formatTechList(v); markCustom(f.key) }" />
-                  <!-- 字符串 -->
                   <n-input v-else v-model:value="form[f.key]"
                     :type="isSecret(f.key) ? 'password' : 'text'"
                     show-password-on="click"
@@ -70,22 +76,24 @@
               </n-gi>
             </n-grid>
           </n-form>
+          <n-text v-else depth="3" style="font-size:13px">没有匹配的配置项</n-text>
         </n-card>
       </n-tab-pane>
     </n-tabs>
 
-    <n-card size="small">
-      <n-space>
-        <n-button type="primary" :loading="saving" @click="save(false)">保存配置</n-button>
-        <n-button type="error" :loading="saving" @click="save(true)">
-          保存并重启游戏服
-        </n-button>
-        <n-button @click="load">重置/重新加载</n-button>
+    <div class="action-bar">
+      <div class="action-bar__left">
+        <PlatformBadge platform="current" :is-windows="isWindows" />
         <n-text depth="3" style="font-size:12px">
-          配置文件：{{ data?.path || iniPath }}
+          当前使用 {{ isWindows ? 'Windows 模式' : 'Linux 模式' }}配置文件：{{ data?.path || iniPath }}
         </n-text>
+      </div>
+      <n-space :size="8" wrap>
+        <n-button @click="load">重置</n-button>
+        <n-button type="primary" :loading="saving" @click="save(false)">保存</n-button>
+        <n-button type="error" :loading="saving" @click="save(true)">保存并重启</n-button>
       </n-space>
-    </n-card>
+    </div>
   </n-space>
 </template>
 
@@ -96,18 +104,28 @@ import {
   NSwitch, NSelect, NInputNumber, NInput, NButton, NText, NTooltip, NIcon,
   useMessage,
 } from 'naive-ui'
-import { HelpCircleOutline } from '@vicons/ionicons5'
+import {
+  HelpCircleOutline, SearchOutline, ServerOutline, GlobeOutline,
+  GameControllerOutline, PeopleOutline, HomeOutline, CashOutline,
+  FlashOutline, PeopleCircleOutline, SettingsOutline,
+} from '@vicons/ionicons5'
+import type { Component } from 'vue'
 import { gameSettingsApi, type ConfigField, type GameSettingsData } from '@/api/gamesettings'
+import { useRunMode } from '@/composables/useRunMode'
+import PageHeader from '@/components/PageHeader.vue'
+import PlatformBadge from '@/components/PlatformBadge.vue'
 
 const message = useMessage()
+const { isWindows } = useRunMode()
 const schema = ref<ConfigField[]>([])
 const data = ref<GameSettingsData | null>(null)
 const iniPath = ref('')
 const form = reactive<Record<string, string>>({})
 const saving = ref(false)
-const techOptions = ref<{label: string, value: string}[]>([])
+const keyword = ref('')
+const activeGroup = ref('服务器')
+const techOptions = ref<{ label: string, value: string }[]>([])
 
-// 加载科技列表
 fetch('/data/tech_list.json').then(r => r.json()).then((data: any[]) => {
   techOptions.value = data.map(t => ({ label: t.name, value: t.id }))
 }).catch(() => {})
@@ -117,6 +135,21 @@ function parseTechList(v: string): string[] {
 }
 function formatTechList(v: string[]): string {
   return '(' + v.join(',') + ')'
+}
+
+const GROUP_ICONS: Record<string, Component> = {
+  '服务器': ServerOutline,
+  '世界': GlobeOutline,
+  '帕鲁': GameControllerOutline,
+  '玩家': PeopleOutline,
+  '据点': HomeOutline,
+  '经济': CashOutline,
+  '战斗': FlashOutline,
+  '公会': PeopleCircleOutline,
+  '高级': SettingsOutline,
+}
+function groupIcon(g: string): Component {
+  return GROUP_ICONS[g] || SettingsOutline
 }
 
 const groups = computed(() => {
@@ -134,6 +167,18 @@ const fields = computed(() => {
   return m
 })
 
+const filteredFields = computed(() => {
+  const q = keyword.value.trim().toLowerCase()
+  const out: Record<string, ConfigField[]> = {}
+  Object.entries(fields.value).forEach(([g, list]) => {
+    if (!q) { out[g] = list; return }
+    out[g] = list.filter(
+      (f) => f.label.toLowerCase().includes(q) || f.key.toLowerCase().includes(q)
+    )
+  })
+  return out
+})
+
 function fieldLabel(f: ConfigField) {
   return f.requires_restart ? `${f.label} （需重启）` : f.label
 }
@@ -145,7 +190,6 @@ function toNum(v: string) {
   return isNaN(n) ? 0 : n
 }
 
-// 官方难度预设值（来自 DefaultPalWorldSettings.ini）
 const difficultyPresets: Record<string, Record<string, string>> = {
   Easy: {
     DayTimeSpeedRate: '1.0', NightTimeSpeedRate: '1.0', ExpRate: '2.0',
@@ -173,7 +217,6 @@ const difficultyPresets: Record<string, Record<string, string>> = {
   },
 }
 
-// 修改倍率字段时，如果难度不是自定义，自动切回自定义
 function markCustom(key: string) {
   const difficultyKeys = Object.keys(difficultyPresets.Easy)
   if (difficultyKeys.includes(key) && form['Difficulty'] && form['Difficulty'] !== 'None') {
@@ -181,7 +224,6 @@ function markCustom(key: string) {
   }
 }
 
-// 难度选择变化时应用预设
 function onEnumChange(key: string, v: string) {
   form[key] = v
   if (key === 'Difficulty' && v !== 'None' && difficultyPresets[v]) {
@@ -198,6 +240,9 @@ async function load() {
   data.value = d
   Object.keys(form).forEach((k) => delete form[k])
   Object.entries(d.settings).forEach(([k, v]) => (form[k] = v))
+  if (groups.value.length && !groups.value.includes(activeGroup.value)) {
+    activeGroup.value = groups.value[0]
+  }
 }
 
 async function save(restart: boolean) {
@@ -230,6 +275,28 @@ onMounted(load)
   display: block;
   max-width: 260px;
   line-height: 1.5;
+}
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  margin: 4px -8px 0;
+  background: var(--n-color, #fff);
+  border: 1px solid var(--n-border-color, #efeff5);
+  border-radius: 10px;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+.action-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 :deep(.n-tooltip) {
   background: #1f1f1f !important;
