@@ -333,21 +333,34 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 
 		// 2. 安装依赖（40%）
 		setProtonProgress(40, "安装系统依赖...")
+		// apt 非交互环境变量，避免弹窗/交互导致卡住
+		aptEnv := append(os.Environ(),
+			"DEBIAN_FRONTEND=noninteractive",
+			"NEEDRESTART_MODE=a",
+			"APT_LISTCHANGES_FRONTEND=none",
+		)
 		var depCmds [][]string
 		if isDebian {
+			// Debian/Ubuntu 下 GE-Proton 运行所需的 32/64 位库。
+			// 注意：steam-libs-i386 是 Arch 包名，Debian 系不存在，勿用。
 			depCmds = [][]string{
 				{"dpkg", "--add-architecture", "i386"},
 				{"apt-get", "update", "-y"},
-				{"apt-get", "install", "-y", "curl", "tar", "xz-utils", "lib32gcc-s1", "lib32stdc++6", "steam-libs-i386"},
+				{"apt-get", "install", "-y", "--no-install-recommends",
+					"curl", "tar", "xz-utils", "ca-certificates",
+					"lib32gcc-s1", "lib32stdc++6",
+					"libc6:i386", "libstdc++6:i386", "libgcc-s1:i386"},
 			}
 		} else {
 			depCmds = [][]string{
-				{"pacman", "-Sy", "--noconfirm", "curl", "tar", "xz", "wine"},
+				{"pacman", "-Sy", "--noconfirm", "--needed",
+					"curl", "tar", "xz", "wine", "lib32-gcc-libs", "lib32-glibc"},
 			}
 		}
 		for _, args := range depCmds {
 			logWrite("$ " + strings.Join(args, " ") + "\n")
 			cmd := exec.Command(args[0], args[1:]...)
+			cmd.Env = aptEnv
 			setSysProcAttr(cmd)
 			stdout, _ := cmd.StdoutPipe()
 			cmd.Stderr = cmd.Stdout
@@ -369,10 +382,16 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 			}
 			if err := cmd.Wait(); err != nil {
 				protonTask.mu.Lock()
-				protonTask.errMsg = fmt.Sprintf("执行 %s 失败: %v", args[0], err)
+				protonTask.errMsg = fmt.Sprintf("执行 %s 失败（exit %v）：可能是软件源问题或包名不匹配，请查看上方日志", strings.Join(args, " "), err)
 				protonTask.mu.Unlock()
 				return
 			}
+		}
+		// Debian 系安装后尝试修复可能的破损依赖（非致命）
+		if isDebian {
+			fixCmd := exec.Command("apt-get", "install", "-y", "-f")
+			fixCmd.Env = aptEnv
+			_ = fixCmd.Run()
 		}
 
 		// 3. 下载最新 GE-Proton（70%）
