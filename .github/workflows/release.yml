@@ -9,9 +9,10 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
-  # 构建 paladmin 二进制（Linux amd64/arm64）
+  # 构建 paladmin 二进制（Linux amd64/arm64）并上传 Release
   build:
     if: github.event_name != 'delete'
     runs-on: ubuntu-22.04
@@ -57,11 +58,20 @@ jobs:
             -o dist/paladmin .
           tar -czf paladmin_linux_arm64.tar.gz -C dist paladmin web data sav_cli paladmin.service
 
-      - name: Upload binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: paladmin-bin
-          path: paladmin_linux_*.tar.gz
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -e
+          gh release create "$TAG" --title "$TAG" --notes "Release $TAG (Docker + Proton)" \
+            || echo "release 已存在"
+          for f in paladmin_linux_amd64.tar.gz paladmin_linux_arm64.tar.gz; do
+            for attempt in 1 2 3 4 5; do
+              gh release upload "$TAG" "$f" --clobber && break
+              echo "重试 $f..."; sleep $((attempt * 5))
+            done
+          done
 
   # 构建并推送 gameserver Docker 镜像
   build-gameserver-image:
@@ -69,9 +79,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -81,15 +88,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push gameserver image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/gameserver/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/palworld-gameserver:latest
-            ghcr.io/${{ github.repository_owner }}/palworld-gameserver:${{ github.ref_name }}
-          platforms: linux/amd64
+        run: |
+          docker build \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            -t ghcr.io/${{ github.repository_owner }}/palworld-gameserver:latest \
+            -t ghcr.io/${{ github.repository_owner }}/palworld-gameserver:${{ github.ref_name }} \
+            -f docker/gameserver/Dockerfile .
+          docker push ghcr.io/${{ github.repository_owner }}/palworld-gameserver:latest
+          docker push ghcr.io/${{ github.repository_owner }}/palworld-gameserver:${{ github.ref_name }}
 
   # 构建并推送 paladmin Docker 镜像
   build-paladmin-image:
@@ -97,9 +103,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -109,50 +112,15 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push paladmin image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/paladmin/Dockerfile
-          push: true
-          build-args: |
-            VERSION=${{ github.ref_name }}
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/paladmin:latest
-            ghcr.io/${{ github.repository_owner }}/paladmin:${{ github.ref_name }}
-          platforms: linux/amd64,linux/arm64
-
-  # 上传二进制到 GitHub Release
-  release:
-    if: github.event_name != 'delete'
-    needs: [build, build-gameserver-image, build-paladmin-image]
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: paladmin-bin
-          path: artifacts
-
-      - name: Upload to GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
         run: |
-          set -e
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --notes "Release $TAG (Docker + Proton)" \
-            || echo "release $TAG 已存在，继续上传"
-          for f in artifacts/*.tar.gz; do
-            for attempt in 1 2 3 4 5; do
-              if gh release upload "$TAG" "$f" --clobber; then
-                echo "$f 上传成功"; break
-              fi
-              echo "$f 上传失败，重试..."; sleep $((attempt * 5))
-            done
-          done
+          docker build \
+            --build-arg VERSION=${{ github.ref_name }} \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            -t ghcr.io/${{ github.repository_owner }}/paladmin:latest \
+            -t ghcr.io/${{ github.repository_owner }}/paladmin:${{ github.ref_name }} \
+            -f docker/paladmin/Dockerfile .
+          docker push ghcr.io/${{ github.repository_owner }}/paladmin:latest
+          docker push ghcr.io/${{ github.repository_owner }}/paladmin:${{ github.ref_name }}
 
   cleanup:
     if: github.event_name == 'delete' && github.event.ref_type == 'tag'
@@ -165,8 +133,7 @@ jobs:
         run: |
           set +e
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
-            echo "tag 仍存在，跳过"
-            exit 0
+            echo "tag 仍存在，跳过"; exit 0
           fi
           rid=$(gh api -H "Accept: application/vnd.github+json" \
             "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null)
