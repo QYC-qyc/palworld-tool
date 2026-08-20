@@ -173,9 +173,18 @@ func (m *Manager) Install() error {
 
 	steamDir := filepath.Dir(steamExe)
 
-	// 首次运行 SteamCMD 需要先完成自更新与配置初始化，否则 app_update 会报 Missing configuration
+	// 首次运行 SteamCMD 需要先完成自更新与配置初始化，否则 app_update 会报 Missing configuration。
+	// 关键：初始化时必须带上平台参数 @sSteamCmdForcePlatformType windows，
+	// 让 SteamCMD 建立 Windows 平台的配置缓存；否则默认用 Linux 配置，
+	// 后续强制 Windows 下载时会冲突报 "Missing configuration"。
 	m.logBuf.WriteString("=== SteamCMD 初始化（自更新）===\n")
-	initCmd := exec.Command(steamExe, "+login", "anonymous", "+quit")
+	initArgs := []string{
+		"@sSteamCmdForcePlatformType", "windows",
+		"@sSteamCmdForcePlatformBitness", "64",
+		"+login", "anonymous",
+		"+quit",
+	}
+	initCmd := exec.Command(steamExe, initArgs...)
 	initCmd.Dir = steamDir
 	initCmd.SysProcAttr = newSysProcAttr(true)
 	initOut, _ := initCmd.StdoutPipe()
@@ -192,9 +201,9 @@ func (m *Manager) Install() error {
 	buildArgs := func() []string {
 		args := []string{
 			"+force_install_dir", installDir,
+			"@sSteamCmdForcePlatformType", "windows",
+			"@sSteamCmdForcePlatformBitness", "64",
 			"+login", "anonymous",
-			"+@sSteamCmdForcePlatformType", "windows",
-			"+@sSteamCmdForcePlatformBitness", "64",
 			"+app_update", steamAppID, "validate",
 			"+quit",
 		}
@@ -217,16 +226,30 @@ func (m *Manager) Install() error {
 	}
 
 	m.logBuf.WriteString(fmt.Sprintf("=== SteamCMD 开始安装/更新 (app %s) ===\n", steamAppID))
+	runInit := func() error {
+		cmd := exec.Command(steamExe, initArgs...)
+		cmd.Dir = steamDir
+		cmd.SysProcAttr = newSysProcAttr(true)
+		out, _ := cmd.StdoutPipe()
+		cmd.Stderr = cmd.Stdout
+		if err := cmd.Start(); err != nil {
+			return err
+		}
+		go m.pipeLog(out)
+		return cmd.Wait()
+	}
 	var err error
 	err = runInstall(buildArgs())
 	if err != nil {
-		// Windows 版在 Linux 上下载偶发 Disk write failure（SteamCMD 平台缓存问题），
-		// 清理缓存后重试一次
-		m.logBuf.WriteString("安装失败，清理 SteamCMD 缓存后重试...\n")
+		// Windows 版在 Linux 上下载偶发 Missing configuration / Disk write failure（SteamCMD 平台缓存问题），
+		// 清理缓存并重新初始化（带平台参数）后重试一次
+		m.logBuf.WriteString("安装失败，清理 SteamCMD 缓存并重新初始化后重试...\n")
 		_ = os.RemoveAll(filepath.Join(steamDir, "appcache"))
 		_ = os.RemoveAll(filepath.Join(steamDir, "depotcache"))
 		_ = os.RemoveAll(filepath.Join(steamDir, "logs"))
+		_ = os.RemoveAll(filepath.Join(steamDir, "config"))
 		time.Sleep(2 * time.Second)
+		_ = runInit()
 		err = runInstall(buildArgs())
 	}
 	m.logBuf.WriteString("=== SteamCMD 结束 ===\n")
