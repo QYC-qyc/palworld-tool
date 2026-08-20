@@ -1,40 +1,55 @@
-# ============================================================
-# 镜像部署：PalAdmin 面板
-# 面板通过宿主机上的 SteamCMD 安装/更新游戏服，并管理游戏进程。
-# 因此需要把 SteamCMD 与游戏安装目录挂载进容器。
+# PalAdmin + PalServer (Proton + PalDefender) Docker Compose 编排
 #
-# 用法：
-#   sudo mkdir -p /www/palworld-tool && cd /www/palworld-tool
-#   sudo curl -o docker-compose.yml \
-#     https://gitee.com/QYC-qyc/palworld-tool/raw/main/docker-compose.yml
-#   sudo docker compose up -d
-#   浏览器访问 http://服务器IP:8190
-# ============================================================
+# 使用：
+#   1. 首次构建镜像：docker compose build
+#   2. 启动：docker compose up -d
+#   3. 访问面板：http://服务器IP:8190
+#   4. 在面板中通过 Docker 管控游戏服（启动/停止/日志/安装）
+#
+# 游戏服数据持久化在 ./data/gameserver，面板数据在 ./data/paladmin
+
 services:
+  # 游戏服：SteamCMD + GE-Proton + PalServer + PalDefender
+  gameserver:
+    build:
+      context: .
+      dockerfile: docker/gameserver/Dockerfile
+    image: paladmin-gameserver:latest
+    container_name: palworld-gameserver
+    restart: unless-stopped
+    ports:
+      - "8211:8211/udp"   # 游戏端口
+      - "8212:8212/tcp"   # REST API
+    volumes:
+      - ./data/gameserver:/home/steam/palserver
+    environment:
+      - STEAMAPPID=2394010
+    networks:
+      - palnet
+
+  # 面板：Go + Vue，通过 Docker API 管控游戏服容器
   paladmin:
-    image: ghcr.io/qyc-qyc/palworld-tool:latest
+    build:
+      context: .
+      dockerfile: docker/paladmin/Dockerfile
+      args:
+        VERSION: dev
+    image: paladmin:latest
     container_name: paladmin
     restart: unless-stopped
-    network_mode: host
+    depends_on:
+      - gameserver
+    ports:
+      - "8190:8190/tcp"   # 面板 Web
     volumes:
-      # 数据库与反作弊数据（named volume）
-      - pst-data:/app/data
-      - /www/palworld-tool/backups:/app/backups
-      - /www/palworld-tool/evidence:/app/evidence
-      - /www/palworld-tool/logs:/app/logs
-      # 挂载宿主机 SteamCMD 目录（面板据此执行安装/更新）
-      - /home/steam/steamcmd:/opt/steamcmd
-      # 挂载游戏安装目录（面板读取存档、启停服务端）
-      - /home/steam/PalServer:/opt/palserver
+      - ./data/paladmin:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # 管控游戏服容器
     environment:
-      TZ: "Asia/Shanghai"
-      STORAGE__PATH: "/app/data/pst.db"
-      SAVE__DECODE_PATH: "/app/sav_cli"
-      # 容器内对应的路径（与上面挂载一致，填写目录即可）
-      GAMESRV__STEAMCMD_PATH: "/opt/steamcmd"
-      GAMESRV__INSTALL_DIR: "/opt/palserver"
-      ANTICHEAT__ENABLED: "true"
-      ANTICHEAT__MODE: "external"
+      - GAMESERVER_CONTAINER=palworld-gameserver
+      - GAMESERVER_URL=http://gameserver:8212   # 面板连接游戏服 REST
+    networks:
+      - palnet
 
-volumes:
-  pst-data:
+networks:
+  palnet:
+    driver: bridge

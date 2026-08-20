@@ -11,10 +11,9 @@ permissions:
   contents: write
 
 jobs:
+  # 构建 paladmin 二进制（Linux amd64/arm64）
   build:
-    # 仅在推送 tag 或手动触发时构建
     if: github.event_name != 'delete'
-    # 使用 22.04 而非 latest，确保 glibc 兼容 Ubuntu 22.04/Debian 12 等主流服务器
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -58,31 +57,110 @@ jobs:
             -o dist/paladmin .
           tar -czf paladmin_linux_arm64.tar.gz -C dist paladmin web data sav_cli paladmin.service
 
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: paladmin-bin
+          path: paladmin_linux_*.tar.gz
+
+  # 构建并推送 gameserver Docker 镜像
+  build-gameserver-image:
+    if: github.event_name != 'delete'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push gameserver image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/gameserver/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/palworld-gameserver:latest
+            ghcr.io/${{ github.repository_owner }}/palworld-gameserver:${{ github.ref_name }}
+          platforms: linux/amd64
+
+  # 构建并推送 paladmin Docker 镜像
+  build-paladmin-image:
+    if: github.event_name != 'delete'
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: paladmin-bin
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push paladmin image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/paladmin/Dockerfile
+          push: true
+          build-args: |
+            VERSION=${{ github.ref_name }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/paladmin:latest
+            ghcr.io/${{ github.repository_owner }}/paladmin:${{ github.ref_name }}
+          platforms: linux/amd64,linux/arm64
+
+  # 上传二进制到 GitHub Release
+  release:
+    if: github.event_name != 'delete'
+    needs: [build, build-gameserver-image, build-paladmin-image]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: paladmin-bin
+          path: artifacts
+
       - name: Upload to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
         run: |
           set -e
-          # 创建 release（若已存在则忽略）
           gh release create "$TAG" \
             --title "$TAG" \
-            --notes "Release $TAG" \
+            --notes "Release $TAG (Docker + Proton)" \
             || echo "release $TAG 已存在，继续上传"
-          # 逐个上传，失败重试 5 次（覆盖同名文件）
-          for f in paladmin_linux_amd64.tar.gz paladmin_linux_arm64.tar.gz; do
+          for f in artifacts/*.tar.gz; do
             for attempt in 1 2 3 4 5; do
               if gh release upload "$TAG" "$f" --clobber; then
-                echo "$f 上传成功"
-                break
+                echo "$f 上传成功"; break
               fi
-              echo "$f 上传失败，第 $attempt 次重试..."
-              sleep $((attempt * 5))
+              echo "$f 上传失败，重试..."; sleep $((attempt * 5))
             done
           done
 
   cleanup:
-    # 删除 tag 时，同步删除对应的 GitHub Release
     if: github.event_name == 'delete' && github.event.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
@@ -92,16 +170,13 @@ jobs:
           TAG: ${{ github.event.ref }}
         run: |
           set +e
-          # 如果 tag 又被重新推送回来（同名重发版），不删 release，避免竞态
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
-            echo "tag ${TAG} 仍存在（可能重新推送），跳过删除 release"
+            echo "tag 仍存在，跳过"
             exit 0
           fi
           rid=$(gh api -H "Accept: application/vnd.github+json" \
             "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null)
           if [ -n "$rid" ] && [ "$rid" != "null" ]; then
             gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/${rid}"
-            echo "已删除 tag ${TAG} 对应的 release (id=${rid})"
-          else
-            echo "tag ${TAG} 没有对应的 release，无需删除"
+            echo "已删除 release $rid"
           fi

@@ -62,10 +62,28 @@ type Manager struct {
 	logBuf    *ringLog
 	// getSetting 读取面板动态设置（由 deps 注入），用于读取 proton.path 等
 	getSetting func(string) string
+	// docker 非空时通过 Docker CLI 管控游戏服容器（容器化部署）
+	docker *dockerCtl
 }
 
 func NewManager() *Manager {
-	return &Manager{logBuf: newRingLog(200)}
+	m := &Manager{logBuf: newRingLog(200)}
+	// 容器化部署：若设置了 GAMESERVER_CONTAINER 环境变量，则通过 Docker 管控
+	if name := getEnv("GAMESERVER_CONTAINER", ""); name != "" {
+		dc := newDockerCtl(name)
+		if dc.available() {
+			m.docker = dc
+		}
+	}
+	return m
+}
+
+// getEnv 读取环境变量，不存在返回默认值
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }
 
 func (m *Manager) SetConfig(cfg Config) {
@@ -124,8 +142,14 @@ func (m *Manager) GetStatus() (*Status, error) {
 	if m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid) {
 		st.Updating = true
 	}
-	// 服务端是否在运行（优先检测面板启动的进程，兜底扫描系统进程）
-	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
+	// 服务端是否在运行
+	if m.docker != nil {
+		// 容器化部署：查询容器状态
+		st.Running = m.docker.isRunning()
+		st.SteamReady = true // 容器内已内置 steamcmd
+		st.WindowsInstalled = true
+		st.Installed = true
+	} else if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
 		st.Running = true
 		st.PID = m.serverCmd.Process.Pid
 	} else if pids := m.findRunningProcesses(); len(pids) > 0 {
@@ -258,6 +282,11 @@ func (m *Manager) installSteamCmdWindows() error {
 
 // Install 用 SteamCMD 安装/更新 Windows 版游戏服（阻塞直到完成，实时输出日志）。
 func (m *Manager) Install() error {
+	// 容器化部署：在游戏服容器内执行安装/更新
+	if m.docker != nil {
+		m.logBuf.WriteString(fmt.Sprintf("在容器 %s 内安装/更新游戏服...\n", m.docker.container))
+		return m.docker.installOrUpdate()
+	}
 	steamExe := m.steamCmdExe()
 	if steamExe == "" {
 		return errors.New("未配置 SteamCMD 路径")
@@ -498,6 +527,18 @@ func (m *Manager) checkProtonReady() error {
 //   - 若目录属主就是 root：自动创建/使用 paladmin 用户并 chown。
 //   - 若面板非 root：直接启动。
 func (m *Manager) Start() error {
+	// 容器化部署：通过 Docker 启动游戏服容器
+	if m.docker != nil {
+		if m.docker.isRunning() {
+			return errors.New("游戏服容器已在运行")
+		}
+		m.logBuf.WriteString(fmt.Sprintf("启动游戏服容器 %s...\n", m.docker.container))
+		if err := m.docker.start(); err != nil {
+			return err
+		}
+		return nil
+	}
+
 	// 先确保没有其他游戏服实例在运行
 	if running := m.findRunningProcesses(); len(running) > 0 {
 		m.logBuf.WriteString(fmt.Sprintf("检测到 %d 个正在运行的游戏服进程，先停止...\n", len(running)))
@@ -669,6 +710,11 @@ func shellQuote(s string) string {
 
 // Stop 停止游戏服（停止所有 PalServer 进程，包括非面板启动的）
 func (m *Manager) Stop() error {
+	// 容器化部署：通过 Docker 停止游戏服容器
+	if m.docker != nil {
+		m.logBuf.WriteString(fmt.Sprintf("停止游戏服容器 %s...\n", m.docker.container))
+		return m.docker.stop()
+	}
 	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
 		_ = gracefulStop(m.serverCmd, 10*time.Second)
 	}
@@ -734,6 +780,14 @@ func (m *Manager) killAllPalServer() error {
 
 // Logs 返回最近日志
 func (m *Manager) Logs(lines int) string {
+	// 容器化部署：返回游戏服容器的日志（追加面板自身日志）
+	if m.docker != nil {
+		containerLogs, err := m.docker.logs(lines)
+		if err == nil {
+			return containerLogs + "\n" + m.logBuf.String()
+		}
+		m.logBuf.WriteString("获取容器日志失败: " + err.Error() + "\n")
+	}
 	return m.logBuf.String()
 }
 
