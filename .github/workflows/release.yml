@@ -11,12 +11,10 @@ permissions:
   contents: write
 
 jobs:
-  # 在 Linux 上构建前端和 Go Windows exe（Go 可交叉编译）
+  # 构建 paladmin 二进制（Linux amd64/arm64）
   build:
     if: github.event_name != 'delete'
     runs-on: ubuntu-22.04
-    outputs:
-      tag: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
 
@@ -36,79 +34,112 @@ jobs:
           npm install --no-audit --no-fund
           npm run build
 
-      - name: Build Windows paladmin.exe
+      - name: Build sav_cli
         run: |
-          set -e
-          mkdir -p dist
-          # 把前端 1.2 万个小文件压缩成单个 web.dat，避免用户解压缓慢
-          pushd web/dist
-          zip -qr -9 "${GITHUB_WORKSPACE}/web.dat" .
-          popd
-          cp web.dat dist/
-          cp -r data dist/
-          cp deploy/启动面板.bat dist/
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 \
-            go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
-            -o dist/paladmin.exe .
-          ls -lh dist/
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: paladmin-build
-          path: dist/
-
-  # 在 Windows 上构建 sav_cli.exe（PyInstaller 不能交叉编译）
-  build-savcli:
-    if: github.event_name != 'delete'
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Build sav_cli.exe
-        run: |
-          pip install -r module/requirements.txt pyinstaller
+          pip3 install -r module/requirements.txt pyinstaller
           pyinstaller --onefile --name sav_cli module/sav_cli.py
 
-      - name: Upload sav_cli.exe
+      - name: Build binaries
+        run: |
+          mkdir -p dist
+          cp -r web/dist dist/web
+          cp dist/sav_cli dist/ 2>/dev/null || true
+          cp -r data dist/
+          cp deploy/paladmin.service dist/
+          # amd64
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+            go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
+            -o dist/paladmin .
+          tar -czf paladmin_linux_amd64.tar.gz -C dist paladmin web data sav_cli paladmin.service
+          # arm64
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
+            go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
+            -o dist/paladmin .
+          tar -czf paladmin_linux_arm64.tar.gz -C dist paladmin web data sav_cli paladmin.service
+
+      - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
-          name: savcli-build
-          path: dist/sav_cli.exe
+          name: paladmin-bin
+          path: paladmin_linux_*.tar.gz
 
-  # 合并并发布
-  release:
+  # 构建并推送 gameserver Docker 镜像
+  build-gameserver-image:
     if: github.event_name != 'delete'
-    needs: [build, build-savcli]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download all artifacts
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push gameserver image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/gameserver/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/palworld-gameserver:latest
+            ghcr.io/${{ github.repository_owner }}/palworld-gameserver:${{ github.ref_name }}
+          platforms: linux/amd64
+
+  # 构建并推送 paladmin Docker 镜像
+  build-paladmin-image:
+    if: github.event_name != 'delete'
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binaries
         uses: actions/download-artifact@v4
         with:
-          path: release
+          name: paladmin-bin
 
-      - name: Package zip
-        run: |
-          mkdir -p pkg
-          cp release/paladmin-build/paladmin.exe pkg/
-          cp release/paladmin-build/web.dat pkg/
-          cp -r release/paladmin-build/data pkg/
-          cp release/paladmin-build/启动面板.bat pkg/
-          cp release/savcli-build/sav_cli.exe pkg/ 2>/dev/null || echo "sav_cli.exe 未生成（存档解析功能将不可用）"
-          echo "=== 包内文件 ==="
-          ls -lh pkg/
-          echo "文件数: $(find pkg -type f | wc -l)"
-          cd pkg
-          zip -rq ../paladmin_windows_amd64.zip .
-          cd ..
-          ls -lh paladmin_windows_amd64.zip
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push paladmin image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/paladmin/Dockerfile
+          push: true
+          build-args: |
+            VERSION=${{ github.ref_name }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/paladmin:latest
+            ghcr.io/${{ github.repository_owner }}/paladmin:${{ github.ref_name }}
+          platforms: linux/amd64,linux/arm64
+
+  # 上传二进制到 GitHub Release
+  release:
+    if: github.event_name != 'delete'
+    needs: [build, build-gameserver-image, build-paladmin-image]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: paladmin-bin
+          path: artifacts
 
       - name: Upload to GitHub Release
         env:
@@ -118,15 +149,15 @@ jobs:
           set -e
           gh release create "$TAG" \
             --title "$TAG" \
-            --notes "Release $TAG (Windows)" \
+            --notes "Release $TAG (Docker + Proton)" \
             || echo "release $TAG 已存在，继续上传"
-          for attempt in 1 2 3 4 5; do
-            if gh release upload "$TAG" paladmin_windows_amd64.zip --clobber; then
-              echo "上传成功"
-              break
-            fi
-            echo "上传失败，第 $attempt 次重试..."
-            sleep $((attempt * 5))
+          for f in artifacts/*.tar.gz; do
+            for attempt in 1 2 3 4 5; do
+              if gh release upload "$TAG" "$f" --clobber; then
+                echo "$f 上传成功"; break
+              fi
+              echo "$f 上传失败，重试..."; sleep $((attempt * 5))
+            done
           done
 
   cleanup:
@@ -140,14 +171,12 @@ jobs:
         run: |
           set +e
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
-            echo "tag ${TAG} 仍存在（可能重新推送），跳过删除 release"
+            echo "tag 仍存在，跳过"
             exit 0
           fi
           rid=$(gh api -H "Accept: application/vnd.github+json" \
             "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null)
           if [ -n "$rid" ] && [ "$rid" != "null" ]; then
             gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/${rid}"
-            echo "已删除 tag ${TAG} 对应的 release (id=${rid})"
-          else
-            echo "tag ${TAG} 没有对应的 release，无需删除"
+            echo "已删除 release $rid"
           fi
