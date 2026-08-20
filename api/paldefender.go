@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	ghub "paladmin/internal/github"
@@ -489,8 +490,9 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 			return
 		}
 		logWrite(fmt.Sprintf("下载 GE-Proton %s (%s): %s\n", rel.TagName, runtime.GOARCH, tarballURL))
+		setProtonProgress(72, "测速并选择最快镜像...")
 
-		// 下载到临时文件
+		// 下载到临时文件（带进度和镜像测速）
 		tmpFile, err := os.CreateTemp("", "ge-proton-*.tar.gz")
 		if err != nil {
 			protonTask.mu.Lock()
@@ -501,14 +503,36 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 		tmpPath := tmpFile.Name()
 		defer os.Remove(tmpPath)
 
-		if err := ghub.DownloadToFile(tarballURL, tmpPath); err != nil {
+		var dlSpeed string
+		var lastBytes int64
+		lastTime := time.Now()
+		onProgress := func(downloaded, total int64) {
+			// 用时间差计算实际瞬时下载速度
+			now := time.Now()
+			if dt := now.Sub(lastTime).Seconds(); dt > 0.5 {
+				speed := float64(downloaded-lastBytes) / dt / 1024 / 1024
+				dlSpeed = fmt.Sprintf("%.1f MB/s", speed)
+				lastBytes = downloaded
+				lastTime = now
+			}
+			if total > 0 {
+				pct := 72 + int(float64(downloaded)/float64(total)*18) // 72%->90%
+				msg := "下载 GE-Proton..."
+				if dlSpeed != "" {
+					msg = fmt.Sprintf("下载 GE-Proton %s", dlSpeed)
+				}
+				setProtonProgress(pct, msg)
+			}
+		}
+		if err := ghub.DownloadToFileWithProgress(tarballURL, tmpPath, onProgress); err != nil {
 			tmpFile.Close()
 			protonTask.mu.Lock()
-			protonTask.errMsg = "下载 GE-Proton 失败: " + err.Error()
+			protonTask.errMsg = "下载 GE-Proton 失败（所有镜像不可用）: " + err.Error()
 			protonTask.mu.Unlock()
 			return
 		}
 		tmpFile.Close()
+		logWrite("GE-Proton 下载完成。\n")
 
 		// 4. 解压（90%）
 		setProtonProgress(90, "解压 GE-Proton...")
