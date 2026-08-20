@@ -13,6 +13,7 @@
           :bordered="false"
           size="small"
           :row-props="rowProps"
+          :pagination="{ pageSize: 20, prefix: ({ itemCount }) => `共 ${itemCount} 个公会` }"
         />
       </n-space>
     </n-card>

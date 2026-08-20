@@ -17,7 +17,13 @@
           </n-input>
           <n-text depth="3" style="font-size:12px">共 {{ filtered.length }} 条</n-text>
         </n-space>
-        <n-data-table :columns="cols" :data="filtered" :bordered="false" size="small" />
+        <n-data-table
+          :columns="cols"
+          :data="filtered"
+          :bordered="false"
+          size="small"
+          :pagination="{ pageSize: 30, prefix: ({ itemCount }) => `共 ${itemCount} 条` }"
+        />
       </n-space>
     </n-card>
   </n-space>

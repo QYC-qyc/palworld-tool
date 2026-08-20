@@ -24,6 +24,7 @@
               :bordered="false"
               size="small"
               :row-props="rowProps"
+              :pagination="{ pageSize: 20, prefix: ({ itemCount }) => `共 ${itemCount} 人` }"
             />
           </n-tab-pane>
           <n-tab-pane name="all">
@@ -37,6 +38,7 @@
               :bordered="false"
               size="small"
               :row-props="rowProps"
+              :pagination="{ pageSize: 20, prefix: ({ itemCount }) => `共 ${itemCount} 人` }"
             />
           </n-tab-pane>
         </n-tabs>

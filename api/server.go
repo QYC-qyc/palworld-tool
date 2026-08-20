@@ -19,6 +19,7 @@ func getServer(c *gin.Context) {
 func getServerMetrics(c *gin.Context) {
 	m, err := tool.Metrics()
 	if err != nil {
+		// 返回空指标而非 500，避免前端轮询时持续报错；error 字段供调试
 		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
 		return
 	}

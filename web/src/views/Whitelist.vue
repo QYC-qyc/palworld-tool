@@ -16,7 +16,7 @@
         <n-input v-model:value="search" placeholder="搜索昵称 / SteamID" clearable style="max-width:320px">
           <template #prefix><n-icon :component="SearchOutline" /></template>
         </n-input>
-        <n-data-table :columns="cols" :data="filtered" :bordered="false" size="small" />
+        <n-data-table :columns="cols" :data="filtered" :bordered="false" size="small" :pagination="{ pageSize: 30, prefix: ({ itemCount }) => `共 ${itemCount} 条` }" />
       </n-space>
     </n-card>
 

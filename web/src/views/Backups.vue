@@ -8,7 +8,7 @@
     </PageHeader>
 
     <n-card size="small">
-      <n-data-table :columns="cols" :data="backups" :bordered="false" size="small" />
+      <n-data-table :columns="cols" :data="backups" :bordered="false" size="small" :pagination="{ pageSize: 30, prefix: ({ itemCount }) => `共 ${itemCount} 个备份` }" />
     </n-card>
   </n-space>
 </template>

@@ -51,10 +51,6 @@ func RegisterRouter(r *gin.Engine) {
 
 		authGroup.PUT("/player", putPlayers)
 		authGroup.POST("/player/:player_uid/message", sendPlayerMessage)
-		// 官方 REST 版踢/封/解封（Linux 原生模式使用；Windows/PalDefender 模式走 /paldefender/api）
-		authGroup.POST("/player/:player_uid/kick", kickPlayerOfficial)
-		authGroup.POST("/player/:player_uid/ban", banPlayerOfficial)
-		authGroup.POST("/player/:player_uid/unban", unbanPlayerOfficial)
 
 		authGroup.PUT("/guild", putGuilds)
 

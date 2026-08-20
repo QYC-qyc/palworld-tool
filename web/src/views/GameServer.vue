@@ -162,7 +162,7 @@
       style="max-width:680px" :mask-closable="false">
       <n-space vertical :size="12">
         <n-text>正在通过 SteamCMD 下载/更新 Windows 版游戏服，首次安装可能需要几分钟，请耐心等待。</n-text>
-        <pre class="logs logs-modal">{{ installLogs || '等待输出...' }}</pre>
+        <pre ref="installLogEl" class="logs logs-modal">{{ installLogs || '等待输出...' }}</pre>
         <n-space>
           <n-button size="small" @click="loadLogs">刷新日志</n-button>
           <n-button size="small" type="primary" @click="doStart"
@@ -210,6 +210,7 @@ const cfg = reactive<GameServerConfig>({
 })
 const autoScroll = ref(true)
 const logEl = ref<HTMLElement | null>(null)
+const installLogEl = ref<HTMLElement | null>(null)
 
 const isRunning = computed(() => !!status.value?.status?.running)
 const isInstalled = computed(() => !!status.value?.status?.installed)
@@ -287,6 +288,13 @@ function clearLogs() {
 watch(logs, () => {
   if (autoScroll.value) {
     nextTick(scrollLog)
+  }
+})
+watch(installLogs, () => {
+  if (installLogEl.value) {
+    nextTick(() => {
+      if (installLogEl.value) installLogEl.value.scrollTop = installLogEl.value.scrollHeight
+    })
   }
 })
 
