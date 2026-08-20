@@ -80,6 +80,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set lowercase owner
+        id: owner
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -91,11 +95,11 @@ jobs:
         run: |
           docker build \
             --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
-            -t ghcr.io/${{ github.repository_owner }}/palworld-gameserver:latest \
-            -t ghcr.io/${{ github.repository_owner }}/palworld-gameserver:${{ github.ref_name }} \
+            -t ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:latest \
+            -t ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:${{ github.ref_name }} \
             -f docker/gameserver/Dockerfile .
-          docker push ghcr.io/${{ github.repository_owner }}/palworld-gameserver:latest
-          docker push ghcr.io/${{ github.repository_owner }}/palworld-gameserver:${{ github.ref_name }}
+          docker push ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:latest
+          docker push ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:${{ github.ref_name }}
 
   # 构建并推送 paladmin Docker 镜像
   build-paladmin-image:
@@ -103,6 +107,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set lowercase owner
+        id: owner
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -116,11 +124,11 @@ jobs:
           docker build \
             --build-arg VERSION=${{ github.ref_name }} \
             --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
-            -t ghcr.io/${{ github.repository_owner }}/paladmin:latest \
-            -t ghcr.io/${{ github.repository_owner }}/paladmin:${{ github.ref_name }} \
+            -t ghcr.io/${{ steps.owner.outputs.owner }}/paladmin:latest \
+            -t ghcr.io/${{ steps.owner.outputs.owner }}/paladmin:${{ github.ref_name }} \
             -f docker/paladmin/Dockerfile .
-          docker push ghcr.io/${{ github.repository_owner }}/paladmin:latest
-          docker push ghcr.io/${{ github.repository_owner }}/paladmin:${{ github.ref_name }}
+          docker push ghcr.io/${{ steps.owner.outputs.owner }}/paladmin:latest
+          docker push ghcr.io/${{ steps.owner.outputs.owner }}/paladmin:${{ github.ref_name }}
 
   cleanup:
     if: github.event_name == 'delete' && github.event.ref_type == 'tag'
