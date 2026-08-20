@@ -329,7 +329,8 @@ func (m *Manager) checkProtonReady() error {
 	if _, err := os.Stat(exe); err != nil {
 		return errors.New("未找到 Windows 版服务端，请先在「游戏服」页点击安装")
 	}
-	// c) PalDefender DLL
+	// c) PalDefender DLL（可选——反作弊未安装时给出警告但不阻止启动，
+	//    游戏服本身通过 Proton 即可运行）
 	win64 := filepath.Join(m.winInstallDir(), "Pal", "Binaries", "Win64")
 	missing := []string{}
 	if _, err := os.Stat(filepath.Join(win64, "d3d9.dll")); err != nil {
@@ -339,7 +340,8 @@ func (m *Manager) checkProtonReady() error {
 		missing = append(missing, "PalDefender.dll")
 	}
 	if len(missing) > 0 {
-		return fmt.Errorf("缺少 PalDefender 组件 %s：请在「PalDefender」页点击「安装 PalDefender」", strings.Join(missing, "、"))
+		m.logBuf.WriteString(fmt.Sprintf("警告：未安装 PalDefender 反作弊（缺少 %s），游戏服将以 Proton 启动但无反作弊保护。可在「PalDefender」页安装。\n",
+			strings.Join(missing, "、")))
 	}
 	return nil
 }
