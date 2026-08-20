@@ -38,15 +38,19 @@ jobs:
 
       - name: Build Windows paladmin.exe
         run: |
+          set -e
           mkdir -p dist
           # 把前端 1.2 万个小文件压缩成单个 web.dat，避免用户解压缓慢
-          cd web/dist && zip -qr -9 ../web.dat . && cd ../..
+          pushd web/dist
+          zip -qr -9 "${GITHUB_WORKSPACE}/web.dat" .
+          popd
           cp web.dat dist/
           cp -r data dist/
           cp deploy/启动面板.bat dist/
           CGO_ENABLED=0 GOOS=windows GOARCH=amd64 \
             go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
             -o dist/paladmin.exe .
+          ls -lh dist/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
