@@ -383,11 +383,38 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 			return
 		}
 
-		var tarballURL string
+		// 按服务器架构选择对应的 GE-Proton 包：
+		//   amd64  -> GE-ProtonX-XX.tar.gz（无后缀，x86_64）
+		//   arm64  -> GE-ProtonX-XX-aarch64.tar.gz
+		// 不能盲目取第一个 .tar.gz，否则在 arm64 上可能下错架构。
+		var tarballURL, assetName string
+		switch runtime.GOARCH {
+		case "arm64":
+			assetName = "-aarch64.tar.gz"
+		default:
+			assetName = ".tar.gz" // x86_64 包无架构后缀
+		}
 		for _, a := range rel.Assets {
-			if strings.HasSuffix(a.Name, ".tar.gz") {
+			if strings.HasSuffix(a.Name, ".tar.gz") && strings.Contains(a.Name, assetName) {
+				// x86_64 包名不含 aarch64；上面的 Contains(".tar.gz") 对两种都成立，
+				// 但 amd64 下要排除 aarch64 包
+				if runtime.GOARCH != "arm64" && strings.Contains(a.Name, "aarch64") {
+					continue
+				}
 				tarballURL = a.BrowserDownloadURL
 				break
+			}
+		}
+		// 找不到精确架构时，回退到主包（x86_64），但给出警告
+		if tarballURL == "" {
+			for _, a := range rel.Assets {
+				if strings.HasSuffix(a.Name, ".tar.gz") && !strings.Contains(a.Name, "aarch64") {
+					tarballURL = a.BrowserDownloadURL
+					if runtime.GOARCH == "arm64" {
+						logWrite("警告：未找到 aarch64 版本，回退到 x86_64 包（在 ARM64 上可能无法运行，需要 box64 转译）\n")
+					}
+					break
+				}
 			}
 		}
 		if tarballURL == "" {
@@ -396,7 +423,7 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 			protonTask.mu.Unlock()
 			return
 		}
-		logWrite(fmt.Sprintf("下载 GE-Proton %s: %s\n", rel.TagName, tarballURL))
+		logWrite(fmt.Sprintf("下载 GE-Proton %s (%s): %s\n", rel.TagName, runtime.GOARCH, tarballURL))
 
 		// 下载到临时文件
 		tmpFile, err := os.CreateTemp("", "ge-proton-*.tar.gz")
