@@ -38,11 +38,16 @@ RUN dpkg --add-architecture i386 && \
 # 创建非 root 用户
 RUN useradd -m -d /home/steam -s /bin/bash steam
 
-# 下载并安装 GE-Proton
+# 下载并安装 GE-Proton（经国内镜像加速，失败重试）
 WORKDIR /home/steam
 RUN mkdir -p /home/steam/.steam/root/compatibilitytools.d && \
     cd /home/steam/.steam/root/compatibilitytools.d && \
-    wget -q "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton${PROTON_VERSION}/GE-Proton${PROTON_VERSION}.tar.gz" -O proton.tar.gz && \
+    echo "下载 GE-Proton ${PROTON_VERSION}..." && \
+    (wget -q --tries=3 --timeout=120 \
+      "https://ghfast.top/https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton${PROTON_VERSION}/GE-Proton${PROTON_VERSION}.tar.gz" -O proton.tar.gz || \
+     wget -q --tries=3 --timeout=120 \
+      "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton${PROTON_VERSION}/GE-Proton${PROTON_VERSION}.tar.gz" -O proton.tar.gz) && \
+    ls -lh proton.tar.gz && \
     tar -xzf proton.tar.gz && rm proton.tar.gz && \
     chown -R steam:steam /home/steam
 
