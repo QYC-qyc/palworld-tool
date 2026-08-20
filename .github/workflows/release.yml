@@ -11,10 +11,12 @@ permissions:
   contents: write
 
 jobs:
+  # 在 Linux 上构建前端和 Go Windows exe（Go 可交叉编译）
   build:
-    # 仅在推送 tag 或手动触发时构建
     if: github.event_name != 'delete'
     runs-on: ubuntu-22.04
+    outputs:
+      tag: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,24 +36,67 @@ jobs:
           npm install --no-audit --no-fund
           npm run build
 
-      - name: Build sav_cli
-        run: |
-          pip3 install -r module/requirements.txt pyinstaller
-          pyinstaller --onefile --name sav_cli module/sav_cli.py
-
-      - name: Build Windows binary & package zip
+      - name: Build Windows paladmin.exe
         run: |
           mkdir -p dist
           cp -r web/dist dist/web
-          cp dist/sav_cli dist/ 2>/dev/null || true
           cp -r data dist/
-          # Windows amd64
+          cp deploy/启动面板.bat dist/
           CGO_ENABLED=0 GOOS=windows GOARCH=amd64 \
             go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
             -o dist/paladmin.exe .
-          cd dist
-          zip -rq ../paladmin_windows_amd64.zip paladmin.exe web data sav_cli
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: paladmin-build
+          path: dist/
+
+  # 在 Windows 上构建 sav_cli.exe（PyInstaller 不能交叉编译）
+  build-savcli:
+    if: github.event_name != 'delete'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build sav_cli.exe
+        run: |
+          pip install -r module/requirements.txt pyinstaller
+          pyinstaller --onefile --name sav_cli module/sav_cli.py
+
+      - name: Upload sav_cli.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: savcli-build
+          path: dist/sav_cli.exe
+
+  # 合并并发布
+  release:
+    if: github.event_name != 'delete'
+    needs: [build, build-savcli]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+
+      - name: Package zip
+        run: |
+          mkdir -p pkg
+          cp -r release/paladmin-build/* pkg/
+          cp release/savcli-build/sav_cli.exe pkg/ 2>/dev/null || echo "sav_cli.exe 未生成（存档解析功能将不可用）"
+          cd pkg
+          zip -rq ../paladmin_windows_amd64.zip .
           cd ..
+          ls -lh paladmin_windows_amd64.zip
 
       - name: Upload to GitHub Release
         env:
@@ -73,7 +118,6 @@ jobs:
           done
 
   cleanup:
-    # 删除 tag 时，同步删除对应的 GitHub Release
     if: github.event_name == 'delete' && github.event.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:

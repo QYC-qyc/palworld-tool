@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -95,6 +98,22 @@ func main() {
 	logger.Info("PalAdmin 启动中...")
 	logger.Infof("版本: %s", version)
 	logger.Infof("监听: http://127.0.0.1:%d 或 http://%s:%d", port, localIP, port)
+
+	// Windows 下打印醒目提示并尝试自动打开浏览器
+	if runtime.GOOS == "windows" {
+		url := fmt.Sprintf("http://127.0.0.1:%d", port)
+		fmt.Println()
+		fmt.Println("  ==========================================")
+		fmt.Println("   PalAdmin 已启动！")
+		fmt.Printf("   请在浏览器中打开：%s\n", url)
+		fmt.Println("  ==========================================")
+		fmt.Println()
+		// 延迟 1.5 秒后自动打开默认浏览器
+		go func() {
+			time.Sleep(1500 * time.Millisecond)
+			_ = exec.Command("cmd", "/c", "start", "", url).Start()
+		}()
+	}
 
 	if err := task.Schedule(); err != nil {
 		logger.Errorf("启动定时任务失败: %v", err)
