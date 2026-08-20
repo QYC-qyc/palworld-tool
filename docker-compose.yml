@@ -1,12 +1,13 @@
 # PalAdmin + PalServer (Proton + PalDefender) Docker Compose 编排
 #
-# 使用：
-#   1. 首次构建镜像：docker compose build
-#   2. 启动：docker compose up -d
+# 快速开始：
+#   1. 首次使用：docker compose build && docker compose up -d
+#   2. 或使用预构建镜像（设 GHCR_OWNER 后 docker compose pull && docker compose up -d）
 #   3. 访问面板：http://服务器IP:8190
-#   4. 在面板中通过 Docker 管控游戏服（启动/停止/日志/安装）
 #
-# 游戏服数据持久化在 ./data/gameserver，面板数据在 ./data/paladmin
+# 数据持久化：
+#   ./data/gameserver  游戏服安装目录、存档、配置、PalDefender
+#   ./data/paladmin    面板数据库、配置
 
 services:
   # 游戏服：SteamCMD + GE-Proton + PalServer + PalDefender
@@ -14,7 +15,7 @@ services:
     build:
       context: .
       dockerfile: docker/gameserver/Dockerfile
-    image: paladmin-gameserver:latest
+    image: ${GHCR_OWNER:+ghcr.io/${GHCR_OWNER}/}palworld-gameserver:latest
     container_name: palworld-gameserver
     restart: unless-stopped
     ports:
@@ -24,6 +25,7 @@ services:
       - ./data/gameserver:/home/steam/palserver
     environment:
       - STEAMAPPID=2394010
+      - PROTON_VERSION=9-22
     networks:
       - palnet
 
@@ -34,7 +36,7 @@ services:
       dockerfile: docker/paladmin/Dockerfile
       args:
         VERSION: dev
-    image: paladmin:latest
+    image: ${GHCR_OWNER:+ghcr.io/${GHCR_OWNER}/}paladmin:latest
     container_name: paladmin
     restart: unless-stopped
     depends_on:
