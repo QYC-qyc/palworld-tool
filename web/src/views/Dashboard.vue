@@ -1,6 +1,6 @@
 <template>
   <n-space vertical :size="16">
-    <PageHeader title="仪表盘" subtitle="服务器运行状态、模式切换与控制台" />
+    <PageHeader title="仪表盘" subtitle="服务器运行状态与控制台" />
 
     <n-grid cols="1 s:2 m:4" responsive="screen" :x-gap="14" :y-gap="14">
       <n-gi v-for="card in statCards" :key="card.label">
@@ -18,37 +18,6 @@
         </div>
       </n-gi>
     </n-grid>
-
-    <n-card size="small">
-      <div class="mode-card">
-        <div class="mode-card__left">
-          <n-text strong style="font-size:15px">运行模式</n-text>
-          <n-text depth="3" style="font-size:12px;margin-top:2px">
-            当前：<b :style="{ color: isWindows ? '#2080f0' : '#18a058' }">{{ isWindows ? 'Windows / Wine（PalDefender）' : '原生 Linux' }}</b>
-          </n-text>
-        </div>
-        <n-space align="center" :size="10" :wrap="false">
-          <n-radio-group v-model:value="runMode" @update:value="onModeChange">
-            <n-radio-button value="linux">
-              <n-icon :component="LogoTux" style="vertical-align:-2px;margin-right:4px" />原生 Linux
-            </n-radio-button>
-            <n-radio-button value="windows">
-              <n-icon :component="LogoWindows" style="vertical-align:-2px;margin-right:4px" />Windows / Wine
-            </n-radio-button>
-          </n-radio-group>
-          <n-tooltip trigger="hover" placement="top" :show-arrow="false" width="trigger" style="max-width:420px">
-            <template #trigger>
-              <n-icon :component="HelpCircleOutline" class="help-icon" />
-            </template>
-            <div style="line-height:1.7;padding:4px 2px">
-              <div><b>原生 Linux：</b>直接运行 PalServer.sh，性能/稳定性最好、内存低，但无法用 PalDefender。</div>
-              <div style="margin-top:6px"><b>Windows(Wine)：</b>通过 Wine 运行 Windows 服务端以加载 PalDefender 反作弊，内存更高、性能略低。</div>
-              <div style="margin-top:6px">切换后需重启游戏服。</div>
-            </div>
-          </n-tooltip>
-        </n-space>
-      </div>
-    </n-card>
 
     <n-card title="控制台" size="small">
       <n-grid cols="1 m:2" responsive="screen" :x-gap="20" :y-gap="16" item-responsive>
@@ -120,31 +89,23 @@
 import { computed, onMounted, ref } from 'vue'
 import {
   NSpace, NCard, NGrid, NGi, NStatistic, NButton, NInput,
-  NPopconfirm, NRadioGroup, NRadioButton, NTooltip, NIcon, NText,
+  NPopconfirm, NIcon,
   useMessage,
 } from 'naive-ui'
 import {
   ServerOutline, GlobeOutline, PeopleOutline, SpeedometerOutline,
-  HelpCircleOutline, LogoTux, LogoWindows, MegaphoneOutline,
-  RefreshOutline, PowerOutline, SendOutline,
+  MegaphoneOutline, RefreshOutline, PowerOutline, SendOutline,
 } from '@vicons/ionicons5'
 import { api } from '@/api'
-import { useRunMode } from '@/composables/useRunMode'
 import PageHeader from '@/components/PageHeader.vue'
 
 const message = useMessage()
-const { isWindows, setMode } = useRunMode()
 
 const server = ref<any>({})
 const metrics = ref<any>({})
 const broadcastMsg = ref('')
 const sending = ref(false)
 const syncing = ref(false)
-
-const runMode = computed<'linux' | 'windows'>({
-  get: () => (isWindows.value ? 'windows' : 'linux'),
-  set: () => {},
-})
 
 const statCards = computed(() => [
   { label: '服务器名称', value: server.value.name || '-', icon: ServerOutline, color: '#4f46e5' },
@@ -158,10 +119,6 @@ const statCards = computed(() => [
   },
   { label: '服务器 FPS', value: metrics.value.server_fps || 0, icon: SpeedometerOutline, color: '#f59e0b' },
 ])
-
-function onModeChange(v: 'linux' | 'windows') {
-  setMode(v === 'windows')
-}
 
 async function loadAll() {
   try { server.value = await api.getServer() } catch {}
@@ -267,21 +224,5 @@ onMounted(loadAll)
   font-weight: 400;
   color: var(--n-text-color-3, #999);
   margin-left: 2px;
-}
-.mode-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.mode-card__left {
-  display: flex;
-  flex-direction: column;
-}
-.help-icon {
-  font-size: 18px;
-  color: var(--n-text-color-3, #999);
-  cursor: help;
 }
 </style>

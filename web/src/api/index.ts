@@ -148,6 +148,31 @@ export const api = {
       { method: 'POST', body: JSON.stringify({ name: name || '' }) }
     ),
 
+  // Proton 运行环境（Windows 版游戏服依赖）
+  installProton: () =>
+    request<{ running: boolean; message?: string }>('/api/paldefender/install-proton', {
+      method: 'POST',
+    }),
+  getProtonStatus: () =>
+    request<{
+      running: boolean
+      done: boolean
+      success: boolean
+      percent: number
+      message: string
+      error?: string
+      log: string
+    }>('/api/paldefender/proton-status'),
+  uninstallProton: () =>
+    request<{ success: boolean; message?: string }>('/api/paldefender/uninstall-proton', {
+      method: 'POST',
+    }),
+  // 卸载旧版 Wine（Proton 不依赖 Wine，保留接口用于清理）
+  uninstallWine: () =>
+    request<{ success: boolean; message?: string }>('/api/paldefender/uninstall-wine', {
+      method: 'POST',
+    }),
+
   // 面板动态设置
   getSettings: () => request<Record<string, any>>('/api/settings'),
   saveSettings: (settings: Record<string, any>) =>

@@ -1,17 +1,4 @@
 <template>
-  <EmptyState
-    v-if="!isWindows"
-    title="PalDefender 仅在 Windows(Wine) 模式下可用"
-    description="PalDefender 是 Windows DLL 反作弊，需通过 Wine 启动 Windows 版服务端。切换到 Windows 模式后即可使用。"
-    :icon="ShieldOutline"
-  >
-    <n-button type="primary" @click="goSwitch">
-      <template #icon><n-icon :component="SwapHorizontalOutline" /></template>
-      去切换模式
-    </n-button>
-  </EmptyState>
-
-  <template v-else>
   <n-tabs v-model:value="activeTab" type="line" animated @update:value="onTab">
     <!-- Tab 1：安装与状态 -->
     <n-tab-pane name="install" tab="安装与状态">
@@ -35,19 +22,19 @@
 
         <n-card title="PalDefender 反作弊" size="small">
           <n-alert type="info" :show-icon="false" style="margin-bottom:16px">
-            PalDefender 是进程级实时反作弊插件（Windows DLL），通过 Wine 在 Linux 上运行。
+            PalDefender 是进程级实时反作弊插件（Windows DLL），通过 Proton 在 Linux 上运行 Windows 版服务端。
             安装后会拦截玩家作弊操作（属性修改、非法物品、违禁科技等），实时性远高于外部检测。
           </n-alert>
 
           <n-descriptions :column="1" label-placement="left" bordered size="small">
-            <n-descriptions-item label="Wine 状态">
-              <n-tag v-if="status.wine_present" type="success" size="small">
-                已安装 {{ status.wine_version }}
+            <n-descriptions-item label="Proton 状态">
+              <n-tag v-if="status.proton_present" type="success" size="small">
+                已安装 {{ status.proton_version }}
               </n-tag>
               <n-tag v-else type="error" size="small">未安装</n-tag>
             </n-descriptions-item>
-            <n-descriptions-item label="Wine 路径">
-              {{ status.wine_path || '-' }}
+            <n-descriptions-item label="Proton 路径">
+              {{ status.proton_path || '-' }}
             </n-descriptions-item>
             <n-descriptions-item label="游戏 Win64 目录">
               {{ status.win64_path || '未找到' }}
@@ -65,22 +52,28 @@
           </n-descriptions>
         </n-card>
 
-        <n-card title="Wine 运行环境" size="small">
+        <n-card title="Proton 运行环境" size="small">
           <n-space vertical>
             <n-space>
               <n-button @click="refreshStatus" :loading="loading">刷新状态</n-button>
-              <n-button type="primary" @click="installWine" :loading="wineInstalling">
-                {{ status.wine_present ? '重新安装 / 更新 Wine' : '一键安装 Wine' }}
+              <n-button type="primary" @click="installProton" :loading="protonInstalling">
+                {{ status.proton_present ? '重新安装 / 更新 Proton' : '一键安装 Proton' }}
               </n-button>
-              <n-popconfirm v-if="status.wine_present" @positive-click="uninstallWine">
+              <n-popconfirm v-if="status.proton_present" @positive-click="uninstallProton">
                 <template #trigger>
-                  <n-button type="error" ghost>卸载 Wine</n-button>
+                  <n-button type="error" ghost>卸载 Proton</n-button>
                 </template>
-                确定要卸载 Wine 吗？
+                确定要卸载 Proton 吗？
+              </n-popconfirm>
+              <n-popconfirm v-if="status.wine_installed" @positive-click="uninstallWine">
+                <template #trigger>
+                  <n-button type="warning" ghost>卸载旧版 Wine</n-button>
+                </template>
+                检测到旧版 Wine，Proton 不再依赖它。确定要卸载 Wine 吗？
               </n-popconfirm>
             </n-space>
             <n-text depth="3" style="font-size:12px">
-              {{ status.wine_present ? 'Wine 已就绪，可以安装 PalDefender。' : 'PalDefender 需要 Wine 才能在 Linux 上运行。' }}
+              {{ status.proton_present ? 'Proton 已就绪，可以安装 PalDefender。' : 'PalDefender 需要 Proton 才能在 Linux 上运行 Windows 版服务端。' }}
             </n-text>
           </n-space>
         </n-card>
@@ -88,12 +81,12 @@
         <n-card title="PalDefender 插件" size="small">
           <n-space vertical>
             <n-space>
-              <n-button type="primary" @click="install" :loading="installing" :disabled="!status.wine_present">
+              <n-button type="primary" @click="install" :loading="installing" :disabled="!status.proton_present">
                 {{ status.d3d9_exists && status.pd_exists ? '更新 PalDefender' : '安装 PalDefender' }}
               </n-button>
               <n-popconfirm v-if="status.d3d9_exists || status.pd_exists" @positive-click="uninstall">
                 <template #trigger>
-                  <n-button type="error" ghost :disabled="!status.wine_present">卸载</n-button>
+                  <n-button type="error" ghost :disabled="!status.proton_present">卸载</n-button>
                 </template>
                 确定要卸载 PalDefender 吗？将删除 DLL 和配置目录。
               </n-popconfirm>
@@ -102,7 +95,7 @@
               未找到 Win64 目录，安装时会自动创建
             </n-alert>
             <n-text depth="3" style="font-size:12px">
-              安装后需通过 Wine 启动游戏服才能加载 DLL。
+              安装后需通过 Proton 启动 Windows 版游戏服才能加载 DLL。
             </n-text>
           </n-space>
         </n-card>
@@ -340,15 +333,16 @@
     </n-space>
   </n-modal>
 
-  <!-- Wine 安装进度弹窗 -->
-  <n-modal v-model:show="showWineProgress" preset="card" title="安装 Wine"
+  <!-- Proton 安装进度弹窗 -->
+  <n-modal v-model:show="showProtonProgress" preset="card" title="安装 Proton"
     style="max-width:600px" :mask-closable="false">
     <n-space vertical>
-      <n-progress type="line" :percentage="winePercent"
-        :status="wineDone ? (wineSuccess ? 'success' : 'error') : 'default'"
+      <n-progress type="line" :percentage="protonPercent"
+        :status="protonDone ? (protonSuccess ? 'success' : 'error') : 'default'"
         :indicator-placement="'inside'" />
-      <n-text>{{ wineMessage || '准备安装...' }}</n-text>
-      <pre class="log-pre">{{ wineLog || '等待输出...' }}</pre>
+      <n-text>{{ protonMessage || '准备安装...' }}</n-text>
+      <n-text v-if="protonError" depth="3" style="font-size:12px;color:#d03050">{{ protonError }}</n-text>
+      <pre class="log-pre">{{ protonLog || '等待输出...' }}</pre>
     </n-space>
   </n-modal>
 
@@ -363,7 +357,6 @@
       <n-text v-if="pdError" depth="3" style="font-size:12px;color:#d03050">{{ pdError }}</n-text>
     </n-space>
   </n-modal>
-  </template>
 </template>
 
 <script setup lang="ts">
@@ -377,17 +370,8 @@ import {
 import type { DataTableColumns } from 'naive-ui'
 import { ShieldOutline, SwapHorizontalOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
-import { useRunMode } from '@/composables/useRunMode'
-import { useRouter } from 'vue-router'
-import EmptyState from '@/components/EmptyState.vue'
 
 const message = useMessage()
-const router = useRouter()
-const { isWindows } = useRunMode()
-
-function goSwitch() {
-  router.push('/dashboard')
-}
 
 /* ============ 通用工具 ============ */
 function formatTime(t: any): string {
@@ -1051,7 +1035,6 @@ async function reloadConfig() {
 
 /* ============ 挂载 ============ */
 onMounted(() => {
-  if (!isWindows.value) return
   refreshStatus()
   testConnection()
 })

@@ -37,20 +37,18 @@
         </n-gi>
         <n-gi>
           <div class="status-cell">
-            <div class="status-cell__label">当前模式</div>
-            <PlatformBadge platform="current" :is-windows="!!status?.status?.wine_mode" />
+            <div class="status-cell__label">运行模式</div>
+            <n-tag type="info" size="small" round :bordered="false">
+              <n-icon :component="LogoWindows" style="vertical-align:-2px;margin-right:4px" />Proton / Windows
+            </n-tag>
           </div>
         </n-gi>
         <n-gi>
           <div class="status-cell">
-            <div class="status-cell__label">Linux 原生版</div>
-            <PlatformBadge platform="linux" :installed="!!status?.status?.linux_installed" />
-          </div>
-        </n-gi>
-        <n-gi>
-          <div class="status-cell">
-            <div class="status-cell__label">Windows 版（Wine）</div>
-            <PlatformBadge platform="windows" :installed="!!status?.status?.windows_installed" />
+            <div class="status-cell__label">Windows 版 (Proton)</div>
+            <n-tag :type="status?.status?.windows_installed ? 'success' : 'default'" size="small" round :bordered="false">
+              {{ status?.status?.windows_installed ? '已安装' : '未安装' }}
+            </n-tag>
           </div>
         </n-gi>
       </n-grid>
@@ -159,40 +157,11 @@
       <pre ref="logEl" class="logs">{{ logs || '暂无日志' }}</pre>
     </n-card>
 
-    <!-- 选择安装版本 -->
-    <n-modal v-model:show="showVersionModal" preset="card" title="选择游戏服版本"
-      style="max-width:520px" :mask-closable="true">
-      <n-space vertical :size="14">
-        <n-text depth="3">请选择要安装/更新的游戏服版本。两版本文件相互独立，可同时安装、按需切换。</n-text>
-        <n-radio-group v-model:value="installPlatform">
-          <n-space vertical>
-            <n-radio value="linux">
-              原生 Linux 版 <n-text depth="3" style="font-size:12px">（默认，性能更好，装在安装目录根）</n-text>
-            </n-radio>
-            <n-radio value="windows">
-              Windows 版（Wine / PalDefender）
-              <n-text depth="3" style="font-size:12px">（用于 PalDefender 反作弊，需先安装 Wine，装在安装目录下的 PalServer-Win 子目录）</n-text>
-            </n-radio>
-          </n-space>
-        </n-radio-group>
-        <n-alert v-if="installPlatform === 'windows'" type="info" :show-icon="true" style="margin-top:4px">
-          Windows 版将安装到 <b>{{ cfg.install_dir ? cfg.install_dir + '/PalServer-Win' : '安装目录/PalServer-Win' }}</b>，
-          与 Linux 版隔离，互不影响。
-        </n-alert>
-        <n-space justify="end">
-          <n-button @click="showVersionModal = false">取消</n-button>
-          <n-button type="primary" :loading="acting === 'install'" @click="doInstall">
-            开始安装
-          </n-button>
-        </n-space>
-      </n-space>
-    </n-modal>
-
     <!-- 安装/更新进度弹窗 -->
     <n-modal v-model:show="showInstallModal" preset="card" title="安装 / 更新游戏服"
       style="max-width:680px" :mask-closable="false">
       <n-space vertical :size="12">
-        <n-text>正在通过 SteamCMD 下载/更新游戏服（{{ installPlatform === 'windows' ? 'Windows 版' : 'Linux 原生版' }}），首次安装可能需要几分钟，请耐心等待。</n-text>
+        <n-text>正在通过 SteamCMD 下载/更新 Windows 版游戏服，首次安装可能需要几分钟，请耐心等待。</n-text>
         <pre class="logs logs-modal">{{ installLogs || '等待输出...' }}</pre>
         <n-space>
           <n-button size="small" @click="loadLogs">刷新日志</n-button>
@@ -210,16 +179,15 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import {
   NSpace, NCard, NAlert, NTag, NForm, NFormItem, NInput, NButton, NGrid, NGi,
-  NText, NModal, NTooltip, NIcon, NRadioGroup, NRadio, NCheckbox, useMessage,
+  NText, NModal, NTooltip, NIcon, NCheckbox, useMessage,
 } from 'naive-ui'
 import {
   HelpCircleOutline, CloudDownloadOutline, RefreshOutline, PlayOutline, StopOutline,
-  DocumentTextOutline,
+  DocumentTextOutline, LogoWindows,
 } from '@vicons/ionicons5'
 import { gameApi, type GameServerStatus, type GameServerConfig } from '@/api/gameserver'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
-import PlatformBadge from '@/components/PlatformBadge.vue'
 
 const message = useMessage()
 const status = ref<GameServerStatus | null>(null)
@@ -322,9 +290,6 @@ watch(logs, () => {
   }
 })
 
-const showVersionModal = ref(false)
-const installPlatform = ref<'linux' | 'windows'>('linux')
-
 async function refreshAll() {
   loading.value = true
   try {
@@ -339,12 +304,10 @@ function openInstall() {
     message.warning('请先填写 SteamCMD 路径和安装目录')
     return
   }
-  installPlatform.value = status.value?.status?.wine_mode ? 'windows' : 'linux'
-  showVersionModal.value = true
+  doInstall()
 }
 
 async function doInstall() {
-  showVersionModal.value = false
   if (!cfg.steamcmd_path || !cfg.install_dir) {
     message.warning('请先填写 SteamCMD 路径和安装目录')
     return
@@ -354,7 +317,7 @@ async function doInstall() {
   showInstallModal.value = true
   installLogs.value = ''
   try {
-    const r = await gameApi.install(installPlatform.value)
+    const r = await gameApi.install()
     message.info(r.message || '已开始安装')
     if (installTimer) clearInterval(installTimer)
     const poll = async () => {

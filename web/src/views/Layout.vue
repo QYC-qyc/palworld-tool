@@ -64,22 +64,10 @@
             {{ serverOk ? `服务器在线 · ${serverVersion}` : '服务器未连接' }}
           </n-tooltip>
 
-          <n-tooltip trigger="hover" placement="bottom">
-            <template #trigger>
-              <n-tag
-                :type="isWindows ? 'info' : 'success'"
-                size="small"
-                round
-                :bordered="false"
-                class="mode-tag"
-                @click="onModeClick"
-              >
-                <n-icon :component="isWindows ? LogoWindows : LogoTux" size="14" style="margin-right:4px" />
-                {{ isWindows ? 'Windows/Wine' : '原生 Linux' }}
-              </n-tag>
-            </template>
-            点击切换运行模式
-          </n-tooltip>
+          <n-tag type="info" size="small" round :bordered="false" class="mode-tag">
+            <n-icon :component="LogoWindows" size="14" style="vertical-align:-2px;margin-right:4px" />
+            Proton / Windows
+          </n-tag>
 
           <n-button quaternary circle @click="toggleTheme" aria-label="切换主题">
             <template #icon>
@@ -119,11 +107,10 @@ import {
   GridOutline, ServerOutline, SettingsOutline, PeopleOutline, MapOutline,
   GitNetworkOutline, ShieldCheckmarkOutline, ArchiveOutline, ListOutline,
   ShieldOutline, CogOutline, GameControllerOutline, MenuOutline,
-  MoonOutline, SunnyOutline, LogoWindows, LogoTux, PersonCircleOutline,
+  MoonOutline, SunnyOutline, LogoWindows, PersonCircleOutline,
   LogOutOutline,
 } from '@vicons/ionicons5'
 import { api } from '@/api'
-import { useRunMode } from '@/composables/useRunMode'
 import { useTheme } from '@/composables/useTheme'
 
 const collapsed = ref(false)
@@ -135,7 +122,6 @@ const message = useMessage()
 const serverOk = ref(false)
 const serverVersion = ref('')
 
-const { isWindows, setMode, refresh: refreshMode } = useRunMode()
 const { isDark, toggle: toggleTheme } = useTheme()
 
 const activeKey = computed(() => route.path)
@@ -177,12 +163,10 @@ const menuOptions = computed<MenuOption[]>(() => {
       ],
     },
   ]
-  if (isWindows.value) {
-    groups.push({
-      type: 'group', label: '反作弊', key: 'g-ac',
-      children: [item('PalDefender', '/paldefender', ShieldOutline)],
-    })
-  }
+  groups.push({
+    type: 'group', label: '反作弊', key: 'g-ac',
+    children: [item('PalDefender', '/paldefender', ShieldOutline)],
+  })
   groups.push({
     type: 'group', label: '系统', key: 'g-sys',
     children: [item('设置', '/settings', CogOutline)],
@@ -220,10 +204,6 @@ function navigate(v: string) {
   showDrawer.value = false
 }
 
-function onModeClick() {
-  setMode(!isWindows.value)
-}
-
 function onUserMenu(key: string) {
   if (key === 'logout') {
     localStorage.removeItem('paladmin_token')
@@ -246,7 +226,6 @@ onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
   checkServer()
-  refreshMode()
 })
 
 onUnmounted(() => window.removeEventListener('resize', checkMobile))
@@ -316,7 +295,6 @@ onUnmounted(() => window.removeEventListener('resize', checkMobile))
   100% { transform: scale(2.4); opacity: 0; }
 }
 .mode-tag {
-  cursor: pointer;
   font-weight: 500;
 }
 </style>

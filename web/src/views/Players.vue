@@ -90,19 +90,13 @@
           <n-button type="warning" ghost @click="openAct('kick', detail)">踢出</n-button>
           <n-button type="error" ghost @click="openAct('ban', detail)">封禁</n-button>
           <n-button @click="openAct('unban', detail)">解封</n-button>
-          <n-tooltip v-if="!isWindows" trigger="hover" placement="top">
-            <template #trigger>
-              <n-button type="error" disabled>IP封禁</n-button>
-            </template>
-            IP 封禁需要 PalDefender（Windows 模式）
-          </n-tooltip>
-          <n-button v-else type="error" @click="openAct('ipban', detail)">IP封禁</n-button>
+          <n-button type="error" @click="openAct('ipban', detail)">IP封禁</n-button>
         </n-space>
       </n-drawer-content>
     </n-drawer>
 
-    <!-- Windows 模式：带原因/IP 的操作弹窗 -->
-    <n-modal v-if="isWindows" v-model:show="act.show" preset="card" :title="act.title" style="max-width:460px">
+    <!-- 操作弹窗（固定走 PalDefender） -->
+    <n-modal v-model:show="act.show" preset="card" :title="act.title" style="max-width:460px">
       <n-space vertical>
         <n-input v-if="act.kind === 'ipban'" v-model:value="act.ip" placeholder="IP 地址（默认使用该玩家 IP）" />
         <n-input v-model:value="act.reason" type="textarea" :autosize="{ minRows: 2 }"
@@ -127,17 +121,14 @@ import { h, onMounted, reactive, ref, computed } from 'vue'
 import {
   NSpace, NCard, NDataTable, NDrawer, NDrawerContent, NDescriptions, NDescriptionsItem,
   NButton, NDivider, NTag, NTabs, NTabPane, NImage, NText, NModal, NInput, NSwitch,
-  NBadge, NIcon, useMessage, useDialog,
+  NBadge, NIcon, useMessage,
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { SearchOutline, RefreshOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
-import { useRunMode } from '@/composables/useRunMode'
 import PageHeader from '@/components/PageHeader.vue'
 
 const message = useMessage()
-const dialog = useDialog()
-const { isWindows } = useRunMode()
 const isMobile = ref(window.innerWidth < 768)
 
 const players = ref<any[]>([])
@@ -293,41 +284,13 @@ const ACT_TITLE: Record<string, string> = {
 }
 
 function openAct(kind: 'kick' | 'ban' | 'unban' | 'ipban', p: any) {
-  if (isWindows.value) {
-    act.kind = kind
-    act.title = ACT_TITLE[kind]
-    act.reason = ''
-    act.ip = p.ip || ''
-    act.ipBan = false
-    act.target = p
-    act.show = true
-    return
-  }
-  // Linux 官方 REST：简单确认
-  const labelMap: Record<string, string> = {
-    kick: '踢出', ban: '封禁', unban: '解封', ipban: 'IP封禁',
-  }
-  const action = labelMap[kind]
-  dialog.warning({
-    title: `确认${action}玩家？`,
-    content: `确定要${action}玩家 ${p.nickname || p.player_uid} 吗？`,
-    positiveText: '确定',
-    negativeText: '取消',
-    onPositiveClick: () => doOfficialAction(kind, p),
-  })
-}
-
-async function doOfficialAction(kind: 'kick' | 'ban' | 'unban' | 'ipban', p: any) {
-  try {
-    if (kind === 'kick') await api.kickPlayerOfficial(p.player_uid)
-    else if (kind === 'ban') await api.banPlayerOfficial(p.player_uid)
-    else if (kind === 'unban') await api.unbanPlayerOfficial(p.player_uid)
-    else return
-    message.success('操作成功')
-    await refreshAfterAction(p)
-  } catch (e: any) {
-    message.error(e.message)
-  }
+  act.kind = kind
+  act.title = ACT_TITLE[kind]
+  act.reason = ''
+  act.ip = p.ip || ''
+  act.ipBan = false
+  act.target = p
+  act.show = true
 }
 
 async function confirmAct() {

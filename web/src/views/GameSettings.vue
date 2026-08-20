@@ -83,9 +83,9 @@
 
     <div class="action-bar">
       <div class="action-bar__left">
-        <PlatformBadge platform="current" :is-windows="isWindows" />
+        <PlatformBadge />
         <n-text depth="3" style="font-size:12px">
-          当前使用 {{ isWindows ? 'Windows 模式' : 'Linux 模式' }}配置文件：{{ data?.path || iniPath }}
+          配置文件：{{ data?.path || iniPath }}
         </n-text>
       </div>
       <n-space :size="8" wrap>
@@ -111,12 +111,10 @@ import {
 } from '@vicons/ionicons5'
 import type { Component } from 'vue'
 import { gameSettingsApi, type ConfigField, type GameSettingsData } from '@/api/gamesettings'
-import { useRunMode } from '@/composables/useRunMode'
 import PageHeader from '@/components/PageHeader.vue'
 import PlatformBadge from '@/components/PlatformBadge.vue'
 
 const message = useMessage()
-const { isWindows } = useRunMode()
 const schema = ref<ConfigField[]>([])
 const data = ref<GameSettingsData | null>(null)
 const iniPath = ref('')
