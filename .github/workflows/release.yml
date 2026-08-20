@@ -141,23 +141,20 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set +e
+          set -x
+          OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+          # GITHUB_TOKEN 对 user/packages 的写权限可能受限，用 GraphQL + REST 双保险
           for pkg in paladmin palworld-gameserver; do
-            # 查询 package id 并设为 public
-            pid=$(gh api "user/packages/container/$pkg" --jq '.id' 2>/dev/null)
-            if [ -n "$pid" ] && [ "$pid" != "null" ]; then
-              gh api -X PATCH "user/packages/container/$pkg" \
-                -f visibility=public --silent && echo "$pkg 已设为公开" || echo "$pkg 设置失败"
-            else
-              # 可能在组织下，尝试 org 级别
-              pid=$(gh api "orgs/${GITHUB_REPOSITORY_OWNER,,}/packages/container/$pkg" --jq '.id' 2>/dev/null)
-              if [ -n "$pid" ] && [ "$pid" != "null" ]; then
-                gh api -X PATCH "orgs/${GITHUB_REPOSITORY_OWNER,,}/packages/container/$pkg" \
-                  -f visibility=public --silent && echo "$pkg 已设为公开(org)"
+            # 优先用用户级别 API
+            for path in "user/packages/container/$pkg" "orgs/$OWNER/packages/container/$pkg"; do
+              code=$(gh api -X PATCH "$path" -f visibility=public --silent 2>&1; echo $?)
+              if [ "$code" = "0" ]; then
+                echo "$pkg 已设为公开 ($path)"
+                break
               else
-                echo "$pkg 未找到，跳过"
+                echo "$pkg 在 $path 设置失败: $code"
               fi
-            fi
+            done
           done
 
   cleanup:
