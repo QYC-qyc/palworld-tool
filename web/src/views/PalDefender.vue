@@ -468,6 +468,17 @@ const pdDone = ref(false)
 const pdSuccess = ref(false)
 const pdError = ref('')
 
+/* Proton 安装状态 */
+const protonInstalling = ref(false)
+const showProtonProgress = ref(false)
+const protonPercent = ref(0)
+const protonMessage = ref('')
+const protonDone = ref(false)
+const protonSuccess = ref(false)
+const protonError = ref('')
+const protonLog = ref('')
+let protonTimer: number | null = null
+
 const token = () => localStorage.getItem('paladmin_token') || ''
 
 async function refreshStatus() {
@@ -549,6 +560,63 @@ async function uninstall() {
     } else {
       message.error(data.error || '卸载失败')
     }
+    await refreshStatus()
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
+/* ============ Proton 安装/卸载 ============ */
+async function installProton() {
+  protonInstalling.value = true
+  showProtonProgress.value = true
+  protonPercent.value = 0
+  protonMessage.value = '开始安装 Proton...'
+  protonDone.value = false
+  protonSuccess.value = false
+  protonError.value = ''
+  protonLog.value = ''
+  if (protonTimer) clearInterval(protonTimer)
+
+  try {
+    const r = await api.installProton()
+    if (r && r.running === false) {
+      protonError.value = r.message || '无法开始安装'
+      protonDone.value = true
+      protonInstalling.value = false
+      return
+    }
+    protonTimer = window.setInterval(async () => {
+      try {
+        const d = await api.getProtonStatus()
+        if (typeof d.percent === 'number') protonPercent.value = d.percent
+        if (d.message) protonMessage.value = d.message
+        if (d.error) protonError.value = d.error
+        if (d.log) protonLog.value = d.log
+        if (d.done) {
+          if (protonTimer) clearInterval(protonTimer)
+          protonDone.value = true
+          protonSuccess.value = !!d.success
+          protonInstalling.value = false
+          if (d.success) {
+            message.success('Proton 安装成功')
+            await refreshStatus()
+            setTimeout(() => { showProtonProgress.value = false }, 3000)
+          }
+        }
+      } catch { /* ignore */ }
+    }, 1000)
+  } catch (e: any) {
+    protonError.value = e.message
+    protonDone.value = true
+    protonInstalling.value = false
+  }
+}
+
+async function uninstallProton() {
+  try {
+    await api.uninstallProton()
+    message.success('Proton 已卸载')
     await refreshStatus()
   } catch (e: any) {
     message.error(e.message)
