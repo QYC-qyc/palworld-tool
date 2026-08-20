@@ -1,0 +1,52 @@
+# PalAdmin + PalServer 纯镜像部署（无需克隆项目）
+#
+# 使用方法：
+#   1. 保存此文件为 docker-compose.yml
+#   2. 在同目录执行：docker compose up -d
+#   3. 浏览器访问 http://服务器IP:8190，首次设置密码
+#   4. 在面板里点「安装游戏服」「安装 PalDefender」「启动」
+#
+# 首次启动会自动拉取 GHCR 镜像。数据保存在 ./data 目录，更新不丢档。
+#
+# 注意：GHCR 镜像默认可能是私有的，若 pull 报 401，需先在 GitHub 仓库
+#       Settings → Packages → 将两个 package 设为 public，或执行：
+#       echo <GH_PAT> | docker login ghcr.io -u <用户名> --password-stdin
+
+services:
+  # 游戏服：SteamCMD + GE-Proton + PalServer + PalDefender
+  gameserver:
+    image: ghcr.io/qyc-qyc/palworld-gameserver:latest
+    container_name: palworld-gameserver
+    restart: unless-stopped
+    ports:
+      - "8211:8211/udp"   # 游戏端口
+      - "8212:8212/tcp"   # REST API（建议仅内网，不需要可删掉）
+    volumes:
+      - ./data/gameserver:/home/steam/palserver
+    environment:
+      - STEAMAPPID=2394010
+      - PROTON_VERSION=9-22
+    networks:
+      - palnet
+
+  # 面板：Go + Vue
+  paladmin:
+    image: ghcr.io/qyc-qyc/paladmin:latest
+    container_name: paladmin
+    restart: unless-stopped
+    depends_on:
+      - gameserver
+    ports:
+      - "8190:8190/tcp"   # 面板 Web
+    volumes:
+      - ./data/paladmin:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # 面板管控游戏服容器
+    environment:
+      - GAMESERVER_CONTAINER=palworld-gameserver
+      - GAMESERVER_URL=http://gameserver:8212
+    networks:
+      - palnet
+
+networks:
+  palnet:
+    driver: bridge

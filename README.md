@@ -45,16 +45,30 @@
 - 至少 5GB 磁盘、2GB+ 内存
 - 开放端口：8190/tcp（面板）、8211/udp（游戏）、8212/tcp（REST，建议仅内网）
 
-### 启动
+### 启动（纯镜像，无需克隆代码）
 
 ```bash
-git clone <repo-url> paladmin && cd paladmin
-docker compose build
+mkdir -p ~/paladmin && cd ~/paladmin
+curl -fsSL -o docker-compose.yml \
+  https://gitee.com/qyc-qyc/palworld-tool/raw/main/docker-compose.prod.yml
 docker compose up -d
 docker compose ps
 ```
 
 访问 `http://服务器IP:8190`，首次设置面板密码。
+
+> 若拉取镜像报 401，需在 GitHub 上将 `paladmin`、`palworld-gameserver` 两个 package 设为 Public（详见 [docs/Docker部署.md](docs/Docker部署.md)）。
+
+<details>
+<summary>从源码构建</summary>
+
+```bash
+git clone <repo-url> paladmin && cd paladmin
+docker compose build
+docker compose up -d
+```
+
+</details>
 
 ### 首次使用流程
 

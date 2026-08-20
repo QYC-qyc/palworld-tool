@@ -34,22 +34,44 @@
 - 至少 5GB 磁盘空间、2GB+ 内存
 - 开放端口：8190/tcp（面板）、8211/udp（游戏）、8212/tcp（REST，建议仅内网）
 
-## 快速开始
+## 快速开始（纯镜像，推荐）
+
+无需克隆项目，只需一个 docker-compose.yml：
 
 ```bash
-# 1. 克隆项目
-git clone <repo-url> paladmin && cd paladmin
+# 1. 创建工作目录
+mkdir -p ~/paladmin && cd ~/paladmin
 
-# 2. 构建并启动
-docker compose build
+# 2. 下载 compose 文件
+curl -fsSL -o docker-compose.yml \
+  https://gitee.com/qyc-qyc/palworld-tool/raw/main/docker-compose.prod.yml
+
+# 3. 启动（自动从 GHCR 拉取镜像）
 docker compose up -d
 
-# 3. 查看状态
+# 4. 查看状态
 docker compose ps
 docker compose logs -f paladmin
 ```
 
 访问 `http://服务器IP:8190`，首次设置面板密码。
+
+> **若 pull 报 401 Unauthorized**：GHCR 镜像默认为私有，需将其设为公开：
+> 1. 登录 GitHub → 个人头像 → Your profile → Packages
+> 2. 分别进入 `paladmin` 和 `palworld-gameserver` 两个 package
+> 3. Package settings → Change visibility → Public
+>
+> 或使用 Personal Access Token 登录：`echo <GH_PAT> | docker login ghcr.io -u <GitHub用户名> --password-stdin`
+
+## 从源码构建（可选）
+
+如果想自己构建镜像或修改代码：
+
+```bash
+git clone <repo-url> paladmin && cd paladmin
+docker compose build
+docker compose up -d
+```
 
 ### 首次安装游戏服
 
