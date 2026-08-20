@@ -448,18 +448,10 @@ async function testConnection() {
   }
 }
 
-/* ============ 安装状态（原有逻辑） ============ */
+/* ============ 安装状态 ============ */
 const loading = ref(false)
 const installing = ref(false)
-const wineInstalling = ref(false)
 const status = ref<any>({})
-
-const showWineProgress = ref(false)
-const wineLog = ref('')
-const winePercent = ref(0)
-const wineMessage = ref('')
-const wineDone = ref(false)
-const wineSuccess = ref(false)
 
 const showPdProgress = ref(false)
 const pdPercent = ref(0)
@@ -619,51 +611,6 @@ async function uninstallProton() {
     message.success('Proton 已卸载')
     await refreshStatus()
   } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
-async function installWine() {
-  wineInstalling.value = true
-  showWineProgress.value = true
-  wineLog.value = ''
-  winePercent.value = 0
-  wineMessage.value = '准备安装...'
-  wineDone.value = false
-  wineSuccess.value = false
-
-  try {
-    await fetch('/api/paldefender/install-wine', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-    })
-
-    const timer = setInterval(async () => {
-      try {
-        const resp = await fetch('/api/paldefender/wine-status', {
-          headers: { Authorization: `Bearer ${token()}` },
-        })
-        const data = await resp.json()
-        wineLog.value = data.log || ''
-        if (typeof data.percent === 'number') winePercent.value = data.percent
-        if (data.message) wineMessage.value = data.message
-        if (data.done) {
-          clearInterval(timer)
-          wineDone.value = true
-          wineSuccess.value = data.success
-          wineInstalling.value = false
-          if (data.success) {
-            message.success('Wine 安装成功')
-            await refreshStatus()
-            setTimeout(() => { showWineProgress.value = false }, 3000)
-          } else {
-            message.error(data.error || '安装失败')
-          }
-        }
-      } catch { /* ignore */ }
-    }, 2000)
-  } catch (e: any) {
-    wineInstalling.value = false
     message.error(e.message)
   }
 }
