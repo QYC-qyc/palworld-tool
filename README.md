@@ -2,94 +2,64 @@
 
 幻兽帕鲁（Palworld）服务器管理与反作弊面板。
 
-- 🖥️ **服务器管理**：在线玩家地图位置、公会、背包/帕鲁数据、踢封禁、RCON 控制台、白名单、广播、关服
-- 🎮 **SteamCMD 管理**：面板内一键安装/更新服务端，启动、停止、重启，无需手写命令
-- 🗺️ **交互地图**：Leaflet 世界地图，实时显示在线玩家位置，点击查看详情
-- 🛡️ **反作弊**：帕鲁属性/天赋/灵魂越界、Boss 帕鲁、复制帕鲁、非法物品、堆叠异常、瞬移、同 IP 多开等检测，支持警告/踢出/封禁/IP 封禁
-- 💾 **存档备份与回档**：定时备份，一键回滚到任意备份（自动停服、安全备份、恢复、启服）
-- ⚙️ **可视化配置**：117 个游戏参数按 8 个页签分类，字段含中文说明和取值范围
-- 🐧 **纯 Linux 原生**：无需 Wine 或 Windows 兼容层
+- 🪟 **Windows 版游戏服**：通过 **Proton** 在 Linux 上运行 Windows 版游戏服，以加载 PalDefender（进程级反作弊 DLL）
+- 🛡️ **PalDefender 反作弊**：实时拦截属性修改、非法物品、违禁科技等作弊，支持踢出/封禁/IP 封禁；面板内一键安装 Proton 与 PalDefender
+- 🎮 **SteamCMD 管理**：面板内一键安装/更新 Windows 版服务端，启动、停止、重启，无需手写命令
+- 🗺️ **交互地图**：Leaflet 世界地图（主世界 / 天坠之地），实时显示在线玩家、据点、Boss 塔、快速旅行点
+- 👥 **玩家管理**：在线/存档玩家列表，查看背包物品（WebP 图标）、帕鲁详情，踢/封/解封
+- 🏛️ **公会**：公会信息与成员列表
+- 💾 **存档备份与回档**：定时备份，一键回滚（自动停服、备份、恢复、启服）
+- ⚙️ **可视化配置**：`PalWorldSettings.ini` 全部参数按分类编辑，字段含中文说明和取值范围；自动按 Proton/Windows 版定位 `WindowsServer/PalWorldSettings.ini`
+- 🌗 **暗色主题**、响应式、手机端适配
 
-## 工作方式
+## 架构
 
 ```
-浏览器（Vue3 面板）
+浏览器（Vue3 + Naive UI）
         │  http://服务器IP:8190
         ▼
-PalAdmin（宿主机进程，root 运行）
-        ├── 调用 SteamCMD 安装/更新游戏服
-        ├── 启停 PalServer 游戏进程
-        └── 通过 REST :8212 / RCON :25575 连接游戏服
+PalAdmin（宿主机二进制，root 运行）
+        ├── SteamCMD  →  下载/更新 Windows 版游戏服（App 2394010）
+        ├── Proton    →  运行 PalServer-Win64-Shipping-Cmd.exe
+        │                 （STEAM_COMPAT_DATA_PATH=<安装目录>/PalServer-Win/proton_prefix）
+        ├── PalDefender DLL 注入游戏进程（d3d9=n,b）
+        └── REST API  →  连接游戏服 :8212 同步玩家/执行操作
 ```
 
-- PalAdmin 以二进制方式运行在宿主机（也支持 Docker），直接调用 SteamCMD 管理游戏服
-- 面板以 root 运行，可向任意目录安装/更新游戏服，无需手动赋权
-- 面板密码、游戏连接、反作弊规则等保存在数据库 `/var/lib/paladmin/`，网页可改
+**关键路径：**
+- 游戏安装目录：用户在面板填写（如 `/home/paladmin/PalServer`）
+- Windows 版实际安装在：`<安装目录>/PalServer-Win/`（与可能存在的 Linux 版隔离，避免文件互相覆盖）
+- 游戏可执行文件：`PalServer-Win/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe`
+- 配置文件：`PalServer-Win/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini`
+- 存档：`PalServer-Win/Pal/Saved/SaveGames/`
+- PalDefender：`PalServer-Win/Pal/Binaries/Win64/`（d3d9.dll / PalDefender.dll）
+- GE-Proton：一键安装到 `/opt/GE-Proton/`
 
 ## 部署
 
 ### 前置条件
 
-- Linux 服务器（推荐 Ubuntu 22.04 / Debian 12）
-- 开放端口：面板 `8190/tcp`、游戏 `8211/udp`、REST `8212/tcp`、RCON `25575/tcp`（后两者建议仅内网）
+- Linux x86_64 / arm64 服务器（推荐 Ubuntu 22.04 / Debian 12）
+- 开放端口：面板 `8190/tcp`、游戏 `8211/udp`、REST `8212/tcp`（REST 建议仅内网）
 
-### 第一步：安装 SteamCMD
-
-Ubuntu / Debian（安装到 `/root/steamcmd`）：
-
-```bash
-dpkg --add-architecture i386
-apt update
-apt install -y lib32gcc-s1 curl
-mkdir -p /root/steamcmd && cd /root/steamcmd
-curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar -zxvf -
-```
-
-CentOS / RHEL 等请参考 SteamCMD 官方文档。Windows 下载 SteamCMD 压缩包解压即可。
-
-> SteamCMD 可放在任意目录，只要在面板「游戏服」页填写该**目录**，面板会自动查找其中的 `steamcmd.sh`。
-
-### 第二步：安装 PalAdmin
-
-提供两种方式，**推荐方式一（二进制直装）**，可直接调用宿主机 SteamCMD。
-
-#### 方式一：二进制 + systemd（推荐）
-
-一键脚本（自动从 GitHub Release 下载对应架构二进制、注册 systemd 服务）：
+### 一键安装（推荐）
 
 ```bash
 curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
 ```
 
-脚本会：
-
-- 依次尝试多个公共 GitHub 镜像，自动选择可用的下载源（支持 aria2 多线程）
-- 从 GitHub Release 下载对应架构的二进制（amd64 / arm64）
-- 安装到 `/opt/paladmin/`，数据存放在 `/var/lib/paladmin/`
-- 注册并启动 `paladmin` 系统服务（以 root 运行）
-
-若所有公共镜像均不可用，可手动下载 tar 包传到服务器后解压，或配置 HTTP 代理后重试。
-
-**启动验证：**
+脚本自动从 GitHub Release（经多镜像测速选最快源）下载对应架构二进制，安装到 `/opt/paladmin/`，数据存 `/var/lib/paladmin/`，注册 systemd 服务。
 
 ```bash
-systemctl status paladmin      # 状态应为 active (running)
-journalctl -u paladmin -f      # 查看日志，应出现“监听: http://0.0.0.0:8190”
+systemctl status paladmin      # active (running)
+journalctl -u paladmin -f      # 日志
 ```
 
-访问 `http://服务器IP:8190`，应显示登录页。
+访问 `http://服务器IP:8190`，首次设置面板登录密码。
 
-**更新到新版本：**
+**更新：** 重跑安装脚本即可（配置与数据保留），然后 `systemctl restart paladmin`。
 
-```bash
-# 重新运行安装脚本即可（配置和数据保留）
-curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
-systemctl restart paladmin
-```
-
-#### 方式二：Docker 部署
-
-如果偏好容器化，用 Docker 运行面板（需把宿主机 SteamCMD 与游戏目录挂载进容器）：
+### Docker
 
 ```bash
 mkdir -p /www/palworld-tool && cd /www/palworld-tool
@@ -98,96 +68,83 @@ curl -o docker-compose.yml \
 docker compose up -d
 ```
 
-> 面板通过挂载的 `/opt/steamcmd`、`/opt/palserver` 调用 SteamCMD；若路径不同，编辑 `docker-compose.yml` 修改挂载。游戏服进程在容器内运行，使用 host 网络。
+> 注意：Proton 运行 Windows 游戏服建议用**二进制直装**（宿主机直接管理进程）。Docker 方式下 Proton/Systemd 模式支持有限。
 
-### 第三步：初始化与配置游戏服
+## 使用流程
 
-1. 浏览器访问 `http://你的服务器IP:8190`，首次进入设置**面板登录密码**
-2. 进入左侧「**游戏服**」菜单，填写路径（**只需填写文件夹，无需精确到文件**，面板会自动查找其中的 `steamcmd.sh` 与 `PalServer.sh`）：
-   - **SteamCMD 目录**：如 `/root/steamcmd`
-   - **游戏安装目录**：如 `/root/PalServer`
+1. **设置面板密码**（首次访问）
+2. **「游戏服」页**填写：
+   - SteamCMD 目录：如 `/home/paladmin/steamcmd`
+   - 游戏安装目录：如 `/home/paladmin/PalServer`
+   - 保存配置
+3. **「PalDefender」页 → 一键安装 Proton**（自动检测系统、装 i386 依赖、经镜像下载最新 GE-Proton 到 /opt/GE-Proton）
+4. **「游戏服」页 → 安装/更新游戏服**（SteamCMD 强制下载 Windows 版到 `PalServer-Win/` 子目录）
+5. **「PalDefender」页 → 安装 PalDefender**（下载 DLL 到 Win64 目录）；在「设置」页可配置反作弊开关（踢出/封禁/IP封禁），保存时写入 PalDefender/Config.json 并热重载
+6. **「游戏服」页 → 启动**（通过 `proton run` 启动，自动注入 PalDefender）
+7. **「游戏配置」页**开启 REST API：`RESTAPIEnabled=true`、`RESTAPIPort=8212`、设置 `AdminPassword`，保存并重启
+8. 完成后仪表盘/地图/玩家页即可同步数据
 
-   填完后点击「保存配置」。
-3. 点击「**安装 / 更新游戏服**」
-   - 面板执行 `steamcmd +force_install_dir <目录> +login anonymous +app_update 2394010 validate +quit`（App ID `2394010` 为帕鲁专用服务器）
-   - 实时进度显示在日志区，首次约几分钟
-4. 安装完成后点击「**启动**」运行游戏服
-5. 进入「**游戏配置**」（`PalWorldSettings.ini`，面板会自动在游戏安装目录下定位该文件），确认游戏服开启了 REST API：
-   - `RESTAPIEnabled=true`、`RESTAPIPort=8212`、`AdminPassword=...`
-   - 配置保存后重启游戏服生效
-   - 保存网络相关项时，面板会自动把 REST/RCON 地址与 AdminPassword 同步到「系统设置」
-6. 进入「**系统设置**」核对游戏服 REST 地址（如 `http://127.0.0.1:8212`），面板即可同步在线玩家、执行 RCON 等
-
-> 首次启动时日志可能出现“备份失败”、“同步在线玩家失败”，这是因为游戏服尚未安装/配置，完成上述步骤后会消失。
+> 启动前会校验 Proton、Windows exe、PalDefender DLL 三项；缺任何一项都会明确报错，不会静默失败。
 
 ### 防火墙
 
 ```bash
-ufw allow 8190/tcp
-ufw allow 8211/udp
+ufw allow 8190/tcp && ufw allow 8211/udp
 ```
 
-云服务器还需在安全组放行相同端口。
+云服务器安全组同样放行。
 
-### 常用运维命令
-
-**二进制方式：**
-
-```bash
-systemctl status paladmin      # 状态
-systemctl restart paladmin     # 重启
-journalctl -u paladmin -f      # 日志
-# 更新 PalAdmin：重新运行安装脚本
-curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
-```
-
-**Docker 方式：**
-
-```bash
-cd /www/palworld-tool
-docker compose logs -f paladmin          # 日志
-docker compose restart                   # 重启
-docker compose pull && docker compose up -d   # 更新
-```
-
-游戏服本身的更新统一在面板「游戏服」页点击「安装/更新」。
-
-## 功能说明
+## 功能一览
 
 | 功能 | 说明 |
 |---|---|
-| 仪表盘 | 在线人数、服务器 FPS、快捷操作、反作弊统计 |
-| 游戏服 | 配置 SteamCMD 目录与安装目录，安装/更新服务端，启动/停止/重启，查看实时日志 |
-| 游戏配置 | 可视化编辑 `PalWorldSettings.ini`，117 个参数按服务器/世界/玩家/帕鲁/战斗/经济/据点/公会分类，字段含取值范围和 ini 键名提示 |
-| 玩家 | 在线/存档玩家列表，查看背包物品图标、帕鲁详情、最后在线时间，执行踢封禁 |
-| 玩家地图 | Leaflet 交互地图，实时显示在线玩家位置，点击查看昵称/等级/坐标 |
-| 公会 | 公会信息与成员列表，点击查看详情 |
-| 封禁列表 | 管理玩家与 IP 封禁 |
-| RCON 控制台 | 在线执行游戏服命令 |
-| 备份管理 | 存档备份列表，支持一键回档 |
-| 反作弊告警 | 查看检测记录、证据，人工标记处理 |
-| 反作弊规则 | 开关各检测项、调整处置动作 |
-| 系统设置 | 游戏连接、面板密码、反作弊等配置 |
+| 仪表盘 | 服务器名/版本/在线/FPS 统计卡、运行模式、控制台（广播/同步/关服） |
+| 游戏服 | SteamCMD 与安装目录配置、安装/更新 Windows 版、启停重启、实时日志（`\r` 进度实时显示）、磁盘空间检查 |
+| PalDefender | 一键安装 GE-Proton（按 OS 选包）、安装/卸载 PalDefender DLL、生成 Token；玩家管理、封禁列表、广播警报、公会据点、配置热重载 |
+| 游戏配置 | 可视化编辑 PalWorldSettings.ini，参数分类带说明，保存即写 WindowsServer 路径 |
+| 玩家 | 在线/存档玩家 Tab 切换、搜索、详情（基本信息/帕鲁/物品，物品用 WebP 图标）、踢/封/解封/IP封禁（走 PalDefender） |
+| 玩家地图 | Leaflet 地图，玩家/据点/Boss塔/快速旅行点，主世界/天坠之地切换 |
+| 公会 | 公会与成员列表 |
+| 白名单 | 白名单管理，非白名单玩家自动踢出 |
+| 备份 | 存档备份列表、一键回档；cron 定时备份（游戏运行时跳过） |
+| 审计 | 操作日志记录与筛选 |
+| 设置 | 面板密码、REST 连接、PalDefender API、反作弊处置开关、存档路径、进程模式(systemd/docker/noop)、面板自更新 |
 
-> **首次使用建议**：先在「反作弊规则」中关闭自动封禁/踢出，只保留警告，观察一段时间确认检测准确后再开启处罚。
+## 运维命令
+
+```bash
+systemctl status paladmin     # 状态
+systemctl restart paladmin    # 重启
+journalctl -u paladmin -f     # 日志
+```
+
+游戏服的安装/启停统一在面板操作。Proton 日志、SteamCMD 下载进度均在面板「游戏服」「PalDefender」页实时查看。
+
+## 自更新
+
+面板「设置」页可检查更新并一键升级；后端会先对多个 GitHub 镜像测速，选最快的下载二进制。也可重跑 install.sh。
 
 ## 开发
 
-详细开发约定见 [docs/开发约定.md](docs/开发约定.md)。
+- **后端**：Go，入口 `main.go`；路由 `api/router.go`；游戏服管理 `internal/gamesrv/`；PalDefender 代理 `internal/paldefender/` + `api/paldefender*.go`；存档解析 `internal/tool/`（参考 palworld-save-tools）
+- **前端**：Vue3 + TypeScript + Vite + Naive UI，代码在 `web/`
+- **详细约定**：见 [docs/开发约定.md](docs/开发约定.md)
+- **构建产物**：GitHub Actions 打 amd64/arm64 二进制，前端 `web/dist` 经 `embed` 打包进单一二进制
 
-清理旧 GitHub Release：
-
+构建：
 ```bash
-GITHUB_TOKEN=ghp_xxx scripts/cleanup-releases.sh 5
+cd web && npm install && npm run build && cd ..
+go build -o paladmin
 ```
 
 ## 致谢
 
-- [palworld-server-tool](https://github.com/zaigie/palworld-server-tool) —— 存档解析与管理框架参考（`_palworld-server-tool/`）
-- [PalDefender](https://github.com/Ultimeit/PalDefender) —— 反作弊设计理念参考
-- [palworld-save-tools](https://github.com/cheahjs/palworld-save-tools) —— 存档格式解析
-- [LootLab](https://lootlab.cn/palworld) —— 配置参数范围、图标、地图数据参考
+- [palworld-server-tool](https://github.com/zaigie/palworld-server-tool) — 存档解析与管理框架参考（`_palworld-server-tool/`）
+- [PalDefender](https://github.com/Ultimeit/PalDefender) — 反作弊
+- [palworld-save-tools](https://github.com/cheahjs/palworld-save-tools) — 存档格式解析
+- [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom) — Windows 兼容层
+- [LootLab](https://lootlab.cn/palworld) — 配置参数范围、图标、地图数据
 
 ## 许可证
 
-本项目采用 MIT 许可证。
+MIT
