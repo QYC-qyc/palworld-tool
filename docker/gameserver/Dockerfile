@@ -2,30 +2,37 @@
 # 在 Linux 上通过 Proton 运行 Windows 版 PalServer.exe，以加载 PalDefender 反作弊 DLL。
 FROM debian:bookworm-slim
 
-# 避免安装时交互弹窗
+# 避免安装交互
 ENV DEBIAN_FRONTEND=noninteractive \
     STEAMAPPID=2394010 \
     PALSERVER_DIR=/home/steam/palserver \
-    PROTON_VERSION=GE-Proton9-21
+    PROTON_VERSION=9-22
 
 # 安装系统依赖：
-# - steamcmd 下载游戏服
-# - 32/64 位库供 Proton 运行 Windows 程序
-# - wget/cabextract 用于安装 Proton
-# - ca-certificates HTTPS
+# - wget/curl/xz-utils/cabextract：下载和解压 GE-Proton
+# - ca-certificates：HTTPS
+# - 32/64 位库：Proton 运行 Windows 程序所需
+# - dbus-x11：Proton 初始化需要
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        ca-certificates wget curl cabextract xz-utils gpg \
+        ca-certificates wget curl xz-utils cabextract \
         lib32gcc-s1 lib32stdc++6 \
         libc6:i386 libstdc++6:i386 libgcc-s1:i386 \
-        dbus-x11 \
+        dbus-x11 locales \
         && \
-    # SteamCMD 官方源
-    echo "deb http://deb.debian.org/debian bookworm contrib non-free non-free-firmware" > /etc/apt/sources.list.d/contrib.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends steamcmd && \
-    ln -s /usr/games/steamcmd /usr/bin/steamcmd && \
+    sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && \
+    locale-gen en_US.UTF-8 && \
+    # 手动安装 SteamCMD（Debian 官方源的 steamcmd 包在 bookworm 上依赖问题多）
+    mkdir -p /opt/steamcmd && \
+    cd /opt/steamcmd && \
+    wget -q "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" -O steamcmd.tar.gz && \
+    tar -xzf steamcmd.tar.gz && \
+    rm steamcmd.tar.gz && \
+    ln -sf /opt/steamcmd/steamcmd.sh /usr/local/bin/steamcmd && \
+    ln -sf /opt/steamcmd/linux32/ /opt/steamcmd/linux64/ && \
+    # 首次运行 steamcmd 完成自更新
+    steamcmd +login anonymous +quit || true && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 创建非 root 用户
@@ -35,25 +42,24 @@ RUN useradd -m -d /home/steam -s /bin/bash steam
 WORKDIR /home/steam
 RUN mkdir -p /home/steam/.steam/root/compatibilitytools.d && \
     cd /home/steam/.steam/root/compatibilitytools.d && \
-    echo "downloading GE-Proton ${PROTON_VERSION}..." && \
-    wget -q "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${PROTON_VERSION}/${PROTON_VERSION}.tar.gz" -O proton.tar.gz && \
+    wget -q "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton${PROTON_VERSION}/GE-Proton${PROTON_VERSION}.tar.gz" -O proton.tar.gz && \
     tar -xzf proton.tar.gz && rm proton.tar.gz && \
     chown -R steam:steam /home/steam
 
 ENV STEAM_COMPAT_CLIENT_INSTALL_PATH=/home/steam/.steam/root \
     STEAM_COMPAT_DATA_PATH=/home/steam/prefix \
-    PROTONPATH=/home/steam/.steam/root/compatibilitytools.d/${PROTON_VERSION}/proton \
-    WINEDLLOVERRIDES="d3d9=n,b"
+    PROTONPATH=/home/steam/.steam/root/compatibilitytools.d/GE-Proton${PROTON_VERSION}/proton \
+    WINEDLLOVERRIDES="d3d9=n,b" \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8
 
 # 复制启动脚本
-COPY --chmod=755 entrypoint.sh /home/steam/entrypoint.sh
-COPY --chown=steam:steam install.sh /home/steam/install.sh
-RUN chmod +x /home/steam/install.sh
+COPY --chmod=755 docker/gameserver/entrypoint.sh /home/steam/entrypoint.sh
 
-# 游戏服端口：游戏 8211/udp，REST 8212/tcp
+# 游戏服端口
 EXPOSE 8211/udp 8212/tcp
 
-# 游戏数据持久化卷
+# 游戏数据持久化
 VOLUME ["/home/steam/palserver"]
 
 USER steam
