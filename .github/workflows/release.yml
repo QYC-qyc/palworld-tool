@@ -39,7 +39,9 @@ jobs:
       - name: Build Windows paladmin.exe
         run: |
           mkdir -p dist
-          cp -r web/dist dist/web
+          # 把前端 1.2 万个小文件压缩成单个 web.dat，避免用户解压缓慢
+          cd web/dist && zip -qr -9 ../web.dat . && cd ../..
+          cp web.dat dist/
           cp -r data dist/
           cp deploy/启动面板.bat dist/
           CGO_ENABLED=0 GOOS=windows GOARCH=amd64 \
@@ -91,8 +93,14 @@ jobs:
       - name: Package zip
         run: |
           mkdir -p pkg
-          cp -r release/paladmin-build/* pkg/
+          cp release/paladmin-build/paladmin.exe pkg/
+          cp release/paladmin-build/web.dat pkg/
+          cp -r release/paladmin-build/data pkg/
+          cp release/paladmin-build/启动面板.bat pkg/
           cp release/savcli-build/sav_cli.exe pkg/ 2>/dev/null || echo "sav_cli.exe 未生成（存档解析功能将不可用）"
+          echo "=== 包内文件 ==="
+          ls -lh pkg/
+          echo "文件数: $(find pkg -type f | wc -l)"
           cd pkg
           zip -rq ../paladmin_windows_amd64.zip .
           cd ..

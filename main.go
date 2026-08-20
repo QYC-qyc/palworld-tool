@@ -22,6 +22,7 @@ import (
 	"paladmin/internal/system"
 	"paladmin/internal/task"
 	"paladmin/internal/updater"
+	"paladmin/internal/webdata"
 	"paladmin/service"
 
 	"go.etcd.io/bbolt"
@@ -65,12 +66,19 @@ func main() {
 	api.SetDeps(db, &conf)
 	api.RegisterRouter(router)
 
-	// 静态前端：自动查找 web/dist 或 web 目录
+	// 静态前端：优先从 web.dat 释放（发布版，避免上万个小文件解压慢）；
+	// 开发环境回退到 web/dist 或 web 目录。
 	webDir := ""
-	for _, d := range []string{"web/dist", "web"} {
-		if _, err := os.Stat(filepath.Join(d, "index.html")); err == nil {
-			webDir = d
-			break
+	dataDir := getDataDir()
+	if released, err := webdata.EnsureExtracted(dataDir, version, ""); err == nil {
+		webDir = released
+		logger.Infof("前端资源（已释放）: %s", webDir)
+	} else {
+		for _, d := range []string{"web/dist", "web"} {
+			if _, err := os.Stat(filepath.Join(d, "index.html")); err == nil {
+				webDir = d
+				break
+			}
 		}
 	}
 	if webDir != "" {
@@ -158,4 +166,18 @@ func initRuntimeSettings(db *bbolt.DB) {
 		config.ApplyToViper(saved)
 		logger.Infof("已加载 %d 项动态配置", len(saved))
 	}
+}
+
+// getDataDir 返回用户数据目录（前端资源释放、数据库等）。
+// Windows: %APPDATA%\PalAdmin；其他系统：可执行文件所在目录。
+func getDataDir() string {
+	if d := os.Getenv("APPDATA"); d != "" {
+		dir := filepath.Join(d, "PalAdmin")
+		_ = os.MkdirAll(dir, 0o755)
+		return dir
+	}
+	if exe, err := os.Executable(); err == nil {
+		return filepath.Dir(exe)
+	}
+	return "."
 }
