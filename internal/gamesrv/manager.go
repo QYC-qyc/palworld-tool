@@ -37,20 +37,18 @@ type Config struct {
 
 // Status 游戏服状态
 type Status struct {
-	Installed       bool   `json:"installed"`         // 当前模式所需的服务端已安装
-	LinuxInstalled  bool   `json:"linux_installed"`   // 原生 Linux 版已安装
-	WindowsInstalled bool  `json:"windows_installed"` // Windows 版已安装
-	SteamReady      bool   `json:"steam_ready"`
-	Running         bool   `json:"running"`
-	Updating        bool   `json:"updating"`
-	PID             int    `json:"pid,omitempty"`
-	ServerExe       string `json:"server_exe"`
-	LinuxExe        string `json:"linux_exe"`
-	WindowsExe      string `json:"windows_exe"`
-	SteamExe        string `json:"steam_exe"`
-	InstallDir      string `json:"install_dir"`
-	WineMode        bool   `json:"wine_mode"` // 当前是否 PalDefender/Wine 模式
-	State           string `json:"state,omitempty"`
+	Installed        bool   `json:"installed"`         // Windows 版服务端已安装
+	WindowsInstalled bool   `json:"windows_installed"` // Windows 版已安装
+	SteamReady       bool   `json:"steam_ready"`
+	Running          bool   `json:"running"`
+	Updating         bool   `json:"updating"`
+	PID              int    `json:"pid,omitempty"`
+	ServerExe        string `json:"server_exe"`
+	WindowsExe       string `json:"windows_exe"`
+	SteamExe         string `json:"steam_exe"`
+	InstallDir       string `json:"install_dir"`
+	ProtonMode       bool   `json:"proton_mode"` // 当前是否 Proton 模式（始终为 true，保留字段供前端判断）
+	State            string `json:"state,omitempty"`
 }
 
 // Manager 管理游戏服进程与 SteamCMD
@@ -59,7 +57,7 @@ type Manager struct {
 	serverCmd *exec.Cmd
 	updateCmd *exec.Cmd
 	logBuf    *ringLog
-	// getSetting 读取面板动态设置（由 deps 注入），用于判断 Wine 模式等
+	// getSetting 读取面板动态设置（由 deps 注入），用于读取 proton.path 等
 	getSetting func(string) string
 }
 
@@ -71,7 +69,7 @@ func (m *Manager) SetConfig(cfg Config) {
 	m.cfg = cfg
 }
 func (m *Manager) ConfigValue() Config { return m.cfg }
-func (m *Manager) Available() bool    { return true }
+func (m *Manager) Available() bool     { return true }
 
 // SetSettingGetter 注入面板设置读取函数
 func (m *Manager) SetSettingGetter(f func(string) string) {
@@ -96,49 +94,20 @@ func (m *Manager) steamCmdExe() string {
 	return p
 }
 
-// serverExePath 返回服务端可执行文件完整路径
-func (m *Manager) serverExePath() string {
-	if m.cfg.InstallDir == "" {
-		return ""
-	}
-	exe := "PalServer.sh"
-	if runtime.GOOS == "windows" {
-		exe = "PalServer.exe"
-	}
-	return filepath.Join(m.cfg.InstallDir, exe)
-}
-
 // GetStatus 查看状态
 func (m *Manager) GetStatus() (*Status, error) {
 	st := &Status{
 		InstallDir: m.cfg.InstallDir,
+		ProtonMode: runtime.GOOS != "windows",
 	}
 	st.SteamExe = m.steamCmdExe()
-	// 两个版本的服务端路径都计算
-	if runtime.GOOS != "windows" {
-		st.LinuxExe = filepath.Join(m.cfg.InstallDir, "PalServer.sh")
-	} else {
-		st.LinuxExe = ""
-	}
 	st.WindowsExe = m.winServerExePath()
-	st.WineMode = m.wineModeEnabled()
-	// 当前模式实际使用的 exe
-	if st.WineMode {
-		st.ServerExe = st.WindowsExe
-	} else {
-		st.ServerExe = m.serverExePath()
-	}
+	st.ServerExe = st.WindowsExe
 
 	// steamcmd 是否存在
 	if st.SteamExe != "" {
 		if info, err := os.Stat(st.SteamExe); err == nil && !info.IsDir() {
 			st.SteamReady = true
-		}
-	}
-	// Linux 版是否已安装
-	if st.LinuxExe != "" {
-		if info, err := os.Stat(st.LinuxExe); err == nil && !info.IsDir() {
-			st.LinuxInstalled = true
 		}
 	}
 	// Windows 版是否已安装
@@ -147,8 +116,7 @@ func (m *Manager) GetStatus() (*Status, error) {
 			st.WindowsInstalled = true
 		}
 	}
-	// 当前模式所需版本是否已安装
-	st.Installed = st.WineMode && st.WindowsInstalled || !st.WineMode && st.LinuxInstalled
+	st.Installed = st.WindowsInstalled
 	// 是否在更新
 	if m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid) {
 		st.Updating = true
@@ -171,9 +139,8 @@ func (m *Manager) GetStatus() (*Status, error) {
 	return st, nil
 }
 
-// Install 用 SteamCMD 安装/更新游戏服（阻塞直到完成，实时输出日志）。
-// platform 为 "windows" 时下载 Windows 版服务端，其他（含空）下载当前平台/Linux 版。
-func (m *Manager) Install(platform string) error {
+// Install 用 SteamCMD 安装/更新 Windows 版游戏服（阻塞直到完成，实时输出日志）。
+func (m *Manager) Install() error {
 	steamExe := m.steamCmdExe()
 	if steamExe == "" {
 		return errors.New("未配置 SteamCMD 路径")
@@ -187,20 +154,8 @@ func (m *Manager) Install(platform string) error {
 	if m.isUpdating() {
 		return errors.New("正在安装/更新中")
 	}
-	windows := strings.EqualFold(platform, "windows")
-	// 安装 Windows 版需要 Wine（用于后续运行）
-	if windows {
-		if _, err := exec.LookPath("wine64"); err != nil {
-			if _, err2 := exec.LookPath("wine"); err2 != nil {
-				return errors.New("安装 Windows 版需要先安装 Wine（面板 PalDefender 页可一键安装）")
-			}
-		}
-	}
-	// Windows 版装到独立子目录，避免与 Linux 版文件互相覆盖
-	installDir := m.cfg.InstallDir
-	if windows {
-		installDir = m.winInstallDir()
-	}
+	// Windows 版装到独立子目录
+	installDir := m.winInstallDir()
 	if err := os.MkdirAll(installDir, 0755); err != nil {
 		return fmt.Errorf("创建安装目录失败: %w", err)
 	}
@@ -233,26 +188,19 @@ func (m *Manager) Install(platform string) error {
 		m.logBuf.WriteString(fmt.Sprintf("警告: SteamCMD 初始化返回错误: %v（继续尝试安装）\n", err))
 	}
 
-	// 构造 SteamCMD 参数。平台覆盖必须在 +login 之后、+app_update 之前。
+	// 构造 SteamCMD 参数。始终下载 Windows 64 位版本（通过 Proton 运行）。
 	buildArgs := func() []string {
 		args := []string{
 			"+force_install_dir", installDir,
 			"+login", "anonymous",
+			"+@sSteamCmdForcePlatformType", "windows",
+			"+@sSteamCmdForcePlatformBitness", "64",
+			"+app_update", steamAppID, "validate",
+			"+quit",
 		}
-		if windows {
-			args = append(args,
-				"+@sSteamCmdForcePlatformType", "windows",
-				"+@sSteamCmdForcePlatformBitness", "64",
-			)
-		}
-		args = append(args, "+app_update", steamAppID, "validate", "+quit")
 		return args
 	}
-	if windows {
-		m.logBuf.WriteString(fmt.Sprintf("安装 Windows 版服务端到 %s（Wine/PalDefender）\n", installDir))
-	} else if runtime.GOOS != "windows" {
-		m.logBuf.WriteString("安装 Linux 原生版服务端\n")
-	}
+	m.logBuf.WriteString(fmt.Sprintf("安装 Windows 版服务端到 %s（Proton/PalDefender）\n", installDir))
 
 	runInstall := func(args []string) error {
 		cmd := exec.Command(steamExe, args...)
@@ -271,7 +219,7 @@ func (m *Manager) Install(platform string) error {
 	m.logBuf.WriteString(fmt.Sprintf("=== SteamCMD 开始安装/更新 (app %s) ===\n", steamAppID))
 	var err error
 	err = runInstall(buildArgs())
-	if err != nil && windows {
+	if err != nil {
 		// Windows 版在 Linux 上下载偶发 Disk write failure（SteamCMD 平台缓存问题），
 		// 清理缓存后重试一次
 		m.logBuf.WriteString("安装失败，清理 SteamCMD 缓存后重试...\n")
@@ -323,6 +271,79 @@ func (m *Manager) isUpdating() bool {
 	return m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid)
 }
 
+// protonExePath 返回 Proton 可执行文件路径。
+// 优先使用设置 proton.path；为空时按顺序查找常见安装位置。
+func (m *Manager) protonExePath() string {
+	if m.getSetting != nil {
+		if p := m.getSetting("proton.path"); p != "" {
+			if info, err := os.Stat(p); err == nil && !info.IsDir() {
+				return p
+			}
+		}
+	}
+	// 常见固定路径（/opt/GE-Proton 为面板一键安装的 GE-Proton 位置）
+	candidates := []string{
+		"/opt/GE-Proton/proton",
+		"/usr/bin/proton",
+		"/usr/local/bin/proton",
+	}
+	for _, p := range candidates {
+		if info, err := os.Stat(p); err == nil && !info.IsDir() {
+			return p
+		}
+	}
+	// GE-Proton 用户目录 glob
+	patterns := []string{
+		"/home/*/.steam/steam/compatibilitytools.d/GE-Proton*/proton",
+		"/root/.steam/steam/compatibilitytools.d/GE-Proton*/proton",
+	}
+	for _, pat := range patterns {
+		matches, err := filepath.Glob(pat)
+		if err != nil || len(matches) == 0 {
+			continue
+		}
+		// 返回最后一个（通常字母序最大即最新版本）
+		return matches[len(matches)-1]
+	}
+	return ""
+}
+
+// checkProtonReady 校验 Proton 启动所需的全部前置条件：
+// a) Proton 可执行文件存在
+// b) Windows 版服务端 exe 存在
+// c) PalDefender DLL（d3d9.dll/PalDefender.dll）存在
+// 缺任何一项返回明确错误。
+func (m *Manager) checkProtonReady() error {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
+	// a) Proton
+	if m.protonExePath() == "" {
+		return errors.New("未检测到 Proton，请先在 PalDefender 页一键安装或在设置中指定 Proton 路径")
+	}
+	// b) Windows 版服务端 exe
+	if m.cfg.InstallDir == "" {
+		return errors.New("未配置游戏安装目录")
+	}
+	exe := m.winServerExePath()
+	if _, err := os.Stat(exe); err != nil {
+		return errors.New("未找到 Windows 版服务端，请先在「游戏服」页点击安装")
+	}
+	// c) PalDefender DLL
+	win64 := filepath.Join(m.winInstallDir(), "Pal", "Binaries", "Win64")
+	missing := []string{}
+	if _, err := os.Stat(filepath.Join(win64, "d3d9.dll")); err != nil {
+		missing = append(missing, "d3d9.dll")
+	}
+	if _, err := os.Stat(filepath.Join(win64, "PalDefender.dll")); err != nil {
+		missing = append(missing, "PalDefender.dll")
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("缺少 PalDefender 组件 %s：请在「PalDefender」页点击「安装 PalDefender」", strings.Join(missing, "、"))
+	}
+	return nil
+}
+
 // Start 启动游戏服。
 // 面板以 root 运行，但 PalServer 拒绝 root 启动，因此：
 //   - 若面板以 root 运行：查找安装目录属主用户，以该用户身份启动（su -c）；
@@ -336,6 +357,10 @@ func (m *Manager) Start() error {
 			m.logBuf.WriteString(fmt.Sprintf("停止旧进程失败: %v\n", err))
 		}
 		time.Sleep(3 * time.Second)
+	}
+
+	if err := m.checkProtonReady(); err != nil {
+		return err
 	}
 
 	args := []string{}
@@ -352,60 +377,38 @@ func (m *Manager) Start() error {
 		}
 	}
 
-	// 是否用 Wine 启动 Windows 版服务端（由面板 PalDefender 模式开关决定）。
-	// 开启模式时缺任何前置条件都直接报错，不回退原生启动。
-	useWine, wineErr := m.shouldUseWine()
-	if wineErr != nil {
-		return wineErr
-	}
-	var exe string
-	if useWine {
-		exe = m.winServerExePath()
-		if _, statErr := os.Stat(exe); statErr != nil {
-			return fmt.Errorf("Wine 模式：未找到 Windows 版服务端 %s", exe)
-		}
-		m.logBuf.WriteString("PalDefender 模式：使用 Wine 启动 Windows 版服务端\n")
-	} else {
-		exe = m.serverExePath()
-		if exe == "" {
-			return errors.New("未配置安装目录")
-		}
-		if _, statErr := os.Stat(exe); statErr != nil {
-			return errors.New("服务端未安装，请先在面板点击安装")
-		}
-	}
+	exe := m.winServerExePath()
 
 	// 构建启动命令
 	var cmd *exec.Cmd
-	if useWine && runtime.GOOS != "windows" {
-		// Wine 启动：wine PalServer-Win64-Shipping-Cmd.exe <args>
-		wineExe := "wine64"
-		if p, lookErr := exec.LookPath("wine64"); lookErr != nil {
-			if p2, lookErr2 := exec.LookPath("wine"); lookErr2 == nil {
-				wineExe = p2
-			} else {
-				return errors.New("未找到 wine/wine64，请先安装 Wine")
-			}
-		} else {
-			wineExe = p
+	if runtime.GOOS != "windows" {
+		// Proton 启动：proton run PalServer-Win64-Shipping-Cmd.exe <args>
+		protonExe := m.protonExePath()
+		if protonExe == "" {
+			return errors.New("未找到 Proton 可执行文件")
 		}
-		wineArgs := append([]string{exe}, args...)
-		if runUser != "" {
-			shellCmd := fmt.Sprintf("cd %s && exec %s %s",
-				shellQuote(filepath.Dir(exe)),
-				shellQuote(wineExe),
-				strings.Join(wineArgs, " "))
-			cmd = exec.Command("su", "-s", "/bin/bash", runUser, "-c", shellCmd)
-		} else {
-			cmd = exec.Command(wineExe, wineArgs...)
-		}
-		cmd.Dir = filepath.Dir(exe)
-		// Wine 需要的环境变量
-		cmd.Env = append(os.Environ(),
-			"WINEDEBUG=-all",
+		protonArgs := append([]string{"run", exe}, args...)
+		winInstallDir := m.winInstallDir()
+		steamDir := filepath.Dir(m.steamCmdExe())
+		protonEnv := append(os.Environ(),
+			"PROTON_DIST_PATH="+filepath.Dir(protonExe),
+			"PROTON_NO_STEAM=1",
+			"PROTON_NO_ESYNC=1",
+			"STEAM_COMPAT_CLIENT_INSTALL_PATH="+steamDir,
+			"STEAM_COMPAT_DATA_PATH="+filepath.Join(winInstallDir, "proton_prefix"),
 			"WINEDLLOVERRIDES=d3d9=n,b",
 		)
-		m.logBuf.WriteString(fmt.Sprintf("Wine 启动: %s %s\n", wineExe, exe))
+		if runUser != "" {
+			shellCmd := fmt.Sprintf("cd %s && exec %s",
+				shellQuote(filepath.Dir(exe)),
+				shellQuote(protonExe)+" "+strings.Join(protonArgs, " "))
+			cmd = exec.Command("su", "-s", "/bin/bash", runUser, "-c", shellCmd)
+		} else {
+			cmd = exec.Command(protonExe, protonArgs...)
+		}
+		cmd.Dir = filepath.Dir(exe)
+		cmd.Env = protonEnv
+		m.logBuf.WriteString(fmt.Sprintf("Proton 启动: %s run %s\n", protonExe, exe))
 	} else if runUser != "" {
 		shellCmd := fmt.Sprintf("cd %s && exec %s %s",
 			shellQuote(filepath.Dir(exe)),
@@ -438,53 +441,7 @@ func (m *Manager) Start() error {
 	return nil
 }
 
-// wineModeEnabled 仅根据面板设置判断是否开启了 PalDefender/Wine 模式（不校验前置条件）。
-func (m *Manager) wineModeEnabled() bool {
-	return runtime.GOOS != "windows" && m.getSetting != nil &&
-		strings.EqualFold(m.getSetting("paldefender.wine_mode"), "true")
-}
-
-// shouldUseWine 判断是否用 Wine 启动 Windows 版服务端。
-// 未开启 PalDefender 模式时返回 (false, nil)（用原生 Linux 启动）。
-// 开启模式时逐项校验前置条件，缺任何一项都返回错误（阻止启动），
-// 错误信息说明缺什么以及去哪里安装/下载。
-func (m *Manager) shouldUseWine() (bool, error) {
-	if runtime.GOOS == "windows" {
-		return false, nil
-	}
-	if !m.wineModeEnabled() {
-		return false, nil
-	}
-	// 1) Wine
-	if _, err := exec.LookPath("wine64"); err != nil {
-		if _, err2 := exec.LookPath("wine"); err2 != nil {
-			return false, errors.New("PalDefender 模式需要 Wine：请在「PalDefender」页点击「一键安装 Wine」")
-		}
-	}
-	// 2) Windows 版服务端 exe
-	if m.cfg.InstallDir == "" {
-		return false, errors.New("PalDefender 模式需要 Windows 版服务端：请先配置游戏安装目录")
-	}
-	if _, err := os.Stat(m.winServerExePath()); err != nil {
-		return false, errors.New("PalDefender 模式需要 Windows 版服务端：请在「游戏服」页点击「安装/更新」（将自动下载 Windows 版）")
-	}
-	// 3) PalDefender DLL（d3d9.dll + PalDefender.dll）
-	win64 := filepath.Join(m.winInstallDir(), "Pal", "Binaries", "Win64")
-	missing := []string{}
-	if _, err := os.Stat(filepath.Join(win64, "d3d9.dll")); err != nil {
-		missing = append(missing, "d3d9.dll")
-	}
-	if _, err := os.Stat(filepath.Join(win64, "PalDefender.dll")); err != nil {
-		missing = append(missing, "PalDefender.dll")
-	}
-	if len(missing) > 0 {
-		return false, fmt.Errorf("PalDefender 模式缺少 %s：请在「PalDefender」页点击「安装 PalDefender」", strings.Join(missing, "、"))
-	}
-	return true, nil
-}
-
 // winInstallDir 返回 Windows 版服务端的独立安装目录。
-// Windows 版与 Linux 版必须分目录存放，否则 SteamCMD 文件会互相覆盖。
 // 默认在游戏安装目录下的 PalServer-Win 子目录。
 func (m *Manager) winInstallDir() string {
 	if m.cfg.InstallDir == "" {
@@ -583,13 +540,10 @@ func (m *Manager) Restart() error {
 	return m.Start()
 }
 
-// palProcessPattern 返回当前模式下游戏进程的 pgrep/pkill 匹配串。
-// Linux 原生为 PalServer-Linux-Shipping，Wine/Windows 版为 Shipping-Cmd.exe。
+// palProcessPattern 返回 Windows 版游戏进程的 pgrep/pkill 匹配串。
+// Proton 运行时进程名仍是 PalServer-Win64-Shipping-Cmd.exe。
 func (m *Manager) palProcessPattern() string {
-	if m.wineModeEnabled() {
-		return "PalServer-Win64-Shipping-Cmd.exe"
-	}
-	return "PalServer-Linux-Shipping"
+	return "PalServer-Win64-Shipping-Cmd.exe"
 }
 
 // findRunningProcesses 查找正在运行的 PalServer 进程 PID
@@ -625,13 +579,8 @@ func (m *Manager) killAllPalServer() error {
 	time.Sleep(3 * time.Second)
 	// 仍在运行则 SIGKILL 强杀
 	_ = exec.Command("pkill", "-KILL", "-f", pattern).Run()
-	if m.wineModeEnabled() {
-		// Wine 模式下同时结束残留的 Wine 进程（匹配安装目录下的 Windows 服务端）
-		_ = exec.Command("wineserver", "-k").Run()
-	} else {
-		// 原生模式同时停止包装脚本
-		_ = exec.Command("pkill", "-KILL", "-f", "PalServer.sh").Run()
-	}
+	// 兜底：杀掉残留的 Proton 包装进程
+	_ = exec.Command("pkill", "-KILL", "-f", "proton.*PalServer").Run()
 	return nil
 }
 

@@ -76,12 +76,8 @@ func isGameRunning() bool {
 	if runtime.GOOS == "windows" {
 		return false
 	}
-	pattern := "PalServer-Linux-Shipping"
-	if dbRef != nil && strings.EqualFold(
-		service.GetSetting(dbRef, service.SettingPalDefenderWineMode), "true") {
-		pattern = "PalServer-Win64-Shipping-Cmd.exe"
-	}
-	out, err := exec.Command("pgrep", "-f", pattern).Output()
+	// 仅 Windows 版游戏服（通过 Proton 运行）
+	out, err := exec.Command("pgrep", "-f", "PalServer-Win64-Shipping-Cmd.exe").Output()
 	if err != nil {
 		return false
 	}

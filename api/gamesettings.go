@@ -12,14 +12,13 @@ import (
 	"paladmin/service"
 )
 
-// iniFallbackPath 当未配置安装目录时使用的兜底路径
-const iniFallbackPath = "/www/palworld-tool/game/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini"
+// iniFallbackPath 当未配置安装目录时使用的兜底路径（Windows 版，Proton 运行）
+const iniFallbackPath = "/www/palworld-tool/game/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini"
 
-// iniPath 解析 PalWorldSettings.ini 的完整路径：
+// iniPath 解析 Windows 版游戏服的 PalWorldSettings.ini 完整路径。
+// 面板仅管理 Windows 版服务端（通过 Proton 运行），配置固定在 WindowsServer 目录。
 //  1. 环境变量 PALWORLD_INI_PATH 显式指定时优先；
-//  2. 否则按面板 PalDefender 模式选择平台目录（开启 Wine 模式用 WindowsServer，否则 LinuxServer）；
-//  3. 若该模式对应的文件不存在但另一平台的存在，则用已存在的那个（兼容只装了一个版本的情况）；
-//  4. 都没有时返回当前模式对应的默认路径（保存时自动创建）。
+//  2. 否则使用 <install_dir>/PalServer-Win/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini。
 func iniPath() string {
 	if p := os.Getenv("PALWORLD_INI_PATH"); p != "" {
 		return p
@@ -33,34 +32,9 @@ func iniPath() string {
 		installDir = os.Getenv("GAMESRV__INSTALL_DIR")
 	}
 	if installDir == "" {
-		// 未配置安装目录时，兜底路径也按运行模式区分平台
-		if db != nil && strings.EqualFold(service.GetSetting(db, service.SettingPalDefenderWineMode), "true") {
-			return "/www/palworld-tool/game/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini"
-		}
 		return iniFallbackPath
 	}
-
-	linuxPath := filepath.Join(installDir, "Pal", "Saved", "Config", "LinuxServer", "PalWorldSettings.ini")
-	windowsPath := filepath.Join(installDir, "Pal", "Saved", "Config", "WindowsServer", "PalWorldSettings.ini")
-
-	// PalDefender(Wine) 模式对应 Windows 版服务端
-	wineMode := false
-	if db != nil {
-		wineMode = strings.EqualFold(service.GetSetting(db, service.SettingPalDefenderWineMode), "true")
-	}
-
-	primary, secondary := linuxPath, windowsPath
-	if wineMode {
-		primary, secondary = windowsPath, linuxPath
-	}
-	if fileExists(primary) {
-		return primary
-	}
-	if fileExists(secondary) {
-		return secondary
-	}
-	// 两个文件都尚未生成（游戏服未首次启动），返回当前模式对应路径，保存时自动创建
-	return primary
+	return filepath.Join(installDir, "PalServer-Win", "Pal", "Saved", "Config", "WindowsServer", "PalWorldSettings.ini")
 }
 
 type gameSettingsAPI struct{}
@@ -142,8 +116,8 @@ func (g *gameSettingsAPI) save(c *gin.Context) {
 	if req.Restart && gameAPI != nil {
 		if err := gameAPI.restartImpl(); err != nil {
 			c.JSON(http.StatusOK, gin.H{
-				"success":  true,
-				"message":  "配置已保存，但重启游戏服失败: " + err.Error(),
+				"success":   true,
+				"message":   "配置已保存，但重启游戏服失败: " + err.Error(),
 				"restarted": false,
 			})
 			return

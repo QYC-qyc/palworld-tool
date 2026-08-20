@@ -16,16 +16,15 @@ const (
 	SettingProcessService   = "process.service"
 	SettingProcessContainer = "process.container"
 
-	SettingPalDefenderHost     = "paldefender.host"
-	SettingPalDefenderPort     = "paldefender.port"
-	SettingPalDefenderToken    = "paldefender.token"
-	SettingPalDefenderBasePath = "paldefender.base_path"
-	// SettingPalDefenderWineMode 为 true 时用 Wine 启动 Windows 版服务端（启用 PalDefender）
-	SettingPalDefenderWineMode       = "paldefender.wine_mode"
-	SettingPalDefenderAntiCheat      = "paldefender.anticheat_enabled" // PalDefender 反作弊总开关
-	SettingPalDefenderCheatersKick   = "paldefender.cheaters_kick"     // 检测到作弊者踢出
-	SettingPalDefenderCheatersBan    = "paldefender.cheaters_ban"      // 检测到作弊者封禁
-	SettingPalDefenderCheatersIPBan  = "paldefender.cheaters_ipban"    // 检测到作弊者 IP 封禁
+	SettingPalDefenderHost          = "paldefender.host"
+	SettingPalDefenderPort          = "paldefender.port"
+	SettingPalDefenderToken         = "paldefender.token"
+	SettingPalDefenderBasePath      = "paldefender.base_path"
+	SettingProtonPath               = "proton.path"                   // Proton 可执行文件路径（为空则自动检测）
+	SettingPalDefenderAntiCheat     = "paldefender.anticheat_enabled" // PalDefender 反作弊总开关
+	SettingPalDefenderCheatersKick  = "paldefender.cheaters_kick"     // 检测到作弊者踢出
+	SettingPalDefenderCheatersBan   = "paldefender.cheaters_ban"      // 检测到作弊者封禁
+	SettingPalDefenderCheatersIPBan = "paldefender.cheaters_ipban"    // 检测到作弊者 IP 封禁
 )
 
 // DefaultSettings 返回需要在数据库中初始化的默认键（首次启动时从 viper 同步）
@@ -44,7 +43,7 @@ func DefaultSettings() map[string]string {
 		SettingPalDefenderPort:     "17993",
 		SettingPalDefenderToken:    "",
 		SettingPalDefenderBasePath: "/v1/pdapi",
-		SettingPalDefenderWineMode: "false",
+		SettingProtonPath:          "",
 
 		SettingPalDefenderAntiCheat:     "true",
 		SettingPalDefenderCheatersKick:  "true",
@@ -132,5 +131,3 @@ func SetSettings(db *bbolt.DB, updates map[string]string) error {
 		return nil
 	})
 }
-
-

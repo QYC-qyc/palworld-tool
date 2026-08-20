@@ -46,16 +46,7 @@ export const api = {
   getServer: () => request<any>('/api/server'),
   getMetrics: () => request<any>('/api/server/metrics'),
 
-  // 游戏服运行模式（轻量，供前端条件渲染）
-  getRunMode: () =>
-    request<{
-      wine_mode: boolean
-      linux_installed: boolean
-      windows_installed: boolean
-      running: boolean
-    }>('/api/gameserver/run-mode'),
-
-  // 官方 REST API 玩家操作（Linux 原生模式用）
+  // 官方 REST API 玩家操作（保留，当前固定走 PalDefender）
   kickPlayerOfficial: (uid: string) =>
     request(`/api/player/${uid}/kick`, { method: 'POST' }),
   banPlayerOfficial: (uid: string) =>

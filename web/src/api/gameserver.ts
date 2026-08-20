@@ -4,18 +4,16 @@ export interface GameServerStatus {
   available: boolean
   status?: {
     installed: boolean
-    linux_installed: boolean
     windows_installed: boolean
+    proton_mode: boolean
     steam_ready: boolean
     running: boolean
     updating: boolean
     pid?: number
     server_exe: string
-    linux_exe: string
     windows_exe: string
     steam_exe: string
     install_dir: string
-    wine_mode: boolean
     state?: string
   }
 }
@@ -40,16 +38,10 @@ export const gameApi = {
       steam_exe: string
       server_ok: boolean
       server_exe: string
-      linux_server_ok: boolean
-      linux_server_exe: string
-      windows_server_ok: boolean
-      windows_server_exe: string
-      wine_mode: boolean
     }>('/api/gameserver/verify', { method: 'POST', body: JSON.stringify(cfg) }),
-  install: (platform: 'linux' | 'windows' = 'linux') =>
+  install: () =>
     request<{ success: boolean; message?: string }>('/api/gameserver/install', {
       method: 'POST',
-      body: JSON.stringify({ platform }),
     }),
   start: () => request<{ success: boolean; message?: string }>('/api/gameserver/start', { method: 'POST' }),
   stop: () => request<{ success: boolean; message?: string }>('/api/gameserver/stop', { method: 'POST' }),

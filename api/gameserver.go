@@ -65,40 +65,19 @@ func (g *gameServerAPI) verify(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"steam_ok":          st.SteamReady,
-		"steam_exe":         st.SteamExe,
-		"server_ok":         st.Installed,
-		"server_exe":        st.ServerExe,
-		"linux_server_ok":   st.LinuxInstalled,
-		"linux_server_exe":  st.LinuxExe,
-		"windows_server_ok": st.WindowsInstalled,
+		"steam_ok":           st.SteamReady,
+		"steam_exe":          st.SteamExe,
+		"server_ok":          st.Installed,
+		"server_exe":         st.ServerExe,
+		"windows_server_ok":  st.WindowsInstalled,
 		"windows_server_exe": st.WindowsExe,
-		"wine_mode":         st.WineMode,
+		"proton_mode":        st.ProtonMode,
 	})
 }
 
-// runMode 返回当前游戏服运行模式与两版本安装状态（轻量，供前端条件渲染）
-func (g *gameServerAPI) runMode(c *gin.Context) {
-	st, err := g.mgr.GetStatus()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"wine_mode":        st.WineMode,
-		"linux_installed":  st.LinuxInstalled,
-		"windows_installed": st.WindowsInstalled,
-		"running":          st.Running,
-	})
-}
-
-// install 用 SteamCMD 安装/更新游戏服；body 可选 {"platform":"windows"|"linux"}
+// install 用 SteamCMD 安装/更新 Windows 版游戏服
 func (g *gameServerAPI) install(c *gin.Context) {
-	var req struct {
-		Platform string `json:"platform"`
-	}
-	_ = c.ShouldBindJSON(&req)
-	if err := g.mgr.Install(req.Platform); err != nil {
+	if err := g.mgr.Install(); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}

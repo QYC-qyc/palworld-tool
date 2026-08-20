@@ -72,7 +72,6 @@ func RegisterRouter(r *gin.Engine) {
 		// 游戏服管理
 		if gameAPI != nil {
 			authGroup.GET("/gameserver", gameAPI.status)
-			authGroup.GET("/gameserver/run-mode", gameAPI.runMode)
 			authGroup.GET("/gameserver/config", gameAPI.getConfig)
 			authGroup.PUT("/gameserver/config", gameAPI.saveConfig)
 			authGroup.POST("/gameserver/verify", gameAPI.verify)
@@ -95,9 +94,10 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.POST("/paldefender/install", pdAPI.install)
 		authGroup.GET("/paldefender/install-status", pdAPI.installStatus)
 		authGroup.POST("/paldefender/uninstall", pdAPI.uninstall)
-		authGroup.POST("/paldefender/install-wine", pdAPI.installWine)
+		authGroup.POST("/paldefender/install-proton", pdAPI.installProton)
+		authGroup.POST("/paldefender/uninstall-proton", pdAPI.uninstallProton)
+		authGroup.GET("/paldefender/proton-status", pdAPI.protonInstallStatus)
 		authGroup.POST("/paldefender/uninstall-wine", pdAPI.uninstallWine)
-		authGroup.GET("/paldefender/wine-status", pdAPI.wineInstallStatus)
 		authGroup.POST("/paldefender/verify", pdAPI.verify)
 		authGroup.POST("/paldefender/create-token", pdAPI.createToken)
 

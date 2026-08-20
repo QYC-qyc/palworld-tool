@@ -159,7 +159,7 @@ func isEditableKey(k string) bool {
 		service.SettingProcessService, service.SettingProcessContainer,
 		service.SettingPalDefenderHost,
 		service.SettingPalDefenderPort, service.SettingPalDefenderToken,
-		service.SettingPalDefenderWineMode, service.SettingPalDefenderAntiCheat,
+		service.SettingProtonPath, service.SettingPalDefenderAntiCheat,
 		service.SettingPalDefenderCheatersKick, service.SettingPalDefenderCheatersBan,
 		service.SettingPalDefenderCheatersIPBan,
 		"save.backup_interval":
