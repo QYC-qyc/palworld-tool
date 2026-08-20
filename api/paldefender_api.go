@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -43,13 +42,8 @@ func pdRaw(c *gin.Context, raw []byte) {
 
 // --- 连通性 ---
 
-// createToken 一键生成 PalDefender REST API Token 文件（仅 Linux）。
+// createToken 一键生成 PalDefender REST API Token 文件。
 func (p *palDefenderAPI) createToken(c *gin.Context) {
-	if runtime.GOOS != "linux" {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "仅支持 Linux"})
-		return
-	}
-
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -395,7 +389,7 @@ func (p *palDefenderAPI) apiReloadConfig(c *gin.Context) {
 }
 
 // applyAntiCheatConfig 把面板的 PalDefender 反作弊开关写入其 Config.json，
-// 并尝试通过 REST API 热重载。仅在 Windows/Wine 模式且 PD 已安装时生效；
+// 并尝试通过 REST API 热重载。仅在 PalDefender 已安装时生效；
 // 失败只记录日志，不阻断设置保存（游戏服重启后也会读取 Config.json）。
 func applyAntiCheatConfig() {
 	if gameAPI == nil {

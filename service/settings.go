@@ -20,7 +20,6 @@ const (
 	SettingPalDefenderPort          = "paldefender.port"
 	SettingPalDefenderToken         = "paldefender.token"
 	SettingPalDefenderBasePath      = "paldefender.base_path"
-	SettingProtonPath               = "proton.path"                   // Proton 可执行文件路径（为空则自动检测）
 	SettingPalDefenderAntiCheat     = "paldefender.anticheat_enabled" // PalDefender 反作弊总开关
 	SettingPalDefenderCheatersKick  = "paldefender.cheaters_kick"     // 检测到作弊者踢出
 	SettingPalDefenderCheatersBan   = "paldefender.cheaters_ban"      // 检测到作弊者封禁
@@ -43,7 +42,6 @@ func DefaultSettings() map[string]string {
 		SettingPalDefenderPort:     "17993",
 		SettingPalDefenderToken:    "",
 		SettingPalDefenderBasePath: "/v1/pdapi",
-		SettingProtonPath:          "",
 
 		SettingPalDefenderAntiCheat:     "true",
 		SettingPalDefenderCheatersKick:  "true",

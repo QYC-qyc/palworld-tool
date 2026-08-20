@@ -39,13 +39,13 @@
           <div class="status-cell">
             <div class="status-cell__label">运行模式</div>
             <n-tag type="info" size="small" round :bordered="false">
-              <n-icon :component="LogoWindows" style="vertical-align:-2px;margin-right:4px" />Proton / Windows
+              <n-icon :component="LogoWindows" style="vertical-align:-2px;margin-right:4px" />Windows
             </n-tag>
           </div>
         </n-gi>
         <n-gi>
           <div class="status-cell">
-            <div class="status-cell__label">Windows 版 (Proton)</div>
+            <div class="status-cell__label">Windows 版</div>
             <n-tag :type="status?.status?.windows_installed ? 'success' : 'default'" size="small" round :bordered="false">
               {{ status?.status?.windows_installed ? '已安装' : '未安装' }}
             </n-tag>
@@ -85,7 +85,7 @@
         <n-grid cols="1 s:2" :x-gap="16" responsive="screen">
           <n-gi>
             <n-form-item label="SteamCMD 目录">
-              <n-input v-model:value="cfg.steamcmd_path" placeholder="文件夹，如 /root/steamcmd">
+              <n-input v-model:value="cfg.steamcmd_path" placeholder="文件夹，如 C:\steamcmd">
                 <template #suffix>
                   <n-button size="tiny" type="primary" ghost :loading="steamcmdInstalling"
                     @click="installSteamCmd">安装</n-button>
@@ -98,7 +98,7 @@
           </n-gi>
           <n-gi>
             <n-form-item label="游戏安装目录">
-              <n-input v-model:value="cfg.install_dir" placeholder="文件夹，如 /root/PalServer">
+              <n-input v-model:value="cfg.install_dir" placeholder="文件夹，如 C:\PalServer">
                 <template #suffix>
                   <n-button size="tiny" quaternary :loading="verifying === 'server'" @click="verifyPath('server')">
                     验证
@@ -354,7 +354,7 @@ async function doInstall() {
 // 一键下载安装 SteamCMD 到配置目录
 async function installSteamCmd() {
   if (!cfg.steamcmd_path) {
-    message.warning('请先在上方填写 SteamCMD 目录（如 /root/steamcmd）')
+    message.warning('请先在上方填写 SteamCMD 目录（如 C:\\steamcmd）')
     return
   }
   steamcmdInstalling.value = true

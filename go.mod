@@ -10,6 +10,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	go.etcd.io/bbolt v1.3.8
 	go.uber.org/zap v1.27.0
+	golang.org/x/sys v0.15.0
 )
 
 require (
@@ -48,7 +49,6 @@ require (
 	golang.org/x/crypto v0.16.0 // indirect
 	golang.org/x/exp v0.0.0-20231219180239-dc181d75b848 // indirect
 	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

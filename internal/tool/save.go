@@ -84,13 +84,13 @@ func Decode(path string) error {
 
 // EffectiveSavePath 返回实际使用的存档目录：
 // 优先使用用户配置的 save.path；为空时从游戏安装目录自动推导
-// （Windows 版装在 <install_dir>/PalServer-Win，存档在其下 Pal/Saved）。
+// （Windows 原生服务端存档在 <install_dir>/Pal/Saved）。
 func EffectiveSavePath() string {
 	if p := viper.GetString("save.path"); p != "" {
 		return p
 	}
 	if installDir := viper.GetString("gamesrv.install_dir"); installDir != "" {
-		return filepath.Join(installDir, "PalServer-Win", "Pal", "Saved")
+		return filepath.Join(installDir, "Pal", "Saved")
 	}
 	return ""
 }

@@ -71,13 +71,17 @@ func backupTask() {
 	logger.Infof("自动备份完成: %s", path)
 }
 
-// isGameRunning 检查游戏服进程是否在运行（按面板运行模式选择进程名）
+// isGameRunning 检查游戏服进程是否在运行
 func isGameRunning() bool {
+	const exeName = "PalServer-Win64-Shipping-Cmd.exe"
 	if runtime.GOOS == "windows" {
-		return false
+		out, err := exec.Command("tasklist", "/FI", "IMAGENAME eq "+exeName, "/FO", "CSV", "/NH").Output()
+		if err != nil {
+			return false
+		}
+		return strings.Contains(string(out), exeName)
 	}
-	// 仅 Windows 版游戏服（通过 Proton 运行）
-	out, err := exec.Command("pgrep", "-f", "PalServer-Win64-Shipping-Cmd.exe").Output()
+	out, err := exec.Command("pgrep", "-f", exeName).Output()
 	if err != nil {
 		return false
 	}

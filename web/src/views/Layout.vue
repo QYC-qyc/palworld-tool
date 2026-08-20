@@ -66,7 +66,7 @@
 
           <n-tag type="info" size="small" round :bordered="false" class="mode-tag">
             <n-icon :component="LogoWindows" size="14" style="vertical-align:-2px;margin-right:4px" />
-            Proton / Windows
+            Windows
           </n-tag>
 
           <n-button quaternary circle @click="toggleTheme" aria-label="切换主题">

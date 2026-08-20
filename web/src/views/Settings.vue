@@ -78,7 +78,7 @@
                 </template>
                 <div class="tooltip-content">
                   由 PalDefender 在游戏进程内实时检测作弊（非法属性、违禁物品、作弊指令等）。
-                  需安装 Proton 与 PalDefender。关闭后下方处置选项均不生效，
+                  需安装 PalDefender。关闭后下方处置选项均不生效，
                   保存时会写入 PalDefender/Config.json 并热重载。
                 </div>
               </n-tooltip>

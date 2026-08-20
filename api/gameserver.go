@@ -65,13 +65,10 @@ func (g *gameServerAPI) verify(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"steam_ok":           st.SteamReady,
-		"steam_exe":          st.SteamExe,
-		"server_ok":          st.Installed,
-		"server_exe":         st.ServerExe,
-		"windows_server_ok":  st.WindowsInstalled,
-		"windows_server_exe": st.WindowsExe,
-		"proton_mode":        st.ProtonMode,
+		"steam_ok":   st.SteamReady,
+		"steam_exe":  st.SteamExe,
+		"server_ok":  st.Installed,
+		"server_exe": st.ServerExe,
 	})
 }
 

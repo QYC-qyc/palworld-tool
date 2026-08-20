@@ -22,20 +22,11 @@
 
         <n-card title="PalDefender 反作弊" size="small">
           <n-alert type="info" :show-icon="false" style="margin-bottom:16px">
-            PalDefender 是进程级实时反作弊插件（Windows DLL），通过 Proton 在 Linux 上运行 Windows 版服务端。
+            PalDefender 是进程级实时反作弊插件（Windows DLL），安装到游戏目录后拦截作弊行为。
             安装后会拦截玩家作弊操作（属性修改、非法物品、违禁科技等），实时性远高于外部检测。
           </n-alert>
 
           <n-descriptions :column="1" label-placement="left" bordered size="small">
-            <n-descriptions-item label="Proton 状态">
-              <n-tag v-if="status.proton_present" type="success" size="small">
-                已安装 {{ status.proton_version }}
-              </n-tag>
-              <n-tag v-else type="error" size="small">未安装</n-tag>
-            </n-descriptions-item>
-            <n-descriptions-item label="Proton 路径">
-              {{ status.proton_path || '-' }}
-            </n-descriptions-item>
             <n-descriptions-item label="游戏 Win64 目录">
               {{ status.win64_path || '未找到' }}
             </n-descriptions-item>
@@ -52,41 +43,16 @@
           </n-descriptions>
         </n-card>
 
-        <n-card title="Proton 运行环境" size="small">
-          <n-space vertical>
-            <n-space>
-              <n-button @click="refreshStatus" :loading="loading">刷新状态</n-button>
-              <n-button type="primary" @click="installProton" :loading="protonInstalling">
-                {{ status.proton_present ? '重新安装 / 更新 Proton' : '一键安装 Proton' }}
-              </n-button>
-              <n-popconfirm v-if="status.proton_present" @positive-click="uninstallProton">
-                <template #trigger>
-                  <n-button type="error" ghost>卸载 Proton</n-button>
-                </template>
-                确定要卸载 Proton 吗？
-              </n-popconfirm>
-              <n-popconfirm v-if="status.wine_installed" @positive-click="uninstallWine">
-                <template #trigger>
-                  <n-button type="warning" ghost>卸载旧版 Wine</n-button>
-                </template>
-                检测到旧版 Wine，Proton 不再依赖它。确定要卸载 Wine 吗？
-              </n-popconfirm>
-            </n-space>
-            <n-text depth="3" style="font-size:12px">
-              {{ status.proton_present ? 'Proton 已就绪，可以安装 PalDefender。' : 'PalDefender 需要 Proton 才能在 Linux 上运行 Windows 版服务端。' }}
-            </n-text>
-          </n-space>
-        </n-card>
-
         <n-card title="PalDefender 插件" size="small">
           <n-space vertical>
             <n-space>
-              <n-button type="primary" @click="install" :loading="installing" :disabled="!status.proton_present">
+              <n-button @click="refreshStatus" :loading="loading">刷新状态</n-button>
+              <n-button type="primary" @click="install" :loading="installing">
                 {{ status.d3d9_exists && status.pd_exists ? '更新 PalDefender' : '安装 PalDefender' }}
               </n-button>
               <n-popconfirm v-if="status.d3d9_exists || status.pd_exists" @positive-click="uninstall">
                 <template #trigger>
-                  <n-button type="error" ghost :disabled="!status.proton_present">卸载</n-button>
+                  <n-button type="error" ghost>卸载</n-button>
                 </template>
                 确定要卸载 PalDefender 吗？将删除 DLL 和配置目录。
               </n-popconfirm>
@@ -95,7 +61,7 @@
               未找到 Win64 目录，安装时会自动创建
             </n-alert>
             <n-text depth="3" style="font-size:12px">
-              安装后需通过 Proton 启动 Windows 版游戏服才能加载 DLL。
+              安装后启动游戏服即可加载 DLL。
             </n-text>
           </n-space>
         </n-card>
@@ -333,19 +299,6 @@
     </n-space>
   </n-modal>
 
-  <!-- Proton 安装进度弹窗 -->
-  <n-modal v-model:show="showProtonProgress" preset="card" title="安装 Proton"
-    style="max-width:600px" :mask-closable="false">
-    <n-space vertical>
-      <n-progress type="line" :percentage="protonPercent"
-        :status="protonDone ? (protonSuccess ? 'success' : 'error') : 'default'"
-        :indicator-placement="'inside'" />
-      <n-text>{{ protonMessage || '准备安装...' }}</n-text>
-      <n-text v-if="protonError" depth="3" style="font-size:12px;color:#d03050">{{ protonError }}</n-text>
-      <pre ref="protonLogEl" class="log-pre">{{ protonLog || '等待输出...' }}</pre>
-    </n-space>
-  </n-modal>
-
   <!-- PalDefender 安装进度弹窗 -->
   <n-modal v-model:show="showPdProgress" preset="card" title="安装 PalDefender"
     style="max-width:520px" :mask-closable="false">
@@ -360,7 +313,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, nextTick, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
   NButton, NText, NModal, NProgress, NPopconfirm, NTabs, NTabPane,
@@ -460,22 +413,6 @@ const pdDone = ref(false)
 const pdSuccess = ref(false)
 const pdError = ref('')
 
-/* Proton 安装状态 */
-const protonInstalling = ref(false)
-const showProtonProgress = ref(false)
-const protonPercent = ref(0)
-const protonMessage = ref('')
-const protonDone = ref(false)
-const protonSuccess = ref(false)
-const protonError = ref('')
-const protonLog = ref('')
-const protonLogEl = ref<HTMLElement | null>(null)
-
-function scrollProtonLog() {
-  if (protonLogEl.value) protonLogEl.value.scrollTop = protonLogEl.value.scrollHeight
-}
-let protonTimer: number | null = null
-
 const token = () => localStorage.getItem('paladmin_token') || ''
 
 async function refreshStatus() {
@@ -554,84 +491,6 @@ async function uninstall() {
     const data = await resp.json()
     if (resp.ok && data.success) {
       message.success(data.message || '已卸载')
-    } else {
-      message.error(data.error || '卸载失败')
-    }
-    await refreshStatus()
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
-/* ============ Proton 安装/卸载 ============ */
-async function installProton() {
-  protonInstalling.value = true
-  showProtonProgress.value = true
-  protonPercent.value = 0
-  protonMessage.value = '开始安装 Proton...'
-  protonDone.value = false
-  protonSuccess.value = false
-  protonError.value = ''
-  protonLog.value = ''
-  if (protonTimer) clearInterval(protonTimer)
-
-  try {
-    const r = await api.installProton()
-    if (r && r.running === false) {
-      protonError.value = r.message || '无法开始安装'
-      protonDone.value = true
-      protonInstalling.value = false
-      return
-    }
-    protonTimer = window.setInterval(async () => {
-      try {
-        const d = await api.getProtonStatus()
-        if (typeof d.percent === 'number') protonPercent.value = d.percent
-        if (d.message) protonMessage.value = d.message
-        if (d.error) protonError.value = d.error
-        if (d.log) {
-          protonLog.value = d.log
-          await nextTick(scrollProtonLog)
-        }
-        if (d.done) {
-          if (protonTimer) clearInterval(protonTimer)
-          protonDone.value = true
-          protonSuccess.value = !!d.success
-          protonInstalling.value = false
-          if (d.success) {
-            message.success('Proton 安装成功')
-            await refreshStatus()
-            setTimeout(() => { showProtonProgress.value = false }, 3000)
-          }
-        }
-      } catch { /* ignore */ }
-    }, 1000)
-  } catch (e: any) {
-    protonError.value = e.message
-    protonDone.value = true
-    protonInstalling.value = false
-  }
-}
-
-async function uninstallProton() {
-  try {
-    await api.uninstallProton()
-    message.success('Proton 已卸载')
-    await refreshStatus()
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
-async function uninstallWine() {
-  try {
-    const resp = await fetch('/api/paldefender/uninstall-wine', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token()}` },
-    })
-    const data = await resp.json()
-    if (resp.ok && data.success) {
-      message.success(data.message || 'Wine 已卸载')
     } else {
       message.error(data.error || '卸载失败')
     }
@@ -1064,14 +923,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.log-pre {
-  background: #1e1e1e;
-  color: #d4d4d4;
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  max-height: 300px;
-  overflow: auto;
-  white-space: pre-wrap;
-}
 </style>

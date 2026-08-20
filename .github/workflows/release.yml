@@ -14,7 +14,6 @@ jobs:
   build:
     # 仅在推送 tag 或手动触发时构建
     if: github.event_name != 'delete'
-    # 使用 22.04 而非 latest，确保 glibc 兼容 Ubuntu 22.04/Debian 12 等主流服务器
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -40,23 +39,19 @@ jobs:
           pip3 install -r module/requirements.txt pyinstaller
           pyinstaller --onefile --name sav_cli module/sav_cli.py
 
-      - name: Build binaries
+      - name: Build Windows binary & package zip
         run: |
           mkdir -p dist
           cp -r web/dist dist/web
           cp dist/sav_cli dist/ 2>/dev/null || true
           cp -r data dist/
-          cp deploy/paladmin.service dist/
-          # amd64
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+          # Windows amd64
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 \
             go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
-            -o dist/paladmin .
-          tar -czf paladmin_linux_amd64.tar.gz -C dist paladmin web data sav_cli paladmin.service
-          # arm64
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
-            go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
-            -o dist/paladmin .
-          tar -czf paladmin_linux_arm64.tar.gz -C dist paladmin web data sav_cli paladmin.service
+            -o dist/paladmin.exe .
+          cd dist
+          zip -rq ../paladmin_windows_amd64.zip paladmin.exe web data sav_cli
+          cd ..
 
       - name: Upload to GitHub Release
         env:
@@ -64,21 +59,17 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -e
-          # 创建 release（若已存在则忽略）
           gh release create "$TAG" \
             --title "$TAG" \
-            --notes "Release $TAG" \
+            --notes "Release $TAG (Windows)" \
             || echo "release $TAG 已存在，继续上传"
-          # 逐个上传，失败重试 5 次（覆盖同名文件）
-          for f in paladmin_linux_amd64.tar.gz paladmin_linux_arm64.tar.gz; do
-            for attempt in 1 2 3 4 5; do
-              if gh release upload "$TAG" "$f" --clobber; then
-                echo "$f 上传成功"
-                break
-              fi
-              echo "$f 上传失败，第 $attempt 次重试..."
-              sleep $((attempt * 5))
-            done
+          for attempt in 1 2 3 4 5; do
+            if gh release upload "$TAG" paladmin_windows_amd64.zip --clobber; then
+              echo "上传成功"
+              break
+            fi
+            echo "上传失败，第 $attempt 次重试..."
+            sleep $((attempt * 5))
           done
 
   cleanup:
@@ -92,7 +83,6 @@ jobs:
           TAG: ${{ github.event.ref }}
         run: |
           set +e
-          # 如果 tag 又被重新推送回来（同名重发版），不删 release，避免竞态
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
             echo "tag ${TAG} 仍存在（可能重新推送），跳过删除 release"
             exit 0

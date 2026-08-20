@@ -3,7 +3,6 @@ package api
 import (
 	"go.etcd.io/bbolt"
 	"paladmin/internal/config"
-	"paladmin/service"
 )
 
 var (
@@ -20,6 +19,5 @@ func SetDeps(database *bbolt.DB, c *config.Config) {
 	gameAPI, _ = newGameServerAPI()
 	if gameAPI != nil && db != nil {
 		gameAPI.mgr.SetConfig(loadGameServerConfig())
-		gameAPI.mgr.SetSettingGetter(func(k string) string { return service.GetSetting(db, k) })
 	}
 }

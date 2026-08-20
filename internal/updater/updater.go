@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -73,13 +72,21 @@ func normalizeVersion(v string) string {
 }
 
 func assetName() string {
-	switch runtime.GOARCH {
-	case "amd64":
-		return "paladmin_linux_amd64.tar.gz"
-	case "arm64":
-		return "paladmin_linux_arm64.tar.gz"
-	default:
+	switch runtime.GOOS {
+	case "windows":
+		if runtime.GOARCH == "amd64" {
+			return "paladmin_windows_amd64.zip"
+		}
 		return ""
+	default: // linux 等
+		switch runtime.GOARCH {
+		case "amd64":
+			return "paladmin_linux_amd64.tar.gz"
+		case "arm64":
+			return "paladmin_linux_arm64.tar.gz"
+		default:
+			return ""
+		}
 	}
 }
 
@@ -89,13 +96,10 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 	if onProgress == nil {
 		onProgress = func(Progress) {}
 	}
-	if runtime.GOOS != "linux" {
-		return fmt.Errorf("在线更新仅支持 Linux")
-	}
 
 	asset := assetName()
 	if asset == "" {
-		return fmt.Errorf("不支持的架构: %s", runtime.GOARCH)
+		return fmt.Errorf("不支持的平台/架构: %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
 
 	var downloadURL string
@@ -106,9 +110,13 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 		}
 	}
 	if downloadURL == "" {
-		// 尝试旧命名
+		// 回退：按架构和文件后缀模糊匹配
+		ext := ".tar.gz"
+		if runtime.GOOS == "windows" {
+			ext = ".zip"
+		}
 		for _, a := range rel.Assets {
-			if strings.Contains(a.Name, runtime.GOARCH) && strings.HasSuffix(a.Name, ".tar.gz") {
+			if strings.Contains(a.Name, runtime.GOARCH) && strings.HasSuffix(a.Name, ext) {
 				downloadURL = a.BrowserDownloadURL
 				asset = a.Name
 				break
@@ -119,8 +127,8 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 		return fmt.Errorf("最新版本未找到 %s", asset)
 	}
 
-	tmpTar := filepath.Join(os.TempDir(), asset)
-	defer os.Remove(tmpTar)
+	tmpFile := filepath.Join(os.TempDir(), asset)
+	defer os.Remove(tmpFile)
 
 	var totalSize int64
 	for _, a := range rel.Assets {
@@ -141,7 +149,7 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 		url := prefix + downloadURL
 		label := ghub.MirrorLabel(prefix)
 		onProgress(Progress{Stage: "download", Message: fmt.Sprintf("镜像 %d/%d（%s）下载中...", i+1, len(rankedMirrors), label), Percent: 0, Version: rel.TagName})
-		if err := downloadWithProgress(url, tmpTar, totalSize, func(pct float64, speed string) {
+		if err := downloadWithProgress(url, tmpFile, totalSize, func(pct float64, speed string) {
 			onProgress(Progress{Stage: "download", Message: fmt.Sprintf("%s 下载中 %s", label, speed), Percent: pct, Version: rel.TagName})
 		}); err != nil {
 			lastErr = err
@@ -156,42 +164,7 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 	}
 
 	onProgress(Progress{Stage: "extract", Message: "解压文件...", Percent: 92})
-	// 先解压到临时目录（不能 defer 删除，替换脚本还要用）
-	tmpDir := filepath.Join(os.TempDir(), "paladmin-update-"+time.Now().Format("20060102150405"))
-	if err := os.MkdirAll(tmpDir, 0755); err != nil {
-		return fmt.Errorf("创建临时目录失败: %w", err)
-	}
-
-	// 用系统 tar 命令解压
-	cmd := exec.Command("tar", "-xzf", tmpTar, "-C", tmpDir)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		os.RemoveAll(tmpDir)
-		return fmt.Errorf("解压失败: %w: %s", err, string(out))
-	}
-
-	// 设置权限
-	_ = os.Chmod(filepath.Join(tmpDir, "paladmin"), 0755)
-	if sav := filepath.Join(tmpDir, "sav_cli"); fileExists(sav) {
-		_ = os.Chmod(sav, 0755)
-	}
-
-	onProgress(Progress{Stage: "restart", Message: "正在替换文件并重启...", Percent: 97})
-	// 替换脚本：sleep 等待当前进程退出，然后复制文件、清理临时目录、重启服务
-	replaceScript := fmt.Sprintf(`sleep 2
-cp -rf %s/* %s/
-chmod +x %s/paladmin
-[ -f %s/sav_cli ] && chmod +x %s/sav_cli
-rm -rf %s
-systemctl restart %s
-`, tmpDir, installDir, installDir, tmpDir, tmpDir, tmpDir, service)
-	cmd = exec.Command("setsid", "bash", "-c", replaceScript)
-	cmd.SysProcAttr = newSysProcAttr()
-	if err := cmd.Start(); err != nil {
-		os.RemoveAll(tmpDir)
-		return fmt.Errorf("启动替换脚本失败: %w", err)
-	}
-
-	return nil
+	return applyUpdate(asset, tmpFile, installDir, service, onProgress)
 }
 
 func downloadWithProgress(url, dst string, totalSize int64, onProgress func(float64, string)) error {

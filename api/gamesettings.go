@@ -12,13 +12,13 @@ import (
 	"paladmin/service"
 )
 
-// iniFallbackPath 当未配置安装目录时使用的兜底路径（Windows 版，Proton 运行）
-const iniFallbackPath = "/www/palworld-tool/game/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini"
+// iniFallbackPath 当未配置安装目录时使用的兜底路径（Windows 原生）
+const iniFallbackPath = `C:\PalServer\Pal\Saved\Config\WindowsServer\PalWorldSettings.ini`
 
 // iniPath 解析 Windows 版游戏服的 PalWorldSettings.ini 完整路径。
-// 面板仅管理 Windows 版服务端（通过 Proton 运行），配置固定在 WindowsServer 目录。
+// 面板直接管理 Windows 版服务端，配置固定在 WindowsServer 目录。
 //  1. 环境变量 PALWORLD_INI_PATH 显式指定时优先；
-//  2. 否则使用 <install_dir>/PalServer-Win/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini。
+//  2. 否则使用 <install_dir>/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini。
 func iniPath() string {
 	if p := os.Getenv("PALWORLD_INI_PATH"); p != "" {
 		return p
@@ -34,7 +34,7 @@ func iniPath() string {
 	if installDir == "" {
 		return iniFallbackPath
 	}
-	return filepath.Join(installDir, "PalServer-Win", "Pal", "Saved", "Config", "WindowsServer", "PalWorldSettings.ini")
+	return filepath.Join(installDir, "Pal", "Saved", "Config", "WindowsServer", "PalWorldSettings.ini")
 }
 
 type gameSettingsAPI struct{}

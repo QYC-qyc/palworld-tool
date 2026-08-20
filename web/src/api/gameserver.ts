@@ -5,7 +5,6 @@ export interface GameServerStatus {
   status?: {
     installed: boolean
     windows_installed: boolean
-    proton_mode: boolean
     steam_ready: boolean
     running: boolean
     updating: boolean
