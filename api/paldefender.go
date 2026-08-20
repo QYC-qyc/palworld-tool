@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -256,6 +257,58 @@ func detectOS() (id, version string) {
 	return id, version
 }
 
+// ensureBox64 检测 box64 是否已安装，未安装则尝试安装。
+// ARM64 服务器上运行 x86_64 Windows 游戏需要 box64 做指令转译。
+// 已安装返回 nil；无法自动安装时返回 error（调用方决定是否继续）。
+func ensureBox64(isDebian bool, aptEnv []string, logWrite func(string)) error {
+	// 1. 检测是否已存在 box64
+	if _, err := exec.LookPath("box64"); err == nil {
+		logWrite("检测到 box64 已安装。\n")
+		return nil
+	}
+
+	logWrite("未检测到 box64，尝试安装...\n")
+
+	var cmds [][]string
+	if isDebian {
+		// 通过 box64 官方源安装（适用于 Debian/Ubuntu arm64）
+		cmds = [][]string{
+			{"apt-get", "install", "-y", "--no-install-recommends", "curl", "gpg", "ca-certificates"},
+			// 添加 box64 官方 APT 源
+			{"bash", "-c", `mkdir -p /etc/apt/keyrings && curl -fsSL https://pi-apps.oxymx2.com/box64.list -o /etc/apt/sources.list.d/box64.list 2>/dev/null || true`},
+			{"apt-get", "update", "-y"},
+			{"apt-get", "install", "-y", "--no-install-recommends", "box64"},
+		}
+	} else {
+		// Arch ARM
+		cmds = [][]string{
+			{"pacman", "-Sy", "--noconfirm", "--needed", "box64"},
+		}
+	}
+
+	for _, args := range cmds {
+		logWrite("$ " + strings.Join(args, " ") + "\n")
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Env = aptEnv
+		setSysProcAttr(cmd)
+		out, err := cmd.CombinedOutput()
+		if len(out) > 0 {
+			logWrite(string(out) + "\n")
+		}
+		if err != nil {
+			// 安装失败不致命，返回错误让调用方提示用户手动安装
+			return fmt.Errorf("安装 box64 失败（%s）: %w", args[0], err)
+		}
+	}
+
+	// 再次确认
+	if _, err := exec.LookPath("box64"); err != nil {
+		return errors.New("box64 安装命令执行完成但仍未找到 box64 可执行文件")
+	}
+	logWrite("box64 安装成功。\n")
+	return nil
+}
+
 // installProton 后台执行 GE-Proton 安装，立即返回
 func (p *palDefenderAPI) installProton(c *gin.Context) {
 	if runtime.GOOS != "linux" {
@@ -365,6 +418,18 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 			fixCmd := exec.Command("apt-get", "install", "-y", "-f")
 			fixCmd.Env = aptEnv
 			_ = fixCmd.Run()
+		}
+
+		// 2.5 ARM64 上需要 box64 转译 x86_64（GE-Proton aarch64 运行 Windows x86_64 游戏必需）
+		if runtime.GOARCH == "arm64" {
+			setProtonProgress(55, "检测 box64（x86_64 转译层）...")
+			if err := ensureBox64(isDebian, aptEnv, logWrite); err != nil {
+				logWrite("警告: " + err.Error() + "\n")
+				logWrite("ARM64 服务器上没有 box64，将无法运行 x86_64 的 Windows 游戏服。\n")
+				logWrite("请参考 https://github.com/ptitSeb/box64 手动安装后重试。\n")
+			} else {
+				logWrite("box64 已就绪。\n")
+			}
 		}
 
 		// 3. 下载最新 GE-Proton（70%）—— 经镜像获取版本，避免直连 GitHub API 卡住

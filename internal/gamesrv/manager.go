@@ -329,6 +329,12 @@ func (m *Manager) checkProtonReady() error {
 	if _, err := os.Stat(exe); err != nil {
 		return errors.New("未找到 Windows 版服务端，请先在「游戏服」页点击安装")
 	}
+	// b2) ARM64 上运行 x86_64 Windows 游戏需要 box64 转译层
+	if runtime.GOARCH == "arm64" {
+		if _, err := exec.LookPath("box64"); err != nil {
+			return errors.New("ARM64 服务器需要 box64 才能运行 x86_64 Windows 游戏服，请在「PalDefender」页一键安装 Proton（会自动安装 box64）或手动安装 box64")
+		}
+	}
 	// c) PalDefender DLL（可选——反作弊未安装时给出警告但不阻止启动，
 	//    游戏服本身通过 Proton 即可运行）
 	win64 := filepath.Join(m.winInstallDir(), "Pal", "Binaries", "Win64")
