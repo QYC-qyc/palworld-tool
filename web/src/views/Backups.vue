@@ -8,22 +8,42 @@
     </PageHeader>
 
     <n-card size="small">
-      <n-data-table :columns="cols" :data="backups" :bordered="false" size="small" :pagination="{ pageSize: 30, prefix: ({ itemCount }) => `共 ${itemCount} 个备份` }" />
+      <n-space style="margin-bottom:12px">
+        <n-input v-model:value="keyword" placeholder="搜索备份文件名..." clearable style="max-width:320px">
+          <template #prefix><n-icon :component="SearchOutline" /></template>
+        </n-input>
+      </n-space>
+      <n-data-table :columns="cols" :data="filteredBackups" :bordered="false" size="small"
+        :pagination="{ pageSize: 30, prefix: ({ itemCount }) => `共 ${itemCount} 个备份` }" />
     </n-card>
   </n-space>
 </template>
 
 <script setup lang="ts">
-import { h, onMounted, ref } from 'vue'
-import { NCard, NDataTable, NButton, NPopconfirm, NIcon, useMessage } from 'naive-ui'
+import { computed, h, onMounted, ref } from 'vue'
+import { NCard, NDataTable, NButton, NPopconfirm, NIcon, NInput, NSpace, useMessage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { RefreshOutline, ArchiveOutline } from '@vicons/ionicons5'
+import { RefreshOutline, ArchiveOutline, SearchOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
 import PageHeader from '@/components/PageHeader.vue'
 
 const message = useMessage()
 const backups = ref<any[]>([])
 const loading = ref(false)
+const keyword = ref('')
+
+const filteredBackups = computed(() => {
+  const k = keyword.value.trim().toLowerCase()
+  const list = k
+    ? backups.value.filter((b) => String(b.path || b.backup_id || '').toLowerCase().includes(k))
+    : backups.value
+  // 按时间倒序（最新在前）
+  return [...list].sort((a, b) => {
+    const ta = new Date(a.save_time || 0).getTime()
+    const tb = new Date(b.save_time || 0).getTime()
+    return tb - ta
+  })
+})
 
 const cols: DataTableColumns<any> = [
   {

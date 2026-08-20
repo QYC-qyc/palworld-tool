@@ -33,8 +33,8 @@ func restoreBackup(c *gin.Context) {
 			_ = c.Error(err)
 		}
 	}()
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "回档已开始：停服→恢复存档→启服，过程可能需要数十秒",
+	c.JSON(http.StatusOK, SuccessResponse{
+		Success: true,
+		Message: "回档已开始：停服→恢复存档→启服，过程可能需要数十秒",
 	})
 }

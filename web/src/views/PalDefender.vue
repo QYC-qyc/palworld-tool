@@ -342,7 +342,7 @@
         :indicator-placement="'inside'" />
       <n-text>{{ protonMessage || '准备安装...' }}</n-text>
       <n-text v-if="protonError" depth="3" style="font-size:12px;color:#d03050">{{ protonError }}</n-text>
-      <pre class="log-pre">{{ protonLog || '等待输出...' }}</pre>
+      <pre ref="protonLogEl" class="log-pre">{{ protonLog || '等待输出...' }}</pre>
     </n-space>
   </n-modal>
 
@@ -360,7 +360,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, nextTick, onMounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
   NButton, NText, NModal, NProgress, NPopconfirm, NTabs, NTabPane,
@@ -469,6 +469,11 @@ const protonDone = ref(false)
 const protonSuccess = ref(false)
 const protonError = ref('')
 const protonLog = ref('')
+const protonLogEl = ref<HTMLElement | null>(null)
+
+function scrollProtonLog() {
+  if (protonLogEl.value) protonLogEl.value.scrollTop = protonLogEl.value.scrollHeight
+}
 let protonTimer: number | null = null
 
 const token = () => localStorage.getItem('paladmin_token') || ''
@@ -584,7 +589,10 @@ async function installProton() {
         if (typeof d.percent === 'number') protonPercent.value = d.percent
         if (d.message) protonMessage.value = d.message
         if (d.error) protonError.value = d.error
-        if (d.log) protonLog.value = d.log
+        if (d.log) {
+          protonLog.value = d.log
+          await nextTick(scrollProtonLog)
+        }
         if (d.done) {
           if (protonTimer) clearInterval(protonTimer)
           protonDone.value = true
