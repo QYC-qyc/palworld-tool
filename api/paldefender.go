@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -140,13 +141,6 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 		}
 
 		setProgress(10, "检查最新版本...")
-		resp, err := httpClient.Get(palDefenderVersionAPI)
-		if err != nil {
-			pdTask.Lock()
-			pdTask.errMsg = "检查版本失败: " + err.Error()
-			pdTask.Unlock()
-			return
-		}
 		var rel struct {
 			TagName string `json:"tag_name"`
 			Assets  []struct {
@@ -154,14 +148,12 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 				BrowserDownloadURL string `json:"browser_download_url"`
 			} `json:"assets"`
 		}
-		if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
-			resp.Body.Close()
+		if err := fetchGitHubRelease(palDefenderVersionAPI, &rel); err != nil {
 			pdTask.Lock()
-			pdTask.errMsg = "解析版本失败: " + err.Error()
+			pdTask.errMsg = "检查版本失败: " + err.Error()
 			pdTask.Unlock()
 			return
 		}
-		resp.Body.Close()
 
 		dlMirrors := []string{
 			"https://ghfast.top/",
@@ -394,15 +386,8 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 			_ = fixCmd.Run()
 		}
 
-		// 3. 下载最新 GE-Proton（70%）
+		// 3. 下载最新 GE-Proton（70%）—— 经镜像获取版本，避免直连 GitHub API 卡住
 		setProtonProgress(70, "获取 GE-Proton 最新版本...")
-		resp, err := httpClient.Get(protonGeReleasesAPI)
-		if err != nil {
-			protonTask.mu.Lock()
-			protonTask.errMsg = "获取 GE-Proton 版本失败: " + err.Error()
-			protonTask.mu.Unlock()
-			return
-		}
 		var rel struct {
 			TagName string `json:"tag_name"`
 			Assets  []struct {
@@ -410,14 +395,12 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 				BrowserDownloadURL string `json:"browser_download_url"`
 			} `json:"assets"`
 		}
-		if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
-			resp.Body.Close()
+		if err := fetchGitHubRelease(protonGeReleasesAPI, &rel); err != nil {
 			protonTask.mu.Lock()
-			protonTask.errMsg = "解析 GE-Proton 版本失败: " + err.Error()
+			protonTask.errMsg = "获取 GE-Proton 版本失败: " + err.Error()
 			protonTask.mu.Unlock()
 			return
 		}
-		resp.Body.Close()
 
 		var tarballURL string
 		for _, a := range rel.Assets {
@@ -674,4 +657,48 @@ func downloadFile(url, dst string) error {
 	defer out.Close()
 	_, err = io.Copy(out, resp.Body)
 	return err
+}
+
+// githubAPIMirrors 返回 GitHub API 的镜像前缀（含直连）。
+// 国内直连 api.github.com 常超时，通过这些代理加速。
+var githubAPIMirrors = []string{
+	"", // 直连
+	"https://ghproxy.net/https://",
+	"https://ghfast.top/https://",
+}
+
+// fetchGitHubRelease 经多个镜像尝试获取 GitHub 最新 release，解析到 out。
+// 每个请求用独立短超时，避免在不可达的镜像上长时间卡住。
+func fetchGitHubRelease(apiURL string, out interface{}) error {
+	shortClient := &http.Client{Timeout: 20 * time.Second}
+	var lastErr error
+	for _, prefix := range githubAPIMirrors {
+		url := prefix + apiURL
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		req.Header.Set("User-Agent", "PalAdmin")
+		resp, err := shortClient.Do(req)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
+			lastErr = fmt.Errorf("HTTP %d", resp.StatusCode)
+			continue
+		}
+		err = json.NewDecoder(resp.Body).Decode(out)
+		resp.Body.Close()
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+	}
+	if lastErr == nil {
+		lastErr = errors.New("所有镜像均不可用")
+	}
+	return fmt.Errorf("获取 release 失败: %w", lastErr)
 }
