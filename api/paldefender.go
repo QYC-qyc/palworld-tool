@@ -1,10 +1,7 @@
 package api
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -12,13 +9,11 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	ghub "paladmin/internal/github"
 	"paladmin/service"
 )
-
-var httpClient = &http.Client{Timeout: 5 * time.Minute}
 
 const (
 	palDefenderVersionAPI = "https://api.github.com/repos/Ultimeit/PalDefender/releases/latest"
@@ -148,18 +143,11 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 				BrowserDownloadURL string `json:"browser_download_url"`
 			} `json:"assets"`
 		}
-		if err := fetchGitHubRelease(palDefenderVersionAPI, &rel); err != nil {
+		if err := ghub.FetchRelease(palDefenderVersionAPI, &rel); err != nil {
 			pdTask.Lock()
 			pdTask.errMsg = "检查版本失败: " + err.Error()
 			pdTask.Unlock()
 			return
-		}
-
-		dlMirrors := []string{
-			"https://ghfast.top/",
-			"https://gh-proxy.com/",
-			"https://ghproxy.net/",
-			"",
 		}
 
 		dllNames := []string{palDefenderDLL1, palDefenderDLL2}
@@ -179,16 +167,9 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 				return
 			}
 			dst := filepath.Join(win64, name)
-			var ok bool
-			for _, prefix := range dlMirrors {
-				if err := downloadFile(prefix+dlURL, dst); err == nil {
-					ok = true
-					break
-				}
-			}
-			if !ok {
+			if err := ghub.DownloadToFile(dlURL, dst); err != nil {
 				pdTask.Lock()
-				pdTask.errMsg = "下载 " + name + " 失败（所有镜像不可用）"
+				pdTask.errMsg = "下载 " + name + " 失败: " + err.Error()
 				pdTask.Unlock()
 				return
 			}
@@ -395,7 +376,7 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 				BrowserDownloadURL string `json:"browser_download_url"`
 			} `json:"assets"`
 		}
-		if err := fetchGitHubRelease(protonGeReleasesAPI, &rel); err != nil {
+		if err := ghub.FetchRelease(protonGeReleasesAPI, &rel); err != nil {
 			protonTask.mu.Lock()
 			protonTask.errMsg = "获取 GE-Proton 版本失败: " + err.Error()
 			protonTask.mu.Unlock()
@@ -428,26 +409,14 @@ func (p *palDefenderAPI) installProton(c *gin.Context) {
 		tmpPath := tmpFile.Name()
 		defer os.Remove(tmpPath)
 
-		dlMirrors := []string{
-			"https://ghfast.top/",
-			"https://gh-proxy.com/",
-			"https://ghproxy.net/",
-			"",
-		}
-		var dlOk bool
-		for _, prefix := range dlMirrors {
-			if err := downloadFile(prefix+tarballURL, tmpPath); err == nil {
-				dlOk = true
-				break
-			}
-		}
-		tmpFile.Close()
-		if !dlOk {
+		if err := ghub.DownloadToFile(tarballURL, tmpPath); err != nil {
+			tmpFile.Close()
 			protonTask.mu.Lock()
-			protonTask.errMsg = "下载 GE-Proton 失败（所有镜像不可用）"
+			protonTask.errMsg = "下载 GE-Proton 失败: " + err.Error()
 			protonTask.mu.Unlock()
 			return
 		}
+		tmpFile.Close()
 
 		// 4. 解压（90%）
 		setProtonProgress(90, "解压 GE-Proton...")
@@ -641,64 +610,3 @@ func (p *palDefenderAPI) uninstall(c *gin.Context) {
 	})
 }
 
-func downloadFile(url, dst string) error {
-	resp, err := httpClient.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HTTP %d", resp.StatusCode)
-	}
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-	_, err = io.Copy(out, resp.Body)
-	return err
-}
-
-// githubAPIMirrors 返回 GitHub API 的镜像前缀（含直连）。
-// 国内直连 api.github.com 常超时，通过这些代理加速。
-var githubAPIMirrors = []string{
-	"", // 直连
-	"https://ghproxy.net/https://",
-	"https://ghfast.top/https://",
-}
-
-// fetchGitHubRelease 经多个镜像尝试获取 GitHub 最新 release，解析到 out。
-// 每个请求用独立短超时，避免在不可达的镜像上长时间卡住。
-func fetchGitHubRelease(apiURL string, out interface{}) error {
-	shortClient := &http.Client{Timeout: 20 * time.Second}
-	var lastErr error
-	for _, prefix := range githubAPIMirrors {
-		url := prefix + apiURL
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			lastErr = err
-			continue
-		}
-		req.Header.Set("User-Agent", "PalAdmin")
-		resp, err := shortClient.Do(req)
-		if err != nil {
-			lastErr = err
-			continue
-		}
-		if resp.StatusCode != http.StatusOK {
-			resp.Body.Close()
-			lastErr = fmt.Errorf("HTTP %d", resp.StatusCode)
-			continue
-		}
-		err = json.NewDecoder(resp.Body).Decode(out)
-		resp.Body.Close()
-		if err == nil {
-			return nil
-		}
-		lastErr = err
-	}
-	if lastErr == nil {
-		lastErr = errors.New("所有镜像均不可用")
-	}
-	return fmt.Errorf("获取 release 失败: %w", lastErr)
-}

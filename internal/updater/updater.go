@@ -2,7 +2,6 @@
 package updater
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +11,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	ghub "paladmin/internal/github"
 )
 
 const (
@@ -45,14 +46,6 @@ var (
 	currentVersion = "dev"
 )
 
-// 下载镜像（和 install.sh 一致）
-var dlMirrors = []string{
-	"https://ghfast.top/",
-	"https://gh-proxy.com/",
-	"https://ghproxy.net/",
-	"",
-}
-
 func SetVersion(v string) {
 	if v != "" {
 		currentVersion = v
@@ -64,31 +57,15 @@ func CurrentVersion() string {
 }
 
 func Check() (*ReleaseInfo, bool, error) {
-	cli := &http.Client{Timeout: 8 * time.Second}
-	endpoints := []string{
-		repoAPI,
-		"https://ghproxy.net/https://api.github.com/repos/QYC-qyc/palworld-tool/releases/latest",
-		"https://ghfast.top/https://api.github.com/repos/QYC-qyc/palworld-tool/releases/latest",
+	var rel ReleaseInfo
+	if err := ghub.FetchRelease(repoAPI, &rel); err != nil {
+		return nil, false, fmt.Errorf("无法连接更新服务器: %w", err)
 	}
-	for _, apiURL := range endpoints {
-		req, _ := http.NewRequest("GET", apiURL, nil)
-		req.Header.Set("User-Agent", userAgent)
-		resp, err := cli.Do(req)
-		if err != nil || resp.StatusCode != http.StatusOK {
-			if resp != nil {
-				resp.Body.Close()
-			}
-			continue
-		}
-		var rel ReleaseInfo
-		err = json.NewDecoder(resp.Body).Decode(&rel)
-		resp.Body.Close()
-		if err == nil && rel.TagName != "" && len(rel.Assets) > 0 {
-			hasUpdate := normalizeVersion(rel.TagName) != normalizeVersion(currentVersion)
-			return &rel, hasUpdate, nil
-		}
+	if rel.TagName == "" || len(rel.Assets) == 0 {
+		return nil, false, fmt.Errorf("更新信息不完整")
 	}
-	return nil, false, fmt.Errorf("无法连接更新服务器")
+	hasUpdate := normalizeVersion(rel.TagName) != normalizeVersion(currentVersion)
+	return &rel, hasUpdate, nil
 }
 
 func normalizeVersion(v string) string {
@@ -156,13 +133,13 @@ func DoUpdate(rel *ReleaseInfo, installDir, service string, onProgress func(Prog
 	onProgress(Progress{Stage: "download", Message: "正在测速选择最快镜像..."})
 	rankedMirrors := rankMirrors(downloadURL)
 	if len(rankedMirrors) == 0 {
-		rankedMirrors = dlMirrors
+		rankedMirrors = ghub.DownloadMirrors()
 	}
 
 	var lastErr error
 	for i, prefix := range rankedMirrors {
 		url := prefix + downloadURL
-		label := mirrorLabel(prefix)
+		label := ghub.MirrorLabel(prefix)
 		onProgress(Progress{Stage: "download", Message: fmt.Sprintf("镜像 %d/%d（%s）下载中...", i+1, len(rankedMirrors), label), Percent: 0, Version: rel.TagName})
 		if err := downloadWithProgress(url, tmpTar, totalSize, func(pct float64, speed string) {
 			onProgress(Progress{Stage: "download", Message: fmt.Sprintf("%s 下载中 %s", label, speed), Percent: pct, Version: rel.TagName})
@@ -275,22 +252,6 @@ func fileExists(p string) bool {
 	return err == nil
 }
 
-// mirrorLabel 返回镜像的可读名称（空串表示 GitHub 直连）。
-func mirrorLabel(prefix string) string {
-	switch {
-	case strings.Contains(prefix, "ghfast.top"):
-		return "ghfast.top"
-	case strings.Contains(prefix, "gh-proxy.com"):
-		return "gh-proxy.com"
-	case strings.Contains(prefix, "ghproxy.net"):
-		return "ghproxy.net"
-	case prefix == "":
-		return "GitHub 直连"
-	default:
-		return strings.TrimSuffix(strings.TrimPrefix(prefix, "https://"), "/")
-	}
-}
-
 // rankMirrors 对各下载镜像测速，返回按速度从快到慢排序的前缀列表。
 // 测速方法：对每个镜像的同一资源发起带 Range 的小请求（下载约 1MB），
 // 测量耗时与实际下载速率，失败/超时的镜像被剔除。GitHub 直连始终作为兜底放最后。
@@ -302,7 +263,7 @@ func rankMirrors(downloadURL string) []string {
 	probeCli := &http.Client{Timeout: 6 * time.Second}
 	var results []result
 
-	for _, prefix := range dlMirrors {
+	for _, prefix := range ghub.DownloadMirrors() {
 		url := prefix + downloadURL
 		// 请求前 1MB 用于测速（Range 0-1048575）
 		req, err := http.NewRequest("GET", url, nil)
