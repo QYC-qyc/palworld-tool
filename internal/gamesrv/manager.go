@@ -3,6 +3,7 @@
 package gamesrv
 
 import (
+	"archive/zip"
 	"bufio"
 	"errors"
 	"fmt"
@@ -186,16 +187,22 @@ func (m *Manager) installSteamCmdWindows() error {
 	tmpFile.Close()
 
 	m.logBuf.WriteString("解压 SteamCMD...\n")
-	powershell := fmt.Sprintf("Expand-Archive -Force -Path '%s' -DestinationPath '%s'", tmpPath, m.cfg.SteamCmdPath)
-	cmd := exec.Command("powershell", "-NoProfile", "-Command", powershell)
-	cmd.SysProcAttr = newSysProcAttr(true)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("解压失败: %w: %s", err, string(out))
+	if err := m.unzipSteamCmd(tmpPath); err != nil {
+		return fmt.Errorf("解压 SteamCMD 失败: %w", err)
 	}
-	steamExe := filepath.Join(m.cfg.SteamCmdPath, "steamcmd.exe")
-	if _, err := os.Stat(steamExe); err != nil {
-		return errors.New("安装完成但未找到 steamcmd.exe")
+
+	// 解压后查找 steamcmd.exe（zip 根目录或子目录都兼容）
+	steamExe := m.findSteamCmdExe()
+	if steamExe == "" {
+		// 列出目录内容用于诊断
+		entries, _ := os.ReadDir(m.cfg.SteamCmdPath)
+		names := make([]string, 0, len(entries))
+		for _, e := range entries {
+			names = append(names, e.Name())
+		}
+		return fmt.Errorf("安装完成但未找到 steamcmd.exe（目录内容: %s）", strings.Join(names, ", "))
 	}
+	m.logBuf.WriteString(fmt.Sprintf("找到 steamcmd.exe: %s\n", steamExe))
 
 	// SteamCMD 首次运行需要自更新，跑一次 +login anonymous +quit 完成初始化
 	m.logBuf.WriteString("首次运行 SteamCMD 自更新...\n")
@@ -207,6 +214,72 @@ func (m *Manager) installSteamCmdWindows() error {
 
 	m.logBuf.WriteString(fmt.Sprintf("SteamCMD 安装完成：%s\n", steamExe))
 	return nil
+}
+
+// unzipSteamCmd 用 Go 标准库解压 steamcmd.zip 到 SteamCmdPath（不依赖 PowerShell）。
+func (m *Manager) unzipSteamCmd(zipPath string) error {
+	r, err := zip.OpenReader(zipPath)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	if err := os.MkdirAll(m.cfg.SteamCmdPath, 0o755); err != nil {
+		return err
+	}
+	for _, f := range r.File {
+		// 解压到目标目录（steamcmd.zip 内文件在根目录）
+		target := filepath.Join(m.cfg.SteamCmdPath, f.Name)
+		if !strings.HasPrefix(filepath.Clean(target), filepath.Clean(m.cfg.SteamCmdPath)+string(os.PathSeparator)) {
+			return fmt.Errorf("非法路径: %s", f.Name)
+		}
+		if f.FileInfo().IsDir() {
+			_ = os.MkdirAll(target, 0o755)
+			continue
+		}
+		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+			return err
+		}
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+		out, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+		if err != nil {
+			rc.Close()
+			return err
+		}
+		_, err = io.Copy(out, rc)
+		out.Close()
+		rc.Close()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// findSteamCmdExe 在 SteamCmdPath 下查找 steamcmd.exe（根目录或一级子目录）。
+func (m *Manager) findSteamCmdExe() string {
+	// 先查根目录
+	exe := filepath.Join(m.cfg.SteamCmdPath, "steamcmd.exe")
+	if info, err := os.Stat(exe); err == nil && !info.IsDir() {
+		return exe
+	}
+	// 递归查找（最多 2 层）
+	_ = filepath.WalkDir(m.cfg.SteamCmdPath, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if !d.IsDir() && strings.EqualFold(d.Name(), "steamcmd.exe") {
+			exe = path
+			return filepath.SkipAll
+		}
+		return nil
+	})
+	if info, err := os.Stat(exe); err == nil && !info.IsDir() {
+		return exe
+	}
+	return ""
 }
 
 // Install 用 SteamCMD 安装/更新 Windows 版游戏服（阻塞直到完成，实时输出日志）。
