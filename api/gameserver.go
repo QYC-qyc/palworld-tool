@@ -87,6 +87,21 @@ func (g *gameServerAPI) install(c *gin.Context) {
 	})
 }
 
+// installSteamCMD 下载并安装 SteamCMD 到配置目录（后台执行，进度写入日志）
+func (g *gameServerAPI) installSteamCMD(c *gin.Context) {
+	// 先加载已保存配置，确保知道安装目录
+	g.mgr.SetConfig(loadGameServerConfig())
+	go func() {
+		if err := g.mgr.InstallSteamCMD(); err != nil {
+			g.mgr.WriteLog("SteamCMD 安装失败: " + err.Error())
+		}
+	}()
+	c.JSON(http.StatusOK, SuccessResponse{
+		Success: true,
+		Message: "已开始安装 SteamCMD，可在日志中查看进度",
+	})
+}
+
 func (g *gameServerAPI) start(c *gin.Context) {
 	if err := g.mgr.Start(); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})

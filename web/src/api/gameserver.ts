@@ -43,6 +43,10 @@ export const gameApi = {
     request<{ success: boolean; message?: string }>('/api/gameserver/install', {
       method: 'POST',
     }),
+  installSteamCmd: () =>
+    request<{ success: boolean; message?: string }>('/api/gameserver/install-steamcmd', {
+      method: 'POST',
+    }),
   start: () => request<{ success: boolean; message?: string }>('/api/gameserver/start', { method: 'POST' }),
   stop: () => request<{ success: boolean; message?: string }>('/api/gameserver/stop', { method: 'POST' }),
   restart: () => request<{ success: boolean; message?: string }>('/api/gameserver/restart', { method: 'POST' }),

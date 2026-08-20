@@ -87,6 +87,8 @@
             <n-form-item label="SteamCMD 目录">
               <n-input v-model:value="cfg.steamcmd_path" placeholder="文件夹，如 /root/steamcmd">
                 <template #suffix>
+                  <n-button size="tiny" type="primary" ghost :loading="steamcmdInstalling"
+                    @click="installSteamCmd">安装</n-button>
                   <n-button size="tiny" quaternary :loading="verifying === 'steam'" @click="verifyPath('steam')">
                     验证
                   </n-button>
@@ -196,6 +198,7 @@ const acting = ref('')
 const loading = ref(false)
 const showInstallModal = ref(false)
 const installLogs = ref('')
+const steamcmdInstalling = ref(false)
 let installTimer: number | null = null
 const verifying = ref('')
 const verifyResult = reactive<{
@@ -347,6 +350,54 @@ async function doInstall() {
     installTimer = window.setInterval(poll, 2000)
   } catch (e: any) { message.error(e.message) }
   finally { acting.value = '' }
+}
+// 一键下载安装 SteamCMD 到配置目录
+async function installSteamCmd() {
+  if (!cfg.steamcmd_path) {
+    message.warning('请先在上方填写 SteamCMD 目录（如 /root/steamcmd）')
+    return
+  }
+  steamcmdInstalling.value = true
+  try {
+    await saveConfig()
+    const r = await gameApi.installSteamCmd()
+    message.info(r.message || '已开始安装 SteamCMD')
+    // 轮询日志直到不再更新（安装在后台 goroutine 完成）
+    if (installTimer) clearInterval(installTimer)
+    let lastLog = ''
+    let stable = 0
+    const poll = async () => {
+      await loadLogs()
+      if (logs.value !== lastLog) {
+        lastLog = logs.value
+        stable = 0
+      } else {
+        stable++
+      }
+      // 检测到完成标志
+      if (logs.value.includes('SteamCMD 安装完成')) {
+        clearInterval(installTimer!)
+        installTimer = null
+        steamcmdInstalling.value = false
+        message.success('SteamCMD 安装完成')
+        await loadStatus()
+        return
+      }
+      // 日志连续 6 次（12秒）不变且含失败字样，认为结束
+      if (stable > 6 && /安装失败|失败:/.test(logs.value)) {
+        clearInterval(installTimer!)
+        installTimer = null
+        steamcmdInstalling.value = false
+        message.error('SteamCMD 安装失败，请查看日志')
+        return
+      }
+    }
+    poll()
+    installTimer = window.setInterval(poll, 2000)
+  } catch (e: any) {
+    steamcmdInstalling.value = false
+    message.error(e.message)
+  }
 }
 async function doStart() {
   acting.value = 'start'

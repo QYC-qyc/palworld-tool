@@ -72,6 +72,7 @@ func RegisterRouter(r *gin.Engine) {
 			authGroup.PUT("/gameserver/config", gameAPI.saveConfig)
 			authGroup.POST("/gameserver/verify", gameAPI.verify)
 			authGroup.POST("/gameserver/install", gameAPI.install)
+			authGroup.POST("/gameserver/install-steamcmd", gameAPI.installSteamCMD)
 			authGroup.POST("/gameserver/start", gameAPI.start)
 			authGroup.POST("/gameserver/stop", gameAPI.stop)
 			authGroup.POST("/gameserver/restart", gameAPI.restart)

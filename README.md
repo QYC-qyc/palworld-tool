@@ -77,14 +77,21 @@ docker compose up -d
    - SteamCMD 目录：如 `/home/paladmin/steamcmd`
    - 游戏安装目录：如 `/home/paladmin/PalServer`
    - 保存配置
-3. **「PalDefender」页 → 一键安装 Proton**（自动检测系统、装 i386 依赖、经镜像下载最新 GE-Proton 到 /opt/GE-Proton）
-4. **「游戏服」页 → 安装/更新游戏服**（SteamCMD 强制下载 Windows 版到 `PalServer-Win/` 子目录）
-5. **「PalDefender」页 → 安装 PalDefender**（下载 DLL 到 Win64 目录）；在「设置」页可配置反作弊开关（踢出/封禁/IP封禁），保存时写入 PalDefender/Config.json 并热重载
-6. **「游戏服」页 → 启动**（通过 `proton run` 启动，自动注入 PalDefender）
-7. **「游戏配置」页**开启 REST API：`RESTAPIEnabled=true`、`RESTAPIPort=8212`、设置 `AdminPassword`，保存并重启
-8. 完成后仪表盘/地图/玩家页即可同步数据
+3. **安装 SteamCMD**：在「游戏服」页 SteamCMD 目录旁点击「**安装**」按钮，面板会自动下载 steamcmd_linux.tar.gz、解压并完成首次自更新。
+   - 也可手动安装：
+     ```bash
+     sudo mkdir -p /home/paladmin/steamcmd && cd /home/paladmin/steamcmd
+     curl -sqL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | sudo tar zxv
+     ./steamcmd.sh +login anonymous +quit   # 首次运行自更新
+     ```
+4. **「PalDefender」页 → 一键安装 Proton**（自动检测系统、装 i386 依赖、经镜像下载最新 GE-Proton 到 /opt/GE-Proton；ARM64 服务器还会自动装 box64）
+5. **「游戏服」页 → 安装/更新游戏服**（SteamCMD 强制下载 Windows 版到 `PalServer-Win/` 子目录）
+6. **「PalDefender」页 → 安装 PalDefender**（下载 DLL 到 Win64 目录）；在「设置」页可配置反作弊开关（踢出/封禁/IP封禁），保存时写入 PalDefender/Config.json 并热重载
+7. **「游戏服」页 → 启动**（通过 `proton run` 启动，自动注入 PalDefender）
+8. **「游戏配置」页**开启 REST API：`RESTAPIEnabled=true`、`RESTAPIPort=8212`、设置 `AdminPassword`，保存并重启
+9. 完成后仪表盘/地图/玩家页即可同步数据
 
-> 启动前会校验 Proton、Windows exe、PalDefender DLL 三项；缺任何一项都会明确报错，不会静默失败。
+> 启动前会校验 Proton、Windows exe、PalDefender DLL 三项（PalDefender DLL 缺失仅警告不阻止启动）；缺任何必要项都会明确报错，不会静默失败。
 
 ### 防火墙
 
@@ -99,7 +106,7 @@ ufw allow 8190/tcp && ufw allow 8211/udp
 | 功能 | 说明 |
 |---|---|
 | 仪表盘 | 服务器名/版本/在线/FPS 统计卡、运行模式、控制台（广播/同步/关服） |
-| 游戏服 | SteamCMD 与安装目录配置、安装/更新 Windows 版、启停重启、实时日志（`\r` 进度实时显示）、磁盘空间检查 |
+| 游戏服 | 一键安装 SteamCMD、SteamCMD 与安装目录配置、安装/更新 Windows 版、启停重启、实时日志（`\r` 进度实时显示）、磁盘空间检查 |
 | PalDefender | 一键安装 GE-Proton（按 OS 选包）、安装/卸载 PalDefender DLL、生成 Token；玩家管理、封禁列表、广播警报、公会据点、配置热重载 |
 | 游戏配置 | 可视化编辑 PalWorldSettings.ini，参数分类带说明，保存即写 WindowsServer 路径 |
 | 玩家 | 在线/存档玩家 Tab 切换、搜索、详情（基本信息/帕鲁/物品，物品用 WebP 图标）、踢/封/解封/IP封禁（走 PalDefender） |

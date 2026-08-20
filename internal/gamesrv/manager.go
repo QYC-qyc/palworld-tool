@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,6 +15,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	ghub "paladmin/internal/github"
 )
 
 // Palworld Steam APP ID
@@ -137,6 +140,120 @@ func (m *Manager) GetStatus() (*Status, error) {
 		st.State = "stopped"
 	}
 	return st, nil
+}
+
+// InstallSteamCMD 下载并安装 SteamCMD 到配置的 SteamCmdPath 目录。
+// 如果目录下已存在 steamcmd 可执行文件则直接返回。
+// Linux 下载 steamcmd_linux.tar.gz，Windows 下载 steamcmd.zip 并解压。
+func (m *Manager) InstallSteamCMD() error {
+	if m.cfg.SteamCmdPath == "" {
+		return errors.New("请先在上方填写 SteamCMD 安装目录")
+	}
+	// 已安装则跳过
+	if exe := m.steamCmdExe(); exe != "" {
+		if _, err := os.Stat(exe); err == nil {
+			m.logBuf.WriteString(fmt.Sprintf("SteamCMD 已存在：%s\n", exe))
+			return nil
+		}
+	}
+	if err := os.MkdirAll(m.cfg.SteamCmdPath, 0755); err != nil {
+		return fmt.Errorf("创建 SteamCMD 目录失败: %w", err)
+	}
+
+	m.logBuf.WriteString("=== 安装 SteamCMD ===\n")
+	if runtime.GOOS == "windows" {
+		return m.installSteamCmdWindows()
+	}
+	return m.installSteamCmdLinux()
+}
+
+// installSteamCmdLinux 下载 steamcmd_linux.tar.gz 并解压
+func (m *Manager) installSteamCmdLinux() error {
+	const url = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+	m.logBuf.WriteString("下载 steamcmd_linux.tar.gz...\n")
+
+	tmpFile, err := os.CreateTemp("", "steamcmd-*.tar.gz")
+	if err != nil {
+		return err
+	}
+	tmpPath := tmpFile.Name()
+	defer os.Remove(tmpPath)
+
+	// 经镜像尝试下载（Steam CDN 直连通常可用，但用 ghub 兜底）
+	if err := ghub.DownloadToFile(url, tmpPath); err != nil {
+		// ghub 是为 github 设计的，Steam CDN 直连再试一次
+		m.logBuf.WriteString(fmt.Sprintf("镜像下载失败(%v)，尝试 Steam CDN 直连...\n", err))
+		resp, err2 := http.Get(url)
+		if err2 != nil {
+			return fmt.Errorf("下载 SteamCMD 失败: %w", err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("下载 SteamCMD 失败: HTTP %d", resp.StatusCode)
+		}
+		if _, err := io.Copy(tmpFile, resp.Body); err != nil {
+			return err
+		}
+	}
+	tmpFile.Close()
+
+	m.logBuf.WriteString("解压 SteamCMD...\n")
+	cmd := exec.Command("tar", "-xzf", tmpPath, "-C", m.cfg.SteamCmdPath)
+	cmd.SysProcAttr = newSysProcAttr(true)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("解压 SteamCMD 失败: %w: %s", err, string(out))
+	}
+
+	// SteamCMD 首次运行需要自更新，跑一次 +quit 完成初始化
+	m.logBuf.WriteString("首次运行 SteamCMD 自更新...\n")
+	steamExe := filepath.Join(m.cfg.SteamCmdPath, "steamcmd.sh")
+	initCmd := exec.Command(steamExe, "+login", "anonymous", "+quit")
+	initCmd.Dir = m.cfg.SteamCmdPath
+	initCmd.SysProcAttr = newSysProcAttr(true)
+	initOut, _ := initCmd.CombinedOutput()
+	m.logBuf.WriteString(string(initOut) + "\n")
+
+	// 验证
+	if _, err := os.Stat(steamExe); err != nil {
+		return errors.New("安装完成但未找到 steamcmd.sh，请检查目录权限")
+	}
+	m.logBuf.WriteString(fmt.Sprintf("SteamCMD 安装完成：%s\n", steamExe))
+	return nil
+}
+
+// installSteamCmdWindows 下载 steamcmd.zip 并解压（Windows 原生面板）
+func (m *Manager) installSteamCmdWindows() error {
+	const url = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip"
+	m.logBuf.WriteString("下载 steamcmd.zip...\n")
+	tmpFile, err := os.CreateTemp("", "steamcmd-*.zip")
+	if err != nil {
+		return err
+	}
+	tmpPath := tmpFile.Name()
+	defer os.Remove(tmpPath)
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("下载 SteamCMD 失败: %w", err)
+	}
+	defer resp.Body.Close()
+	if _, err := io.Copy(tmpFile, resp.Body); err != nil {
+		return err
+	}
+	tmpFile.Close()
+
+	m.logBuf.WriteString("解压 SteamCMD...\n")
+	powershell := fmt.Sprintf("Expand-Archive -Force -Path '%s' -DestinationPath '%s'", tmpPath, m.cfg.SteamCmdPath)
+	cmd := exec.Command("powershell", "-NoProfile", "-Command", powershell)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("解压失败: %w: %s", err, string(out))
+	}
+	steamExe := filepath.Join(m.cfg.SteamCmdPath, "steamcmd.exe")
+	if _, err := os.Stat(steamExe); err != nil {
+		return errors.New("安装完成但未找到 steamcmd.exe")
+	}
+	m.logBuf.WriteString(fmt.Sprintf("SteamCMD 安装完成：%s\n", steamExe))
+	return nil
 }
 
 // Install 用 SteamCMD 安装/更新 Windows 版游戏服（阻塞直到完成，实时输出日志）。
@@ -618,6 +735,11 @@ func (m *Manager) killAllPalServer() error {
 // Logs 返回最近日志
 func (m *Manager) Logs(lines int) string {
 	return m.logBuf.String()
+}
+
+// WriteLog 写入一行日志到环形日志（供 API 层记录后台任务结果）。
+func (m *Manager) WriteLog(s string) {
+	m.logBuf.WriteString(s + "\n")
 }
 
 // ---- helpers ----
