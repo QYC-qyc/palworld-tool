@@ -273,11 +273,14 @@ if [ "$(id -u)" = "0" ]; then
     chown -R steam:steam "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix /home/steam/.steam "${RUN_DIR}" 2>/dev/null || true
     echo ">>> 权限检查：prefix 属主 = $(stat -c '%U:%G' /home/steam/prefix 2>/dev/null || echo unknown)"
 
-    # 降权为 steam 重新执行本脚本
+    # 降权为 steam 重新执行本脚本。
+    # 显式传递 Proton 所需的全部环境变量（su -c 不一定继承 Docker ENV）。
     exec su steam -c '
         STEAMCMD_DIR="'"$STEAMCMD_DIR"'" PALSERVER_DIR="'"$PALSERVER_DIR"'" \
         REST_PORT="'"$REST_PORT"'" REST_PASSWORD="'"$REST_PASSWORD"'" \
         PROTONPATH="'"$PROTONPATH"'" WINEDLLOVERRIDES="'"$WINEDLLOVERRIDES"'" \
+        STEAM_COMPAT_CLIENT_INSTALL_PATH="'"${STEAM_COMPAT_CLIENT_INSTALL_PATH:-/home/steam/.steam/root}"'" \
+        STEAM_COMPAT_DATA_PATH="'"${STEAM_COMPAT_DATA_PATH:-/home/steam/prefix}"'" \
         STEAMAPPID="'"${STEAMAPPID:-2394010}"'" XDG_RUNTIME_DIR=/tmp/runtime-steam \
         _ENTRY_ARG="'"${1:-run}"'" bash "'"$0"'"
     '
