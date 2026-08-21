@@ -51,6 +51,7 @@ type Status struct {
 	SteamExe         string `json:"steam_exe"`
 	InstallDir       string `json:"install_dir"`
 	ProtonMode       bool   `json:"proton_mode"` // 当前是否 Proton 模式（始终为 true，保留字段供前端判断）
+	DockerMode       bool   `json:"docker_mode"` // 是否通过 Docker 管控游戏服容器
 	State            string `json:"state,omitempty"`
 }
 
@@ -77,6 +78,10 @@ func NewManager() *Manager {
 	}
 	return m
 }
+
+// Default 是进程内共享的游戏服 Manager，供 tool/service 等不持有 Manager
+// 的包通过它进行跨部署模式的文件访问与启停。由 api 层在 SetDeps 时注入。
+var Default *Manager
 
 // getEnv 读取环境变量，不存在返回默认值
 func getEnv(key, def string) string {
@@ -120,10 +125,18 @@ func (m *Manager) GetStatus() (*Status, error) {
 	st := &Status{
 		InstallDir: m.cfg.InstallDir,
 		ProtonMode: runtime.GOOS != "windows",
+		DockerMode: m.docker != nil,
 	}
 	st.SteamExe = m.steamCmdExe()
 	st.WindowsExe = m.winServerExePath()
 	st.ServerExe = st.WindowsExe
+	// Docker 模式下展示容器内真实路径
+	if m.docker != nil {
+		st.InstallDir = dockerGameRoot
+		st.WindowsExe = dockerGameRoot + "/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe"
+		st.ServerExe = st.WindowsExe
+		st.SteamExe = "/opt/steamcmd/steamcmd.sh"
+	}
 
 	// steamcmd 是否存在
 	if st.SteamExe != "" {
@@ -170,6 +183,11 @@ func (m *Manager) GetStatus() (*Status, error) {
 // 如果目录下已存在 steamcmd 可执行文件则直接返回。
 // Linux 下载 steamcmd_linux.tar.gz，Windows 下载 steamcmd.zip 并解压。
 func (m *Manager) InstallSteamCMD() error {
+	// 容器化部署：游戏服镜像已内置 SteamCMD，面板无需也无法安装到 gameserver 容器
+	if m.docker != nil {
+		m.logBuf.WriteString("Docker 部署：游戏服镜像已内置 SteamCMD，无需安装\n")
+		return nil
+	}
 	if m.cfg.SteamCmdPath == "" {
 		return errors.New("请先在上方填写 SteamCMD 安装目录")
 	}

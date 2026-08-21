@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 	"go.etcd.io/bbolt"
 	"paladmin/internal/database"
+	"paladmin/internal/gamesrv"
 	"paladmin/internal/logger"
 	"paladmin/internal/tool"
 	"paladmin/service"
@@ -69,10 +70,26 @@ func backupTask() {
 	}
 	_ = service.AddBackup(dbRef, database.Backup{Path: path})
 	logger.Infof("自动备份完成: %s", path)
+	// 按保留策略清理旧备份
+	if removed, err := service.PruneBackups(dbRef,
+		viper.GetInt("backup.keep_count"),
+		viper.GetInt("backup.keep_days")); err != nil {
+		logger.Warnf("清理旧备份失败: %v", err)
+	} else if removed > 0 {
+		logger.Infof("已清理 %d 个过期备份", removed)
+	}
 }
 
-// isGameRunning 检查游戏服进程是否在运行
+// isGameRunning 检查游戏服是否在运行。
+// Docker 部署下通过 Manager 查询容器状态；本地部署回退到 pgrep/tasklist。
 func isGameRunning() bool {
+	if gamesrv.Default != nil {
+		st, err := gamesrv.Default.GetStatus()
+		if err != nil {
+			return false
+		}
+		return st.Running
+	}
 	const exeName = "PalServer-Win64-Shipping-Cmd.exe"
 	if runtime.GOOS == "windows" {
 		out, err := exec.Command("tasklist", "/FI", "IMAGENAME eq "+exeName, "/FO", "CSV", "/NH").Output()

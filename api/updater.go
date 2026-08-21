@@ -24,21 +24,29 @@ var updateState struct {
 
 func (u *updaterAPI) check(c *gin.Context) {
 	rel, hasUpdate, err := updater.Check()
+	resp := gin.H{
+		"current":   updater.CurrentVersion(),
+		"container": inContainer(),
+	}
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"current": updater.CurrentVersion(), "has_update": false, "error": err.Error()})
+		resp["has_update"] = false
+		resp["error"] = err.Error()
+		c.JSON(http.StatusOK, resp)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"current":    updater.CurrentVersion(),
-		"has_update": hasUpdate,
-		"latest":     rel.TagName,
-		"name":       rel.Name,
-		"body":       rel.Body,
-	})
+	resp["has_update"] = hasUpdate
+	resp["latest"] = rel.TagName
+	resp["name"] = rel.Name
+	resp["body"] = rel.Body
+	c.JSON(http.StatusOK, resp)
 }
 
-// do 启动后台更新
+// do 启动后台更新（容器内禁用：更新应通过拉取新镜像完成）
 func (u *updaterAPI) do(c *gin.Context) {
+	if inContainer() {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "容器化部署不支持在线更新，请拉取最新镜像后重建容器（docker compose pull && docker compose up -d）"})
+		return
+	}
 	updateState.Lock()
 	if updateState.running {
 		updateState.Unlock()

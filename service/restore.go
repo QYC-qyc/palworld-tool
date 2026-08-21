@@ -11,61 +11,102 @@ import (
 
 	"go.etcd.io/bbolt"
 	"paladmin/internal/database"
+	"paladmin/internal/gamesrv"
 	"paladmin/internal/logger"
 	"paladmin/internal/system"
+	"paladmin/internal/tool"
 )
 
-// RestoreBackup 回档：停服→备份当前存档→解压目标备份覆盖 Saved→启服。
-// saveDir 为游戏 Saved 目录；backupPath 为备份 zip 文件名（位于工作目录 backups/ 下）。
+// RestoreBackup 回档：停服→备份当前存档→解压目标备份→推送回游戏目录→启服。
+// backupPath 为备份 zip 文件名（位于持久化备份目录下）或绝对路径。
 func RestoreBackup(db *bbolt.DB, saveDir, backupPath string) error {
-	if saveDir == "" {
-		return fmt.Errorf("未配置 save.path，无法定位存档目录")
+	fullPath := backupPath
+	if !filepath.IsAbs(fullPath) {
+		fullPath = filepath.Join(tool.BackupDir(), backupPath)
 	}
-	ctl := system.NewProcessCtl()
-	logger.Warnf("开始回档，进程控制: %s", ctl.Name())
+	if _, err := os.Stat(fullPath); err != nil {
+		return fmt.Errorf("备份文件不存在: %w", err)
+	}
 
-	// 1. 停服
-	running, _ := ctl.IsRunning()
-	if running {
-		if err := ctl.Stop(); err != nil {
+	// 1. 停服（优先用 gamesrv.Manager，回退到进程控制配置）
+	wasRunning, stopFn, startFn := gameControl()
+	if wasRunning {
+		logger.Info("回档：停止游戏服...")
+		if err := stopFn(); err != nil {
 			return fmt.Errorf("停服失败: %w", err)
 		}
-		logger.Info("已发送停服指令，等待进程退出...")
 		time.Sleep(5 * time.Second)
 	}
 
-	// 2. 安全网：回档前先把当前 Saved 备份一份
-	rollbackName := fmt.Sprintf("rollback-%s", time.Now().Format("20060102-150405"))
-	rollbackZip := filepath.Join(backupDir(), rollbackName+".zip")
-	if _, err := os.Stat(saveDir); err == nil {
-		if err := system.ZipDir(saveDir, rollbackZip); err != nil {
-			logger.Errorf("回档前安全备份失败: %v（继续回档）", err)
+	// 2. 安全网：回档前先把当前存档备份一份（直接用面板备份逻辑）
+	rollbackName := ""
+	if gamesrv.Default != nil {
+		if name, err := tool.Backup(); err == nil {
+			rollbackName = name
+			_ = AddBackup(db, database.Backup{Path: name})
+			logger.Infof("回档前当前存档已安全备份为 %s", name)
 		} else {
-			_ = AddBackup(db, database.Backup{Path: rollbackName + ".zip"})
-			logger.Infof("当前存档已安全备份为 %s", rollbackName)
+			logger.Errorf("回档前安全备份失败: %v（继续回档）", err)
 		}
 	}
 
-	// 3. 解压目标备份覆盖 saveDir
-	fullPath := backupPath
-	if !filepath.IsAbs(fullPath) {
-		fullPath = filepath.Join(backupDir(), backupPath)
+	// 3. 解压目标备份到临时目录，再推送回游戏目录
+	tmpRoot, err := os.MkdirTemp("", "paladm-restore-")
+	if err != nil {
+		_ = startFn()
+		return err
 	}
-	if err := unzipOverwrite(fullPath, saveDir); err != nil {
-		// 回滚失败，尝试重启服务
-		_ = ctl.Start()
+	defer os.RemoveAll(tmpRoot)
+
+	// zip 内顶层为 Saved/，解压到 tmpRoot/Pal/ 下得到 tmpRoot/Pal/Saved
+	palDir := filepath.Join(tmpRoot, "Pal")
+	if err := unzipOverwrite(fullPath, palDir); err != nil {
+		if wasRunning {
+			_ = startFn()
+		}
 		return fmt.Errorf("解压备份失败: %w", err)
 	}
-	logger.Infof("备份 %s 已解压到 %s", backupPath, saveDir)
+
+	if gamesrv.Default != nil {
+		if err := gamesrv.Default.PushLocalToSaved(tmpRoot); err != nil {
+			if wasRunning {
+				_ = startFn()
+			}
+			return fmt.Errorf("写入游戏目录失败: %w", err)
+		}
+	} else {
+		// 本地模式：直接覆盖 saveDir
+		_ = os.RemoveAll(saveDir)
+		if err := copyTree(filepath.Join(palDir, "Saved"), saveDir); err != nil {
+			if wasRunning {
+				_ = startFn()
+			}
+			return err
+		}
+	}
+	logger.Infof("备份 %s 已恢复到游戏存档", backupPath)
 
 	// 4. 启服
-	if running {
-		if err := ctl.Start(); err != nil {
+	if wasRunning {
+		logger.Info("回档：启动游戏服...")
+		if err := startFn(); err != nil {
 			return fmt.Errorf("回档完成但启服失败，请手动启动: %w", err)
 		}
-		logger.Info("已发送启服指令")
 	}
+	_ = rollbackName
 	return nil
+}
+
+// gameControl 返回 (是否在运行, 停服函数, 启服函数)。
+func gameControl() (bool, func() error, func() error) {
+	if gamesrv.Default != nil {
+		st, _ := gamesrv.Default.GetStatus()
+		running := st != nil && st.Running
+		return running, gamesrv.Default.Stop, gamesrv.Default.Start
+	}
+	ctl := system.NewProcessCtl()
+	running, _ := ctl.IsRunning()
+	return running, ctl.Stop, ctl.Start
 }
 
 // unzipOverwrite 解压 zip 到目标目录，覆盖同名文件
@@ -115,10 +156,40 @@ func copyZipEntry(f *zip.File, dst string) error {
 	return err
 }
 
-func backupDir() string {
-	wd, err := os.Getwd()
-	if err != nil {
-		return "backups"
-	}
-	return filepath.Join(wd, "backups")
+func copyTree(src, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(dst, rel)
+		if info.IsDir() {
+			return os.MkdirAll(target, 0755)
+		}
+		return copyFile(path, target)
+	})
 }
+
+func copyFile(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return err
+	}
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	return err
+}
+
+// BackupDir 返回备份目录（持久化）
+func BackupDir() string { return tool.BackupDir() }

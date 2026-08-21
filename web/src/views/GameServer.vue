@@ -7,7 +7,11 @@
       </n-button>
     </PageHeader>
 
-    <n-alert type="info" :show-icon="false">
+    <n-alert v-if="isDocker" type="info" :show-icon="false">
+      Docker 部署：游戏服运行在独立容器中（GE-Proton 运行 Windows 版 PalServer）。
+      SteamCMD 与游戏文件均已在镜像内管理，无需填写路径；点「安装 / 更新游戏服」可在容器内执行 SteamCMD 更新。
+    </n-alert>
+    <n-alert v-else type="info" :show-icon="false">
       游戏服由你自行用 SteamCMD 安装。只需填写<strong>所在文件夹</strong>，面板会自动查找
       <code>steamcmd.sh</code>（Linux）/ <code>steamcmd.exe</code>（Windows）与游戏可执行文件。
     </n-alert>
@@ -39,7 +43,7 @@
           <div class="status-cell">
             <div class="status-cell__label">运行模式</div>
             <n-tag type="info" size="small" round :bordered="false">
-              <n-icon :component="LogoWindows" style="vertical-align:-2px;margin-right:4px" />Windows
+              <n-icon :component="LogoWindows" style="vertical-align:-2px;margin-right:4px" />{{ isDocker ? 'Docker / Proton' : 'Windows / Proton' }}
             </n-tag>
           </div>
         </n-gi>
@@ -75,12 +79,13 @@
         </n-button>
       </n-space>
       <n-text depth="3" style="font-size:12px;display:block;margin-top:10px">
-        提示：首次安装可能需要较长时间，请在日志中查看 SteamCMD 下载进度。安装完成后再启动。
+        <template v-if="isDocker">提示：在游戏服容器内通过 SteamCMD 安装/更新，首次可能需要几分钟，进度见日志。</template>
+        <template v-else>提示：首次安装可能需要较长时间，请在日志中查看 SteamCMD 下载进度。安装完成后再启动。</template>
       </n-text>
     </n-card>
 
-    <!-- 路径配置 -->
-    <n-card title="路径配置" size="small">
+    <!-- 路径配置（仅本地部署需要，Docker 下路径由镜像/容器管理） -->
+    <n-card v-if="!isDocker" title="路径配置" size="small">
       <n-form label-placement="top">
         <n-grid cols="1 s:2" :x-gap="16" responsive="screen">
           <n-gi>
@@ -217,6 +222,7 @@ const installLogEl = ref<HTMLElement | null>(null)
 
 const isRunning = computed(() => !!status.value?.status?.running)
 const isInstalled = computed(() => !!status.value?.status?.installed)
+const isDocker = computed(() => !!status.value?.status?.docker_mode)
 const canStart = computed(() => isInstalled.value && !isRunning.value)
 const isUpdating = computed(() => !!status.value?.status?.updating)
 
@@ -311,7 +317,7 @@ async function refreshAll() {
 }
 
 function openInstall() {
-  if (!cfg.steamcmd_path || !cfg.install_dir) {
+  if (!isDocker.value && (!cfg.steamcmd_path || !cfg.install_dir)) {
     message.warning('请先填写 SteamCMD 路径和安装目录')
     return
   }
@@ -319,35 +325,58 @@ function openInstall() {
 }
 
 async function doInstall() {
-  if (!cfg.steamcmd_path || !cfg.install_dir) {
+  if (!isDocker.value && (!cfg.steamcmd_path || !cfg.install_dir)) {
     message.warning('请先填写 SteamCMD 路径和安装目录')
     return
   }
-  await saveConfig()
+  if (!isDocker.value) await saveConfig()
   acting.value = 'install'
   showInstallModal.value = true
   installLogs.value = ''
   try {
-    const r = await gameApi.install()
-    message.info(r.message || '已开始安装')
-    if (installTimer) clearInterval(installTimer)
-    const poll = async () => {
+    if (isDocker.value) {
+      // Docker 模式：后端同步在容器内执行 SteamCMD，请求期间阻塞，同时轮询日志展示进度
+      const done = gameApi.install()
+      if (installTimer) clearInterval(installTimer)
+      const poll = async () => {
+        await loadLogs()
+        installLogs.value = logs.value
+      }
+      poll()
+      installTimer = window.setInterval(poll, 2000)
+      const r = await done
+      clearInterval(installTimer)
+      installTimer = null
       await loadLogs()
       installLogs.value = logs.value
       await loadStatus()
-      if (!status.value?.status?.updating) {
-        clearInterval(installTimer!)
-        installTimer = null
+      if (status.value?.status?.installed) {
+        message.success(r.message || '游戏服安装/更新完成')
+      } else {
+        message.warning('安装过程已结束，查看日志确认是否成功')
+      }
+    } else {
+      const r = await gameApi.install()
+      message.info(r.message || '已开始安装')
+      if (installTimer) clearInterval(installTimer)
+      const poll = async () => {
+        await loadLogs()
+        installLogs.value = logs.value
         await loadStatus()
-        if (status.value?.status?.installed) {
-          message.success('游戏服安装/更新完成')
-        } else {
-          message.warning('安装过程已结束，查看日志确认是否成功')
+        if (!status.value?.status?.updating) {
+          clearInterval(installTimer!)
+          installTimer = null
+          await loadStatus()
+          if (status.value?.status?.installed) {
+            message.success('游戏服安装/更新完成')
+          } else {
+            message.warning('安装过程已结束，查看日志确认是否成功')
+          }
         }
       }
+      poll()
+      installTimer = window.setInterval(poll, 2000)
     }
-    poll()
-    installTimer = window.setInterval(poll, 2000)
   } catch (e: any) { message.error(e.message) }
   finally { acting.value = '' }
 }

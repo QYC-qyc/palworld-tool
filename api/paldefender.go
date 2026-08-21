@@ -3,12 +3,11 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"paladmin/internal/gamesrv"
 	ghub "paladmin/internal/github"
 )
 
@@ -18,14 +17,29 @@ const (
 	palDefenderDLL2       = "PalDefender.dll"
 )
 
+// win64Elems 是 Win64 目录相对游戏根的路径段
+var win64Elems = []string{"Pal", "Binaries", "Win64"}
+
 type palDefenderAPI struct{}
 
 type pdStatus struct {
-	Installed bool   `json:"installed"`
-	Win64Path string `json:"win64_path"`
-	D3d9Exists bool  `json:"d3d9_exists"`
-	PdExists   bool  `json:"pd_exists"`
-	GameDir   string `json:"game_dir"`
+	Installed  bool   `json:"installed"`
+	Win64Path  string `json:"win64_path"`
+	D3d9Exists bool   `json:"d3d9_exists"`
+	PdExists   bool   `json:"pd_exists"`
+	GameDir    string `json:"game_dir"`
+}
+
+// win64DisplayPath 返回供前端展示的 Win64 目录完整路径
+func win64DisplayPath() string {
+	if gameAPI != nil {
+		return gameAPI.mgr.GameDisplayPath() + "/Pal/Binaries/Win64"
+	}
+	return strings.Join(win64Elems, "/")
+}
+
+func win64ElemsWith(names ...string) []string {
+	return append(append([]string{}, win64Elems...), names...)
 }
 
 // status 检测 PalDefender 安装状态
@@ -98,13 +112,8 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 			pdTask.Unlock()
 		}
 
-		// 确定 Win64 目录
-		gameDir := req.GameDir
-		if gameDir == "" && gameAPI != nil {
-			gameDir = gameAPI.mgr.ConfigValue().InstallDir
-		}
-		win64 := filepath.Join(gameDir, "Pal", "Binaries", "Win64")
-		if err := os.MkdirAll(win64, 0755); err != nil {
+		// 确定 Win64 目录（跨容器：通过游戏文件访问层创建）
+		if err := gamesrv.Default.MkdirAllGame(0755, win64Elems...); err != nil {
 			pdTask.Lock()
 			pdTask.errMsg = "创建目录失败: " + err.Error()
 			pdTask.Unlock()
@@ -142,8 +151,8 @@ func (p *palDefenderAPI) install(c *gin.Context) {
 				pdTask.Unlock()
 				return
 			}
-			dst := filepath.Join(win64, name)
-			if err := ghub.DownloadToFile(dlURL, dst); err != nil {
+			// 经面板下载（走 GitHub 镜像）后写入游戏目录，Docker 下写入 gameserver 容器
+			if err := gamesrv.Default.DownloadToGame(dlURL, 0644, win64ElemsWith(name)...); err != nil {
 				pdTask.Lock()
 				pdTask.errMsg = "下载 " + name + " 失败: " + err.Error()
 				pdTask.Unlock()
@@ -183,27 +192,15 @@ func (p *palDefenderAPI) detect() pdStatus {
 }
 
 func (p *palDefenderAPI) detectAt(gameDir string) pdStatus {
-	st := pdStatus{GameDir: gameDir}
-
-	// 如果没指定游戏目录，从面板配置读取
-	if gameDir == "" && gameAPI != nil {
-		gameDir = gameAPI.mgr.ConfigValue().InstallDir
+	st := pdStatus{GameDir: gameDir, Win64Path: win64DisplayPath()}
+	// 通过游戏文件访问层检查 DLL（Docker 下检查的是 gameserver 容器内文件）
+	if _, err := gamesrv.Default.StatGameFile(win64ElemsWith(palDefenderDLL1)...); err == nil {
+		st.D3d9Exists = true
 	}
-
-	if gameDir != "" {
-		win64 := filepath.Join(gameDir, "Pal", "Binaries", "Win64")
-		if info, err := os.Stat(win64); err == nil && info.IsDir() {
-			st.Win64Path = win64
-			if _, err := os.Stat(filepath.Join(win64, palDefenderDLL1)); err == nil {
-				st.D3d9Exists = true
-			}
-			if _, err := os.Stat(filepath.Join(win64, palDefenderDLL2)); err == nil {
-				st.PdExists = true
-			}
-			st.Installed = st.D3d9Exists && st.PdExists
-		}
+	if _, err := gamesrv.Default.StatGameFile(win64ElemsWith(palDefenderDLL2)...); err == nil {
+		st.PdExists = true
 	}
-
+	st.Installed = st.D3d9Exists && st.PdExists
 	return st
 }
 
@@ -214,22 +211,14 @@ func (p *palDefenderAPI) uninstall(c *gin.Context) {
 	}
 	_ = c.ShouldBindJSON(&req)
 
-	st := p.detectAt(req.GameDir)
-	if st.Win64Path == "" {
-		c.JSON(http.StatusOK, gin.H{"success": true, "message": "未找到安装目录，无需卸载"})
-		return
-	}
-
 	removed := []string{}
 	for _, name := range []string{palDefenderDLL1, palDefenderDLL2} {
-		path := filepath.Join(st.Win64Path, name)
-		if err := os.Remove(path); err == nil {
+		if err := gamesrv.Default.RemoveGameFile(win64ElemsWith(name)...); err == nil {
 			removed = append(removed, name)
 		}
 	}
 	// 删除 PalDefender 配置目录
-	pdDir := filepath.Join(st.Win64Path, "PalDefender")
-	_ = os.RemoveAll(pdDir)
+	_ = gamesrv.Default.RemoveAllGame(win64ElemsWith("PalDefender")...)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

@@ -23,17 +23,30 @@ RUN dpkg --add-architecture i386 && \
         && \
     sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
-    # 手动安装 SteamCMD（Debian 官方源的 steamcmd 包在 bookworm 上依赖问题多）
-    mkdir -p /opt/steamcmd && \
-    cd /opt/steamcmd && \
-    wget -q "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" -O steamcmd.tar.gz && \
-    tar -xzf steamcmd.tar.gz && \
-    rm steamcmd.tar.gz && \
-    ln -sf /opt/steamcmd/steamcmd.sh /usr/local/bin/steamcmd && \
-    ln -sf /opt/steamcmd/linux32/ /opt/steamcmd/linux64/ && \
-    # 首次运行 steamcmd 完成自更新
-    steamcmd +login anonymous +quit || true && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 安装 SteamCMD（Debian 官方源的 steamcmd 包在 bookworm 上依赖问题多，手动下载解压）。
+# 注意：akamaihd 在国内常被墙，优先用 cloudflare 的 steamstatic CDN。
+# test -s 兜底：下载失败时不会留下 0 字节文件导致后续静默坏掉。
+RUN set -eux; \
+    mkdir -p /opt/steamcmd; \
+    cd /opt/steamcmd; \
+    curl -fSL --retry 5 --retry-delay 3 --connect-timeout 30 \
+        "https://cdn.cloudflare.steamstatic.com/client/installer/steamcmd_linux.tar.gz" \
+        -o steamcmd.tar.gz \
+    || curl -fSL --retry 5 --retry-delay 3 --connect-timeout 30 \
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" \
+        -o steamcmd.tar.gz; \
+    test -s steamcmd.tar.gz; \
+    ls -lh steamcmd.tar.gz; \
+    tar -xzf steamcmd.tar.gz; \
+    rm steamcmd.tar.gz; \
+    # 解压后文件可能保留远端 uid（如 5020），修正属主并确保所有用户可读/执行
+    chown -R root:root /opt/steamcmd; \
+    chmod -R a+rX /opt/steamcmd; \
+    ln -sf /opt/steamcmd/steamcmd.sh /usr/local/bin/steamcmd; \
+    # 首次运行 steamcmd 完成自更新（可能因网络失败，不阻断构建，运行时会重试）
+    /opt/steamcmd/steamcmd.sh +login anonymous +quit || true
 
 # 创建非 root 用户
 RUN useradd -m -d /home/steam -s /bin/bash steam

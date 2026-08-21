@@ -23,7 +23,11 @@ rest:
   timeout: 5
 
 save:
-  path: "/home/steam/Pal/Saved"
+  # 游戏存档 Saved 目录。注意：
+  # - Docker 部署无需填写，面板通过 docker API 访问 gameserver 容器内存档；
+  # - Linux 原生（Proton 直装）：<安装目录>/PalServer-Win/Pal/Saved；
+  # - Windows 原生：<安装目录>\PalServer-Win\Pal\Saved。
+  path: ""
   decode_path: ""
   sync_interval: 120
   backup_interval: 14400

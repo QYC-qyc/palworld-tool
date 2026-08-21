@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/viper"
 	"paladmin/internal/auth"
+	"paladmin/internal/gamesrv"
 	"paladmin/internal/logger"
 	"paladmin/internal/source"
 	"paladmin/internal/system"
@@ -40,13 +41,37 @@ func getSavCli() (string, error) {
 	return savCliPath, nil
 }
 
-// getFromSource 根据 path 前缀获取存档，目前支持本地路径，预留 http/docker/k8s
-func getFromSource(path, way string) (string, error) {
-	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
-		// agent 模式：HTTP 下载 zip（后续实现）
-		return "", errors.New("HTTP 存档来源暂未实现，请使用本地路径")
+// fetchSavedToLocal 通过游戏文件访问层把游戏 Saved 目录拉到本地临时目录，
+// 返回其中 Level.sav 的本地路径，以及清理函数。
+func fetchSavedToLocal(way string) (levelFile string, cleanup func(), err error) {
+	tmpRoot, err := os.MkdirTemp("", "paladm-"+way+"-")
+	if err != nil {
+		return "", nil, err
 	}
-	return source.CopyFromLocal(path, way)
+	cleanup = func() { _ = os.RemoveAll(tmpRoot) }
+	if gamesrv.Default != nil {
+		if err := gamesrv.Default.FetchSavedToLocal(tmpRoot); err != nil {
+			cleanup()
+			return "", nil, err
+		}
+	} else {
+		// 兜底：直接从本地路径拷贝（非容器、且未注入 manager 的场景）
+		savedDir := EffectiveSavePath()
+		if _, err := os.Stat(savedDir); err != nil {
+			cleanup()
+			return "", nil, fmt.Errorf("存档目录不可用: %w", err)
+		}
+		if err := source.CopySavedTree(savedDir, filepath.Join(tmpRoot, "Pal", "Saved")); err != nil {
+			cleanup()
+			return "", nil, err
+		}
+	}
+	level, err := source.FindLevelSav(filepath.Join(tmpRoot, "Pal", "Saved"))
+	if err != nil {
+		cleanup()
+		return "", nil, err
+	}
+	return level, cleanup, nil
 }
 
 // Decode 调用 sav_cli 解析 Level.sav，结果通过 HTTP 回写
@@ -56,11 +81,11 @@ func Decode(path string) error {
 		return errors.New("获取 sav_cli 失败: " + err.Error())
 	}
 
-	levelFile, err := getFromSource(path, "decode")
+	levelFile, cleanup, err := fetchSavedToLocal("decode")
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(filepath.Dir(levelFile))
+	defer cleanup()
 
 	baseURL := fmt.Sprintf("http://127.0.0.1:%d", viper.GetInt("web.port"))
 	if viper.GetBool("web.tls") && viper.GetString("web.public_url") != "" {
@@ -82,9 +107,7 @@ func Decode(path string) error {
 	return cmd.Wait()
 }
 
-// EffectiveSavePath 返回实际使用的存档目录：
-// 优先使用用户配置的 save.path；为空时从游戏安装目录自动推导
-// （Windows 原生服务端存档在 <install_dir>/Pal/Saved）。
+// EffectiveSavePath 返回存档目录路径（仅用于本地模式/展示；容器模式下文件访问走 GameFS）。
 func EffectiveSavePath() string {
 	if p := viper.GetString("save.path"); p != "" {
 		return p
@@ -95,22 +118,47 @@ func EffectiveSavePath() string {
 	return ""
 }
 
-// Backup 备份存档为 zip，返回文件名
+// BackupDir 返回备份 zip 存放目录（位于持久化数据目录下）。
+func BackupDir() string {
+	// 优先用 PALADIN_DATA_DIR（容器入口脚本设置为 /data）
+	if d := os.Getenv("PALADIN_DATA_DIR"); d != "" {
+		return filepath.Join(d, "backups")
+	}
+	// 其次与数据库同目录
+	if db := viper.GetString("storage.path"); db != "" && db != "./pst.db" {
+		return filepath.Join(filepath.Dir(db), "backups")
+	}
+	return filepath.Join(mustWd(), "backups")
+}
+
+// Backup 通过游戏文件访问层拉取存档并打包为 zip，返回文件名
 func Backup() (string, error) {
-	sourcePath := EffectiveSavePath()
-	levelFile, err := getFromSource(sourcePath, "backup")
+	tmpRoot, err := os.MkdirTemp("", "paladm-backup-")
 	if err != nil {
 		return "", err
 	}
-	defer os.RemoveAll(filepath.Dir(levelFile))
+	defer os.RemoveAll(tmpRoot)
 
-	backupDir := filepath.Join(mustWd(), "backups")
+	// 拉取游戏 Saved 目录到 tmpRoot/Pal/Saved
+	if gamesrv.Default != nil {
+		if err := gamesrv.Default.FetchSavedToLocal(tmpRoot); err != nil {
+			return "", err
+		}
+	} else {
+		savedDir := EffectiveSavePath()
+		if err := source.CopySavedTree(savedDir, filepath.Join(tmpRoot, "Pal", "Saved")); err != nil {
+			return "", err
+		}
+	}
+
+	backupDir := BackupDir()
 	if err := system.CheckAndCreateDir(backupDir); err != nil {
 		return "", err
 	}
 	name := time.Now().Format("2006-01-02-15-04-05") + ".zip"
 	backupZip := filepath.Join(backupDir, name)
-	if err := system.ZipDir(filepath.Dir(levelFile), backupZip); err != nil {
+	// 打包 tmpRoot 下的 Pal/ 目录（zip 内顶层为 Saved/）
+	if err := system.ZipDir(filepath.Join(tmpRoot, "Pal"), backupZip); err != nil {
 		return "", fmt.Errorf("创建备份失败: %s", err)
 	}
 	logger.Infof("存档已备份到 %s", backupZip)

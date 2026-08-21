@@ -7,10 +7,10 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"paladmin/internal/gamesrv"
 	"paladmin/internal/paldefender"
 	"paladmin/service"
 	"paladmin/service/audit"
@@ -54,13 +54,14 @@ func (p *palDefenderAPI) createToken(c *gin.Context) {
 	}
 
 	st := p.detectAt("")
-	if st.Win64Path == "" {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "PalDefender 未安装（找不到游戏 Win64 目录）"})
+	if !st.Installed {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "PalDefender 未安装（找不到 d3d9.dll/PalDefender.dll）"})
 		return
 	}
 
-	tokensDir := filepath.Join(st.Win64Path, "PalDefender", "RESTAPI", "Tokens")
-	if err := os.MkdirAll(tokensDir, 0755); err != nil {
+	// Tokens 目录相对游戏根的路径段
+	tokensElems := win64ElemsWith("PalDefender", "RESTAPI", "Tokens")
+	if err := gamesrv.Default.MkdirAllGame(0755, tokensElems...); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -73,10 +74,11 @@ func (p *palDefenderAPI) createToken(c *gin.Context) {
 	}
 	token := base64.RawURLEncoding.EncodeToString(buf)
 
-	// 文件名冲突时 name-2.json、name-3.json ...
+	// 文件名冲突时 name-2.json、name-3.json ...（通过游戏文件访问层判断）
 	filename := name + ".json"
 	for i := 2; ; i++ {
-		if _, err := os.Stat(filepath.Join(tokensDir, filename)); os.IsNotExist(err) {
+		_, err := gamesrv.Default.StatGameFile(append(tokensElems, filename)...)
+		if os.IsNotExist(err) {
 			break
 		}
 		filename = name + "-" + strconv.Itoa(i) + ".json"
@@ -96,7 +98,7 @@ func (p *palDefenderAPI) createToken(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	if err := os.WriteFile(filepath.Join(tokensDir, filename), data, 0600); err != nil {
+	if err := gamesrv.Default.WriteGameFile(data, 0600, append(tokensElems, filename)...); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -106,7 +108,7 @@ func (p *palDefenderAPI) createToken(c *gin.Context) {
 		"success":    true,
 		"token":      token,
 		"token_file": filename,
-		"tokens_dir": tokensDir,
+		"tokens_dir": st.Win64Path + "/PalDefender/RESTAPI/Tokens",
 	})
 }
 
@@ -397,7 +399,7 @@ func applyAntiCheatConfig() {
 	}
 	pd := &palDefenderAPI{}
 	st := pd.detectAt("")
-	if st.Win64Path == "" {
+	if !st.Installed {
 		return
 	}
 	enabled := service.GetSetting(db, service.SettingPalDefenderAntiCheat) != "false" // 默认开
@@ -405,17 +407,18 @@ func applyAntiCheatConfig() {
 	ban := service.GetSetting(db, service.SettingPalDefenderCheatersBan) == "true"
 	ipban := service.GetSetting(db, service.SettingPalDefenderCheatersIPBan) == "true"
 
-	configPath := filepath.Join(st.Win64Path, "PalDefender", "Config.json")
-	cfg := map[string]any{}
-	if existing, err := os.ReadFile(configPath); err == nil {
-		_ = json.Unmarshal(existing, &cfg)
+	// Config.json 相对游戏根的路径段
+	cfgElems := win64ElemsWith("PalDefender", "Config.json")
+	cfgData := map[string]any{}
+	if existing, err := gamesrv.Default.ReadGameFile(cfgElems...); err == nil {
+		_ = json.Unmarshal(existing, &cfgData)
 	}
-	cfg["shouldWarnCheaters"] = enabled
-	cfg["shouldKickCheaters"] = enabled && kick
-	cfg["shouldBanCheaters"] = enabled && ban
-	cfg["shouldIPBanCheaters"] = enabled && ipban
-	if out, err := json.MarshalIndent(cfg, "", "  "); err == nil {
-		_ = os.WriteFile(configPath, out, 0644)
+	cfgData["shouldWarnCheaters"] = enabled
+	cfgData["shouldKickCheaters"] = enabled && kick
+	cfgData["shouldBanCheaters"] = enabled && ban
+	cfgData["shouldIPBanCheaters"] = enabled && ipban
+	if out, err := json.MarshalIndent(cfgData, "", "  "); err == nil {
+		_ = gamesrv.Default.WriteGameFile(out, 0644, cfgElems...)
 	}
 
 	// 尝试热重载（PD 在线时立即生效）

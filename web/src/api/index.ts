@@ -151,6 +151,7 @@ export const api = {
     request<{
       current: string
       has_update: boolean
+      container?: boolean
       latest?: string
       name?: string
       body?: string

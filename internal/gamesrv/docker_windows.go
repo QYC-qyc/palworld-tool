@@ -2,7 +2,11 @@
 
 package gamesrv
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+	"os"
+)
 
 // Windows 上不使用 Docker 管控游戏服（面板直接运行游戏进程）。
 // dockerCtl 为空实现，保证跨平台编译；available() 永远返回 false，
@@ -23,3 +27,19 @@ func (d *dockerCtl) installOrUpdate() error {
 func (d *dockerCtl) logs(lines int) (string, error) {
 	return "", fmt.Errorf("docker 管控在 Windows 上不可用")
 }
+func (d *dockerCtl) absPath(rel string) string { return rel }
+
+// 以下文件访问方法在 Windows 上不可达（m.docker 恒为 nil），仅为满足编译。
+func (d *dockerCtl) readFile(rel string) ([]byte, error)             { return nil, errWindowsDocker }
+func (d *dockerCtl) writeFile(rel string, data []byte, perm os.FileMode) error { return errWindowsDocker }
+func (d *dockerCtl) stat(rel string) (os.FileInfo, error)            { return nil, errWindowsDocker }
+func (d *dockerCtl) mkdirAll(rel string, perm os.FileMode) error     { return errWindowsDocker }
+func (d *dockerCtl) remove(rel string) error                        { return errWindowsDocker }
+func (d *dockerCtl) removeAll(rel string) error                     { return errWindowsDocker }
+func (d *dockerCtl) execOutput(cmd ...string) ([]byte, error)        { return nil, errWindowsDocker }
+func (d *dockerCtl) execInput(stdin io.Reader, cmd ...string) error  { return errWindowsDocker }
+func (d *dockerCtl) execRun(cmd ...string) error                     { return errWindowsDocker }
+func (d *dockerCtl) tarStreamTo(w io.Writer, sub string) error       { return errWindowsDocker }
+func (d *dockerCtl) tarStreamFrom(r io.Reader, sub string) error     { return errWindowsDocker }
+
+var errWindowsDocker = fmt.Errorf("docker 管控在 Windows 上不可用")

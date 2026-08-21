@@ -216,7 +216,17 @@
       </n-form>
     </n-card>
 
-    <n-card title="面板更新" size="small">
+    <n-card v-if="isContainer" title="面板更新" size="small">
+      <n-space vertical :size="12">
+        <n-tag :bordered="false" type="info">当前版本：{{ updateInfo.current || '未知' }}</n-tag>
+        <n-alert type="info" :show-icon="false" style="font-size:13px">
+          容器化部署不支持在线更新。请在服务器执行
+          <code>docker compose pull &amp;&amp; docker compose up -d</code>
+          拉取最新镜像后重建容器，数据保存在 <code>./data</code> 不会丢失。
+        </n-alert>
+      </n-space>
+    </n-card>
+    <n-card v-else title="面板更新" size="small">
       <n-space vertical :size="12">
         <n-space align="center" :wrap="false">
           <n-tag :bordered="false" :type="updateInfo.has_update ? 'warning' : 'success'">
@@ -307,6 +317,7 @@ const updateInfo = reactive<{
   body?: string
   error?: string
 }>({ current: '', has_update: false })
+const isContainer = ref(false)
 
 const processModes = [
   { label: '不控制（手动停服）', value: 'noop' },
@@ -423,6 +434,7 @@ async function checkUpdate() {
   checking.value = true
   try {
     const info = await api.checkUpdate()
+    isContainer.value = !!info.container
     Object.assign(updateInfo, info)
   } catch (e: any) {
     updateInfo.error = e.message

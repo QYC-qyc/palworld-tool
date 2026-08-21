@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
+	"paladmin/internal/tool"
 	"paladmin/service"
 )
 
@@ -36,7 +37,7 @@ func deleteBackup(c *gin.Context) {
 		c.JSON(http.StatusNotFound, ErrorResponse{Error: "备份不存在"})
 		return
 	}
-	_ = os.Remove(filepath.Join("backups", path))
+	_ = os.Remove(filepath.Join(tool.BackupDir(), path))
 	_ = service.DeleteBackup(db, id)
 	c.JSON(http.StatusOK, SuccessResponse{Success: true})
 }

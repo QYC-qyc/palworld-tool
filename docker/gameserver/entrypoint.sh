@@ -6,14 +6,18 @@ set -e
 
 PALSERVER_DIR="/home/steam/palserver"
 EXE="${PALSERVER_DIR}/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe"
-STEAMCMD="/usr/games/steamcmd"
+# steamcmd 由镜像装在 /opt/steamcmd（用绝对路径，避免 PATH/软链接在 steam 用户下解析问题）
+STEAMCMD="/opt/steamcmd/steamcmd.sh"
+# 官方 REST API 端口与密码（面板经容器网络连接）
+REST_PORT="${REST_PORT:-8212}"
+REST_PASSWORD="${REST_PASSWORD:-}"
 
 # 下载/更新游戏服
 install_server() {
     echo ">>> 安装/更新 PalServer 到 ${PALSERVER_DIR}"
     mkdir -p "${PALSERVER_DIR}"
-    # 首次需初始化
-    ${STEAMCMD} +login anonymous +quit || true
+    # 首次需初始化（带平台参数，避免 Missing configuration）
+    ${STEAMCMD} @sSteamCmdForcePlatformType windows +login anonymous +quit || true
     ${STEAMCMD} \
         +@sSteamCmdForcePlatformType windows \
         +force_install_dir "${PALSERVER_DIR}" \
@@ -39,7 +43,16 @@ start_server() {
         echo ">>> 检测到 PalDefender，将通过 WINEDLLOVERRIDES 注入"
     else
         echo ">>> 警告：未检测到 PalDefender DLL，游戏服将以无反作弊模式启动"
-        WINEDLLOVERRIDES=""
+        export WINEDLLOVERRIDES=""
+    fi
+
+    # 官方 REST API 启动参数（面板需要它拉取在线玩家/广播/关服等）
+    # 用数组构建参数，避免密码含空格/特殊字符时被 shell 拆分
+    REST_ARGS=(-RESTAPI -RESTPort="${REST_PORT}")
+    if [ -n "${REST_PASSWORD}" ]; then
+        REST_ARGS+=(-RESTPassword="${REST_PASSWORD}")
+    else
+        echo ">>> 警告：未设置 REST_PASSWORD，REST API 可能拒绝连接，请在 compose 中配置"
     fi
 
     # 通过 Proton 启动 Windows exe
@@ -48,7 +61,8 @@ start_server() {
         -publiclobby \
         -useperfthreads \
         -NoAsyncLoadingThread \
-        -UseMultithreadForDS
+        -UseMultithreadForDS \
+        "${REST_ARGS[@]}"
 }
 
 # 停止游戏服（发 SIGTERM 给 Proton/wineserver）

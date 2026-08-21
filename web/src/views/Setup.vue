@@ -73,7 +73,7 @@ const loading = ref(false)
 
 const form = reactive({
   web_password: '',
-  rest_address: 'http://palworld:8212',
+  rest_address: 'http://gameserver:8212',
   rest_password: '',
 })
 

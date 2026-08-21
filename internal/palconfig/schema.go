@@ -369,6 +369,12 @@ func splitOptions(s string) []string {
 
 // WriteFile 写入 PalWorldSettings.ini
 func WriteFile(path string, settings map[string]string) error {
+	return os.WriteFile(path, []byte(BuildIniContent(settings)), 0644)
+}
+
+// BuildIniContent 根据设置生成 PalWorldSettings.ini 的完整文本。
+// 抽出此函数是为了让跨容器文件写入（docker exec）能拿到内容字节后自行写入。
+func BuildIniContent(settings map[string]string) string {
 	schema := Schema()
 	var pairs []string
 	for _, f := range schema {
@@ -387,8 +393,7 @@ func WriteFile(path string, settings map[string]string) error {
 		}
 		pairs = append(pairs, f.Key+"="+v)
 	}
-	content := fmt.Sprintf("[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(%s)\n", strings.Join(pairs, ","))
-	return os.WriteFile(path, []byte(content), 0644)
+	return fmt.Sprintf("[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(%s)\n", strings.Join(pairs, ","))
 }
 
 func isQuoted(s string) bool {

@@ -4,37 +4,40 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"paladmin/internal/gamesrv"
 	"paladmin/internal/palconfig"
 	"paladmin/service"
 )
 
-// iniFallbackPath 当未配置安装目录时使用的兜底路径（Windows 原生）
-const iniFallbackPath = `C:\PalServer\Pal\Saved\Config\WindowsServer\PalWorldSettings.ini`
+// iniRelElems 是 PalWorldSettings.ini 相对游戏根目录的路径段。
+// Windows 版服务端配置固定在 WindowsServer 目录。
+var iniRelElems = []string{"Pal", "Saved", "Config", "WindowsServer", "PalWorldSettings.ini"}
 
-// iniPath 解析 Windows 版游戏服的 PalWorldSettings.ini 完整路径。
-// 面板直接管理 Windows 版服务端，配置固定在 WindowsServer 目录。
-//  1. 环境变量 PALWORLD_INI_PATH 显式指定时优先；
-//  2. 否则使用 <install_dir>/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini。
+// iniPath 返回供前端展示的 ini 完整路径（容器内路径或本地安装路径）。
+// 文件读写统一走 mgr 的游戏文件访问层，不直接操作本地 FS。
 func iniPath() string {
+	if gameAPI != nil {
+		return gameAPI.mgr.GameDisplayPath() + "/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini"
+	}
 	if p := os.Getenv("PALWORLD_INI_PATH"); p != "" {
 		return p
 	}
+	return strings.Join(iniRelElems, "/")
+}
 
-	installDir := ""
-	if gameAPI != nil {
-		installDir = gameAPI.mgr.ConfigValue().InstallDir
+// readIni 通过游戏文件访问层读取 ini 内容；文件不存在时返回空内容。
+func readIni() (string, bool, error) {
+	b, err := gamesrv.Default.ReadGameFile(iniRelElems...)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", false, nil
+		}
+		return "", false, err
 	}
-	if installDir == "" {
-		installDir = os.Getenv("GAMESRV__INSTALL_DIR")
-	}
-	if installDir == "" {
-		return iniFallbackPath
-	}
-	return filepath.Join(installDir, "Pal", "Saved", "Config", "WindowsServer", "PalWorldSettings.ini")
+	return string(b), true, nil
 }
 
 type gameSettingsAPI struct{}
@@ -49,16 +52,14 @@ func (g *gameSettingsAPI) schema(c *gin.Context) {
 
 // get 读取当前配置
 func (g *gameSettingsAPI) get(c *gin.Context) {
-	path := c.Query("path")
-	if path == "" {
-		path = iniPath()
-	}
-	settings := map[string]string{}
-	if b, err := os.ReadFile(path); err == nil {
-		settings = palconfig.Parse(string(b))
-	} else if !os.IsNotExist(err) {
+	content, exists, err := readIni()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "读取配置失败: " + err.Error()})
 		return
+	}
+	settings := map[string]string{}
+	if exists {
+		settings = palconfig.Parse(content)
 	}
 	// 用默认值补全未设置项
 	for _, f := range palconfig.Schema() {
@@ -68,8 +69,8 @@ func (g *gameSettingsAPI) get(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"settings": settings,
-		"path":     path,
-		"exists":   fileExists(path),
+		"path":     iniPath(),
+		"exists":   exists,
 	})
 }
 
@@ -84,9 +85,6 @@ func (g *gameSettingsAPI) save(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
-	if req.Path == "" {
-		req.Path = iniPath()
-	}
 
 	// 校验
 	for _, f := range palconfig.Schema() {
@@ -98,13 +96,9 @@ func (g *gameSettingsAPI) save(c *gin.Context) {
 		}
 	}
 
-	// 确保目录存在
-	if err := os.MkdirAll(filepath.Dir(req.Path), 0755); err != nil {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "创建目录失败: " + err.Error()})
-		return
-	}
-
-	if err := palconfig.SaveFile(req.Path, req.Settings); err != nil {
+	// 生成 ini 内容并通过游戏文件访问层写入（自动建目录、跨容器）
+	content := palconfig.BuildIniContent(req.Settings)
+	if err := gamesrv.Default.WriteGameFile([]byte(content), 0644, iniRelElems...); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "写入失败: " + err.Error()})
 		return
 	}
@@ -133,19 +127,16 @@ func (g *gameSettingsAPI) save(c *gin.Context) {
 }
 
 func (g *gameSettingsAPI) raw(c *gin.Context) {
-	path := c.Query("path")
-	if path == "" {
-		path = iniPath()
-	}
-	b, err := os.ReadFile(path)
+	content, exists, err := readIni()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
 	}
-	// 脱敏密码
-	content := string(b)
-	content = maskPasswords(content)
-	c.JSON(http.StatusOK, gin.H{"content": content, "path": path})
+	if !exists {
+		c.JSON(http.StatusNotFound, ErrorResponse{Error: "配置文件不存在"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"content": maskPasswords(content), "path": iniPath()})
 }
 
 // maskPasswords 把输出中的密码值替换为 ***
@@ -160,10 +151,6 @@ func maskPasswords(s string) string {
 	return s
 }
 
-func fileExists(p string) bool {
-	_, err := os.Stat(p)
-	return err == nil
-}
 
 // syncConnectionSettings 将游戏配置中的网络项同步到面板连接设置，
 // 避免「游戏配置」与「系统设置」两处的端口/密码不一致导致面板连不上游戏服。
@@ -183,7 +170,8 @@ func syncConnectionSettings(s map[string]string) {
 			return true
 		}
 		low := strings.ToLower(addr)
-		if strings.Contains(low, "127.0.0.1") || strings.Contains(low, "localhost") || strings.Contains(low, "palworld:") {
+		// 仅回环/空地址视为"本机"；Docker 下 gameserver 是另一容器，不能改写成 127.0.0.1
+		if strings.Contains(low, "127.0.0.1") || strings.Contains(low, "localhost") {
 			return true
 		}
 		// 提取 host 部分
