@@ -36,6 +36,15 @@ RUN pyinstaller --onefile --name sav_cli sav_cli.py
 # ---- 运行镜像 ----
 FROM debian:bookworm-slim
 
+# 换阿里云 apt 镜像（国内构建加速）。用 http，避免 slim 镜像缺 ca-certificates 导致 https 失败。
+RUN set -eux; \
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+        sed -i -E 's|https?://deb.debian.org|http://mirrors.aliyun.com|g; s|https?://security.debian.org|http://mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources; \
+    fi; \
+    if [ -f /etc/apt/sources.list ]; then \
+        sed -i -E 's|https?://deb.debian.org|http://mirrors.aliyun.com|g; s|https?://security.debian.org|http://mirrors.aliyun.com|g' /etc/apt/sources.list; \
+    fi
+
 # 安装 ca-certificates（HTTPS）和 Docker CLI（通过 docker.sock 管控游戏服容器）
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates curl docker.io && \
