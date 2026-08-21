@@ -218,12 +218,31 @@
 
     <n-card v-if="isContainer" title="面板更新" size="small">
       <n-space vertical :size="12">
-        <n-tag :bordered="false" type="info">当前版本：{{ updateInfo.current || '未知' }}</n-tag>
-        <n-alert type="info" :show-icon="false" style="font-size:13px">
-          容器化部署不支持在线更新。请在服务器执行
-          <code>docker compose pull &amp;&amp; docker compose up -d</code>
-          拉取最新镜像后重建容器，数据保存在 <code>./data</code> 不会丢失。
+        <n-space align="center" :wrap="false">
+          <n-tag :bordered="false" type="info">当前版本：{{ updateInfo.current || '未知' }}</n-tag>
+          <n-text v-if="updateInfo.has_update" strong type="warning">
+            发现新版本：{{ updateInfo.latest }}
+          </n-text>
+          <n-button size="small" :loading="checking" @click="checkUpdate">检查更新</n-button>
+          <n-button size="small" type="primary" :loading="selfUpdating"
+            :disabled="selfUpdateState.running" @click="doSelfUpdate">
+            一键更新
+          </n-button>
+        </n-space>
+        <n-alert v-if="updateInfo.has_update && updateInfo.body" type="info" :show-icon="false"
+          style="white-space:pre-wrap;max-height:200px;overflow:auto;font-size:12px">
+          {{ updateInfo.body }}
         </n-alert>
+        <n-alert type="info" :show-icon="false" style="font-size:12px">
+          一键更新会在服务器执行 <code>docker compose pull &amp;&amp; up -d</code>，
+          期间面板短暂不可用，数据保存在 <code>./data</code> 不会丢失。
+        </n-alert>
+        <n-text v-if="updateInfo.error" depth="3" style="font-size:12px;color:#d03050">
+          {{ updateInfo.error }}
+        </n-text>
+        <div v-if="selfUpdateState.logs.length" class="update-logs">
+          <div v-for="(line, i) in selfUpdateState.logs" :key="i">{{ line }}</div>
+        </div>
       </n-space>
     </n-card>
     <n-card v-else title="面板更新" size="small">
@@ -285,7 +304,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NForm, NFormItem, NInput, NSwitch, NGrid, NGi,
   NSelect, NButton, NTag, NText, NAlert, NModal, NProgress,
@@ -318,6 +337,57 @@ const updateInfo = reactive<{
   error?: string
 }>({ current: '', has_update: false })
 const isContainer = ref(false)
+
+// 容器内一键自更新
+const selfUpdating = ref(false)
+let selfUpdateTimer: number | null = null
+const selfUpdateState = reactive<{
+  running: boolean
+  done: boolean
+  success: boolean
+  logs: string[]
+}>({ running: false, done: false, success: false, logs: [] })
+
+async function doSelfUpdate() {
+  try {
+    selfUpdating.value = true
+    await api.selfUpdateDo()
+    message.info('开始更新，面板将在更新完成后重启')
+    pollSelfUpdate()
+  } catch (e: any) {
+    selfUpdating.value = false
+    message.error(e.message || '更新失败')
+  }
+}
+
+async function pollSelfUpdate() {
+  if (selfUpdateTimer) window.clearInterval(selfUpdateTimer)
+  const tick = async () => {
+    try {
+      const st = await api.selfUpdateStatus()
+      selfUpdateState.running = st.running
+      selfUpdateState.done = st.done
+      selfUpdateState.success = st.success
+      selfUpdateState.logs = st.logs || []
+      // 更新过程中面板会重启，请求会失败；这是正常的，继续轮询直到它回来
+      if (st.done && !st.running) {
+        if (selfUpdateTimer) window.clearInterval(selfUpdateTimer)
+        selfUpdateTimer = null
+        selfUpdating.value = false
+        if (st.success) {
+          message.success('面板已更新完成，即将刷新')
+          setTimeout(() => location.reload(), 3000)
+        } else {
+          message.error('更新未完成，请查看日志或在服务器手动更新')
+        }
+      }
+    } catch {
+      // 面板正在重启，继续等待
+    }
+  }
+  await tick()
+  selfUpdateTimer = window.setInterval(tick, 2000)
+}
 
 const processModes = [
   { label: '不控制（手动停服）', value: 'noop' },
@@ -428,6 +498,10 @@ async function save() {
 onMounted(async () => {
   await load()
   checkUpdate()
+})
+
+onUnmounted(() => {
+  if (selfUpdateTimer) window.clearInterval(selfUpdateTimer)
 })
 
 async function checkUpdate() {
@@ -570,5 +644,17 @@ async function doUpdate() {
 :deep(.n-tooltip) {
   background: #1f1f1f !important;
   color: #fff !important;
+}
+.update-logs {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 </style>

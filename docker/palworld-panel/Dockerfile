@@ -45,9 +45,9 @@ RUN set -eux; \
         sed -i -E 's|https?://deb.debian.org|http://mirrors.aliyun.com|g; s|https?://security.debian.org|http://mirrors.aliyun.com|g' /etc/apt/sources.list; \
     fi
 
-# 安装 ca-certificates（HTTPS）和 Docker CLI（通过 docker.sock 管控游戏服容器）
+# 安装 ca-certificates（HTTPS）、Docker CLI 与 compose 插件（面板自更新需要 compose pull/up）
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates curl docker.io && \
+    apt-get install -y --no-install-recommends ca-certificates curl docker.io docker-compose-plugin && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

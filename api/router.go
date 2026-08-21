@@ -130,6 +130,10 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.POST("/updater/do", updaterAPI.do)
 		authGroup.GET("/updater/status", updaterAPI.status)
 
+		// 容器内一键自更新（compose pull + up）
+		authGroup.GET("/self-update/status", selfUpdateStatus)
+		authGroup.POST("/self-update/do", selfUpdateDo)
+
 		// 审计日志
 		authGroup.GET("/audit", func(c *gin.Context) {
 			limit := 100

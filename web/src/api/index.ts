@@ -159,4 +159,18 @@ export const api = {
       error?: string
     }>('/api/updater/check'),
   doUpdateURL: () => '/api/updater/do',
+
+  // 容器内一键自更新（compose pull + up）
+  selfUpdateStatus: () =>
+    request<{
+      running: boolean
+      done: boolean
+      success: boolean
+      logs: string[]
+      container?: boolean
+    }>('/api/self-update/status'),
+  selfUpdateDo: () =>
+    request<{ success: boolean; message: string }>('/api/self-update/do', {
+      method: 'POST',
+    }),
 }
