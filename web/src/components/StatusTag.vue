@@ -9,8 +9,9 @@
 import { computed } from 'vue'
 import { NTag } from 'naive-ui'
 
+type Status = 'running' | 'stopped' | 'updating' | 'installing' | 'starting' | 'error'
 const props = defineProps<{
-  status: 'running' | 'stopped' | 'updating' | 'error'
+  status: Status
 }>()
 
 const tagType = computed(() => {
@@ -18,6 +19,8 @@ const tagType = computed(() => {
     case 'running':
       return 'success'
     case 'updating':
+    case 'installing':
+    case 'starting':
       return 'warning'
     case 'error':
       return 'error'
@@ -32,6 +35,10 @@ const text = computed(() => {
       return '运行中'
     case 'updating':
       return '更新中'
+    case 'installing':
+      return '安装中'
+    case 'starting':
+      return '启动中'
     case 'error':
       return '异常'
     default:
@@ -53,13 +60,20 @@ const text = computed(() => {
   background: #18a058;
   box-shadow: 0 0 0 3px rgba(24, 160, 88, 0.2);
 }
-.dot--updating {
+.dot--updating,
+.dot--installing,
+.dot--starting {
   background: #f0a020;
+  animation: pulse 1.2s ease-in-out infinite;
 }
 .dot--error {
   background: #d03050;
 }
 .dot--stopped {
   background: #909399;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 </style>

@@ -229,6 +229,20 @@ func (d *dockerCtl) isRunning() bool {
 	return strings.TrimSpace(string(out)) == "true"
 }
 
+// isGameRunning 检查容器内游戏进程（PalServer）是否真的在运行。
+// 仅容器 Up 不代表游戏在跑（可能正在下载/安装/启动失败）。
+func (d *dockerCtl) isGameRunning() bool {
+	if !d.isRunning() {
+		return false
+	}
+	// pgrep -f 在进程命令行中匹配 PalServer（兼容 PalServer-Win64-Shipping-Cmd.exe）
+	out, err := d.execOutput("pgrep", "-f", "PalServer")
+	if err != nil {
+		return false
+	}
+	return len(strings.TrimSpace(string(out))) > 0
+}
+
 // installOrUpdate 在游戏服容器内执行安装/更新（steamcmd app_update）
 func (d *dockerCtl) installOrUpdate() error {
 	return d.execRun("/home/steam/entrypoint.sh", "update")

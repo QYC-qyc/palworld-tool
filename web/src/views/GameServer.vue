@@ -226,8 +226,11 @@ const isDocker = computed(() => !!status.value?.status?.docker_mode)
 const canStart = computed(() => isInstalled.value && !isRunning.value)
 const isUpdating = computed(() => !!status.value?.status?.updating)
 
-const stateStatus = computed<'running' | 'stopped' | 'updating' | 'error'>(() => {
+const stateStatus = computed<'running' | 'stopped' | 'updating' | 'installing' | 'starting' | 'error'>(() => {
   if (isUpdating.value) return 'updating'
+  // 后端 state 已区分 running/installing/starting/stopped
+  const s = status.value?.status?.state
+  if (s === 'running' || s === 'installing' || s === 'starting') return s
   if (isRunning.value) return 'running'
   return 'stopped'
 })

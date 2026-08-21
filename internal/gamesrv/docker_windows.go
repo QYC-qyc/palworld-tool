@@ -21,6 +21,7 @@ func (d *dockerCtl) start() error         { return fmt.Errorf("docker 管控在 
 func (d *dockerCtl) stop() error          { return fmt.Errorf("docker 管控在 Windows 上不可用") }
 func (d *dockerCtl) restart() error       { return fmt.Errorf("docker 管控在 Windows 上不可用") }
 func (d *dockerCtl) isRunning() bool      { return false }
+func (d *dockerCtl) isGameRunning() bool  { return false }
 func (d *dockerCtl) installOrUpdate() error {
 	return fmt.Errorf("docker 管控在 Windows 上不可用")
 }

@@ -52,6 +52,7 @@ type Status struct {
 	InstallDir       string `json:"install_dir"`
 	ProtonMode       bool   `json:"proton_mode"` // 当前是否 Proton 模式（始终为 true，保留字段供前端判断）
 	DockerMode       bool   `json:"docker_mode"` // 是否通过 Docker 管控游戏服容器
+	ContainerRunning bool   `json:"container_running"` // 游戏服容器是否在运行（不等同于游戏进程在跑）
 	State            string `json:"state,omitempty"`
 }
 
@@ -163,8 +164,9 @@ func (m *Manager) GetStatus() (*Status, error) {
 	}
 	// 服务端是否在运行
 	if m.docker != nil {
-		// 容器化部署：查询容器状态
-		st.Running = m.docker.isRunning()
+		// 容器化部署：Running 表示游戏进程真正在跑，ContainerRunning 仅表示容器 Up
+		st.ContainerRunning = m.docker.isRunning()
+		st.Running = m.docker.isGameRunning()
 	} else if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
 		st.Running = true
 		st.PID = m.serverCmd.Process.Pid
@@ -172,11 +174,17 @@ func (m *Manager) GetStatus() (*Status, error) {
 		st.Running = true
 		st.PID = pids[0]
 	}
-	if st.Running {
+	switch {
+	case st.Running:
 		st.State = "running"
-	} else if st.Updating {
+	case st.Updating:
 		st.State = "updating"
-	} else {
+	case m.docker != nil && st.ContainerRunning && !st.WindowsInstalled:
+		// 容器在跑但游戏还没装好/没启动：正在安装或启动中
+		st.State = "installing"
+	case m.docker != nil && st.ContainerRunning:
+		st.State = "starting"
+	default:
 		st.State = "stopped"
 	}
 	return st, nil
