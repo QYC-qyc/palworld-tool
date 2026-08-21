@@ -67,6 +67,13 @@ install_server() {
 launch_game() {
     cd "${PALSERVER_DIR}"
 
+    # 诊断：确认游戏文件存在
+    if [ ! -f "${EXE}" ]; then
+        echo "!!! 找不到游戏可执行文件: ${EXE}"
+        return 1
+    fi
+    echo ">>> 游戏可执行文件: $(ls -lh "${EXE}" | awk '{print $5, $9}')"
+
     # 首次启动：从 DefaultPalWorldSettings.ini 生成配置
     INI_DIR="${PALSERVER_DIR}/Pal/Saved/Config/WindowsServer"
     INI_FILE="${INI_DIR}/PalWorldSettings.ini"
@@ -80,6 +87,7 @@ launch_game() {
     WIN64_DIR="${PALSERVER_DIR}/Pal/Binaries/Win64"
     if [ -f "${WIN64_DIR}/d3d9.dll" ] && [ -f "${WIN64_DIR}/PalDefender.dll" ]; then
         export WINEDLLOVERRIDES="d3d9=n,b"
+        echo ">>> 已启用 PalDefender"
     else
         unset WINEDLLOVERRIDES
     fi
@@ -88,8 +96,13 @@ launch_game() {
     local args=(-port=8211 -RESTPort="${REST_PORT}" -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS)
     [ -n "${REST_PASSWORD}" ] && args+=(-RESTPassword="${REST_PASSWORD}")
 
-    echo ">>> 启动 PalServer (Proton)..."
-    exec "${PROTONPATH}" run "${EXE}" "${args[@]}"
+    echo ">>> 启动 PalServer (Proton)，参数: ${args[*]}"
+    echo ">>> PROTONPATH=${PROTONPATH}"
+    # 不用 exec：让守护进程能拿到退出码；proton run 的输出直接透传到 docker logs
+    "${PROTONPATH}" run "${EXE}" "${args[@]}"
+    local rc=$?
+    echo ">>> PalServer 退出，退出码: $rc"
+    return $rc
 }
 
 # 守护循环：游戏崩溃自动重启，除非用户手动 stop
@@ -97,6 +110,7 @@ supervise() {
     mkdir -p "${RUN_DIR}"
     # 清除可能残留的手动停止标记
     rm -f "${STOP_FILE}"
+    local fails=0
 
     while true; do
         if [ -f "${STOP_FILE}" ]; then
@@ -120,13 +134,27 @@ supervise() {
         local rc=$?
         rm -f "${PID_FILE}"
         echo ">>> 游戏进程退出（退出码 $rc）"
+        # 游戏成功运行一段时间（>60s）才重置失败计数；这里简单处理：
+        # 退出码 0 视为正常退出，重置计数；非 0 累加
+        if [ $rc -eq 0 ]; then
+            fails=0
+        fi
 
         if [ -f "${STOP_FILE}" ]; then
             echo ">>> 手动停止，不自动重启"
             continue
         fi
-        echo ">>> 5 秒后自动重启游戏..."
-        sleep 5
+        # 快速崩溃时退避：失败次数越多等越久，避免狂刷
+        fails=$((fails + 1))
+        if [ $fails -gt 5 ]; then
+            wait_sec=60
+        elif [ $fails -gt 3 ]; then
+            wait_sec=30
+        else
+            wait_sec=10
+        fi
+        echo ">>> ${wait_sec} 秒后自动重启（已连续失败 ${fails} 次）..."
+        sleep $wait_sec
     done
 }
 
