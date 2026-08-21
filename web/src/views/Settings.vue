@@ -24,7 +24,7 @@
               :placeholder="form['rest.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置，需与游戏配置 AdminPassword 一致'"
             />
             <n-button :loading="revealing === 'rest.password'"
-              @click="reveal('rest.password', adminPwd)">
+              @click="reveal('rest.password')">
               <template #icon><n-icon :component="EyeOutline" /></template>
             </n-button>
           </n-input-group>
@@ -124,7 +124,7 @@
             <n-input v-model:value="webPwd" type="password" show-password-on="click"
               :placeholder="form['web.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置'" />
             <n-button :loading="revealing === 'web.password'"
-              @click="reveal('web.password', webPwd)">
+              @click="reveal('web.password')">
               <template #icon><n-icon :component="EyeOutline" /></template>
             </n-button>
           </n-input-group>
@@ -239,12 +239,14 @@ const webPwd = ref('')
 const revealing = ref<string>('')
 
 // 点击眼睛：从后端获取已保存的敏感字段明文并填入
-async function reveal(key: string, target: Ref<string>) {
+async function reveal(key: 'rest.password' | 'web.password') {
   if (revealing.value) return
   revealing.value = key
   try {
     const res = await api.revealSecret(key)
-    target.value = res.value || ''
+    const val = res.value || ''
+    if (key === 'rest.password') adminPwd.value = val
+    else webPwd.value = val
   } catch (e: any) {
     message.error(e.message || '获取失败')
   } finally {
