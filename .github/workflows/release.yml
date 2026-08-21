@@ -77,6 +77,11 @@ jobs:
   build-gameserver-image:
     if: github.event_name != 'delete'
     runs-on: ubuntu-22.04
+    env:
+      ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+      ALIYUN_NAMESPACE: ${{ secrets.ALIYUN_NAMESPACE }}
+      ALIYUN_USERNAME: ${{ secrets.ALIYUN_USERNAME }}
+      ALIYUN_PASSWORD: ${{ secrets.ALIYUN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
@@ -94,19 +99,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to Aliyun ACR
-        if: ${{ secrets.ALIYUN_REGISTRY != '' }}
+        if: env.ALIYUN_REGISTRY != ''
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.ALIYUN_REGISTRY }}
-          username: ${{ secrets.ALIYUN_USERNAME }}
-          password: ${{ secrets.ALIYUN_PASSWORD }}
+          registry: ${{ env.ALIYUN_REGISTRY }}
+          username: ${{ env.ALIYUN_USERNAME }}
+          password: ${{ env.ALIYUN_PASSWORD }}
 
       - name: Build and push gameserver image
         run: |
           # 只推版本号标签（如 v3.0.2），不推 latest，减少推送次数并锁定版本
           TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:${{ github.ref_name }}"
-          if [ -n "${{ secrets.ALIYUN_REGISTRY }}" ] && [ -n "${{ secrets.ALIYUN_NAMESPACE }}" ]; then
-            TAGS="$TAGS ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/palworld-gameserver:${{ github.ref_name }}"
+          if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_NAMESPACE" ]; then
+            TAGS="$TAGS $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-gameserver:${{ github.ref_name }}"
           fi
           BUILD_ARGS=""
           for t in $TAGS; do BUILD_ARGS="$BUILD_ARGS -t $t"; done
@@ -118,6 +123,11 @@ jobs:
   build-palworld-panel-image:
     if: github.event_name != 'delete'
     runs-on: ubuntu-22.04
+    env:
+      ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+      ALIYUN_NAMESPACE: ${{ secrets.ALIYUN_NAMESPACE }}
+      ALIYUN_USERNAME: ${{ secrets.ALIYUN_USERNAME }}
+      ALIYUN_PASSWORD: ${{ secrets.ALIYUN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
@@ -135,19 +145,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to Aliyun ACR
-        if: ${{ secrets.ALIYUN_REGISTRY != '' }}
+        if: env.ALIYUN_REGISTRY != ''
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.ALIYUN_REGISTRY }}
-          username: ${{ secrets.ALIYUN_USERNAME }}
-          password: ${{ secrets.ALIYUN_PASSWORD }}
+          registry: ${{ env.ALIYUN_REGISTRY }}
+          username: ${{ env.ALIYUN_USERNAME }}
+          password: ${{ env.ALIYUN_PASSWORD }}
 
       - name: Build and push palworld-panel image
         run: |
           # 只推版本号标签（如 v3.0.2），不推 latest
           TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-panel:${{ github.ref_name }}"
-          if [ -n "${{ secrets.ALIYUN_REGISTRY }}" ] && [ -n "${{ secrets.ALIYUN_NAMESPACE }}" ]; then
-            TAGS="$TAGS ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/palworld-panel:${{ github.ref_name }}"
+          if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_NAMESPACE" ]; then
+            TAGS="$TAGS $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-panel:${{ github.ref_name }}"
           fi
           BUILD_ARGS=""
           for t in $TAGS; do BUILD_ARGS="$BUILD_ARGS -t $t"; done
