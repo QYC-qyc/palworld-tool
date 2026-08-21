@@ -135,13 +135,15 @@
     <n-card v-if="isContainer" title="面板更新" size="small">
       <n-space vertical :size="12">
         <n-space align="center" :wrap="false">
-          <n-tag :bordered="false" type="info">当前版本：{{ updateInfo.current || '未知' }}</n-tag>
+          <n-tag :bordered="false" :type="updateInfo.has_update ? 'warning' : 'success'">
+            当前版本：{{ updateInfo.current || '未知' }}
+          </n-tag>
           <n-text v-if="updateInfo.has_update" strong type="warning">
             发现新版本：{{ updateInfo.latest }}
           </n-text>
           <n-button size="small" :loading="checking" @click="checkUpdate">检查更新</n-button>
-          <n-button size="small" type="primary" :loading="selfUpdating"
-            :disabled="selfUpdateState.running" @click="doSelfUpdate">
+          <n-button v-if="updateInfo.has_update" size="small" type="primary"
+            :loading="selfUpdating" :disabled="selfUpdateState.running" @click="doSelfUpdate">
             一键更新
           </n-button>
         </n-space>
@@ -150,8 +152,8 @@
           {{ updateInfo.body }}
         </n-alert>
         <n-alert type="info" :show-icon="false" style="font-size:12px">
-          一键更新会在服务器执行 <code>docker compose pull &amp;&amp; up -d</code>，
-          期间面板短暂不可用，数据保存在 <code>./data</code> 不会丢失。
+          一键更新仅拉取并重启面板容器（<code>docker compose pull palworld-panel &amp;&amp; up -d palworld-panel</code>），
+          不影响正在运行的游戏服，数据保存在 <code>./data</code> 不会丢失。
         </n-alert>
         <n-text v-if="updateInfo.error" depth="3" style="font-size:12px;color:#d03050">
           {{ updateInfo.error }}
@@ -411,16 +413,18 @@ onUnmounted(() => {
 async function checkUpdate() {
   checking.value = true
   try {
-    if (isContainer.value) {
-      // 容器模式：检查镜像是否有更新（而非二进制更新）
-      const check = await api.selfUpdateCheck()
+    // 容器模式：检查镜像 digest 是否更新；非容器返回 container:false
+    const check = await api.selfUpdateCheck()
+    if (check.container) {
       isContainer.value = true
-      updateInfo.has_update = !!check.has_update
       updateInfo.container = true
+      updateInfo.has_update = !!check.has_update
+      updateInfo.latest = check.latest || ''
       updateInfo.error = check.error
     } else {
+      // 非容器：检查 GitHub release 二进制更新
+      isContainer.value = false
       const info = await api.checkUpdate()
-      isContainer.value = !!info.container
       Object.assign(updateInfo, info)
     }
   } catch (e: any) {

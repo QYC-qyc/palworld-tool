@@ -12,8 +12,9 @@ import (
 )
 
 // 本文件为 Manager 提供与部署模式无关的"游戏文件系统"访问：
+//   - Docker 模式且游戏目录已挂载到面板容器（GAMESERVER_GAME_DIR）：直接用 os.*
+//   - Docker 模式未挂载：回退到 docker exec / tar 流操作容器内文件
 //   - 本地模式（m.docker == nil）：直接用 os.* 操作 winInstallDir()
-//   - Docker 模式（m.docker != nil）：通过 docker exec / tar 流操作容器内 /home/steam/palserver
 // 业务层（api/service/tool）不应再直接对游戏目录用 os.*，否则容器内会写错位置。
 
 // dockerGameRoot 容器内游戏安装根目录（steamcmd force_install_dir 指向这里）
@@ -22,10 +23,27 @@ const dockerGameRoot = "/home/steam/palserver"
 // IsDocker 报告当前是否通过 Docker 管控游戏服。
 func (m *Manager) IsDocker() bool { return m.docker != nil }
 
-// gameRoot 返回游戏根目录（含 Pal/ 的目录）。
-// Docker 下为容器内路径；本地为 Windows 版独立安装目录。
+// gameFsRoot 返回面板进程能直接访问的游戏根目录（本机文件系统路径）。
+// - 游戏目录挂载到面板容器时：返回挂载路径（默认 /home/steam/palserver）
+// - 本地模式：返回 Windows 版独立安装目录
+// - 未挂载的纯 Docker 模式：返回空串（需走 docker exec/cp）
+func (m *Manager) gameFsRoot() string {
+	if m.docker != nil {
+		// 游戏目录挂载到面板容器同路径时，直接文件系统访问
+		if d := os.Getenv("GAMESERVER_GAME_DIR"); d != "" {
+			return d
+		}
+		return "" // 未挂载，走 docker API
+	}
+	return m.winInstallDir()
+}
+
+// gameRoot 返回游戏根目录（用于展示/容器内路径拼接）。
 func (m *Manager) gameRoot() string {
 	if m.docker != nil {
+		if d := os.Getenv("GAMESERVER_GAME_DIR"); d != "" {
+			return d
+		}
 		return dockerGameRoot
 	}
 	return m.winInstallDir()
@@ -38,18 +56,33 @@ func (m *Manager) joinGame(elems ...string) string {
 
 // ---- 小文件读写（配置 ini、DLL、Token、Config.json 等）----
 
+// fsOrDocker 执行本地文件系统操作；游戏目录未挂载时回退到 docker。
+// localFn 接收游戏根绝对路径；dockerFn 在未挂载时调用。
+
 // ReadGameFile 读取游戏目录下的文件，返回字节内容。
 func (m *Manager) ReadGameFile(elems ...string) ([]byte, error) {
+	rel := filepath.Join(elems...)
+	if root := m.gameFsRoot(); root != "" {
+		return os.ReadFile(filepath.Join(root, rel))
+	}
 	if m.docker != nil {
-		return m.docker.readFile(filepath.Join(elems...))
+		return m.docker.readFile(rel)
 	}
 	return os.ReadFile(m.joinGame(elems...))
 }
 
 // WriteGameFile 写入游戏目录下的文件，自动创建父目录。
 func (m *Manager) WriteGameFile(data []byte, perm os.FileMode, elems ...string) error {
+	rel := filepath.Join(elems...)
+	if root := m.gameFsRoot(); root != "" {
+		abs := filepath.Join(root, rel)
+		if err := os.MkdirAll(filepath.Dir(abs), 0755); err != nil {
+			return err
+		}
+		return os.WriteFile(abs, data, perm)
+	}
 	if m.docker != nil {
-		return m.docker.writeFile(filepath.Join(elems...), data, perm)
+		return m.docker.writeFile(rel, data, perm)
 	}
 	abs := m.joinGame(elems...)
 	if err := os.MkdirAll(filepath.Dir(abs), 0755); err != nil {
@@ -60,40 +93,68 @@ func (m *Manager) WriteGameFile(data []byte, perm os.FileMode, elems ...string) 
 
 // StatGameFile 返回游戏目录下文件信息。
 func (m *Manager) StatGameFile(elems ...string) (os.FileInfo, error) {
+	rel := filepath.Join(elems...)
+	if root := m.gameFsRoot(); root != "" {
+		return os.Stat(filepath.Join(root, rel))
+	}
 	if m.docker != nil {
-		return m.docker.stat(filepath.Join(elems...))
+		return m.docker.stat(rel)
 	}
 	return os.Stat(m.joinGame(elems...))
 }
 
 // MkdirAllGame 创建游戏目录（含上级）。
 func (m *Manager) MkdirAllGame(perm os.FileMode, elems ...string) error {
+	rel := filepath.Join(elems...)
+	if root := m.gameFsRoot(); root != "" {
+		return os.MkdirAll(filepath.Join(root, rel), perm)
+	}
 	if m.docker != nil {
-		return m.docker.mkdirAll(filepath.Join(elems...), perm)
+		return m.docker.mkdirAll(rel, perm)
 	}
 	return os.MkdirAll(m.joinGame(elems...), perm)
 }
 
 // RemoveGameFile 删除游戏目录下的文件。
 func (m *Manager) RemoveGameFile(elems ...string) error {
+	rel := filepath.Join(elems...)
+	if root := m.gameFsRoot(); root != "" {
+		return os.Remove(filepath.Join(root, rel))
+	}
 	if m.docker != nil {
-		return m.docker.remove(filepath.Join(elems...))
+		return m.docker.remove(rel)
 	}
 	return os.Remove(m.joinGame(elems...))
 }
 
 // RemoveAllGame 递归删除游戏目录下的路径。
 func (m *Manager) RemoveAllGame(elems ...string) error {
+	rel := filepath.Join(elems...)
+	if root := m.gameFsRoot(); root != "" {
+		return os.RemoveAll(filepath.Join(root, rel))
+	}
 	if m.docker != nil {
-		return m.docker.removeAll(filepath.Join(elems...))
+		return m.docker.removeAll(rel)
 	}
 	return os.RemoveAll(m.joinGame(elems...))
 }
 
 // ListGameDir 列出游戏目录下的条目名称。
 func (m *Manager) ListGameDir(elems ...string) ([]string, error) {
+	rel := filepath.Join(elems...)
+	if root := m.gameFsRoot(); root != "" {
+		entries, err := os.ReadDir(filepath.Join(root, rel))
+		if err != nil {
+			return nil, err
+		}
+		names := make([]string, 0, len(entries))
+		for _, e := range entries {
+			names = append(names, e.Name())
+		}
+		return names, nil
+	}
 	if m.docker != nil {
-		out, err := m.docker.execOutput("ls", "-1", "--", m.docker.absPath(filepath.Join(elems...)))
+		out, err := m.docker.execOutput("ls", "-1", "--", m.docker.absPath(rel))
 		if err != nil {
 			return nil, err
 		}
@@ -145,6 +206,10 @@ func (m *Manager) FetchSavedToLocal(localRoot string) error {
 	if err := os.MkdirAll(palDir, 0755); err != nil {
 		return err
 	}
+	// 游戏目录已挂载到面板：直接文件系统拷贝
+	if root := m.gameFsRoot(); root != "" {
+		return copyTree(filepath.Join(root, savedRel), filepath.Join(localRoot, "Pal", "Saved"))
+	}
 	if m.docker != nil {
 		// 只拷贝 Pal/Saved（不能 cp 整个 Pal，否则连数 GB 的游戏 exe/DLL 一起打包）。
 		// docker cp container:<root>/Pal/Saved - 产生顶层 Saved/ 的 tar，解包到 localRoot/Pal/。
@@ -171,6 +236,12 @@ func (m *Manager) FetchSavedToLocal(localRoot string) error {
 // PushLocalToSaved 把本地 localRoot 下的 Pal/Saved 推回游戏目录覆盖。
 func (m *Manager) PushLocalToSaved(localRoot string) error {
 	localSaved := filepath.Join(localRoot, "Pal", "Saved")
+	// 游戏目录已挂载到面板：直接文件系统拷贝
+	if root := m.gameFsRoot(); root != "" {
+		target := filepath.Join(root, savedRel)
+		_ = os.RemoveAll(target)
+		return copyTree(localSaved, target)
+	}
 	if m.docker != nil {
 		// tar 顶层为 Saved/，docker cp - 解压到容器内 <root>/Pal 下得到 Pal/Saved。
 		// 用 docker cp 而非 exec，容器停止状态（回档时已停服）也能写入文件系统。

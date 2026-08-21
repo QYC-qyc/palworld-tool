@@ -139,28 +139,37 @@ func (m *Manager) GetStatus() (*Status, error) {
 	st.ServerExe = st.WindowsExe
 	// Docker 模式下展示容器内真实路径
 	if m.docker != nil {
-		st.InstallDir = dockerGameRoot
-		st.WindowsExe = dockerGameRoot + "/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe"
+		st.InstallDir = m.gameRoot()
+		st.WindowsExe = m.gameRoot() + "/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe"
 		st.ServerExe = st.WindowsExe
 		st.SteamExe = "/opt/steamcmd/steamcmd.sh"
 	}
 
-	// steamcmd 是否存在
-	if m.docker != nil {
-		// 容器模式：SteamCMD 在 gameserver 容器内（启动时自动安装到挂载卷）
-		st.SteamReady = m.docker.fileExists("/opt/steamcmd/steamcmd.sh")
-	} else if st.SteamExe != "" {
-		if info, err := os.Stat(st.SteamExe); err == nil && !info.IsDir() {
+	// SteamCMD 是否就绪：优先检查挂载卷（/opt/steamcmd/steamcmd.sh），回退本地路径
+	steamExe := "/opt/steamcmd/steamcmd.sh"
+	if m.docker == nil {
+		steamExe = st.SteamExe
+	}
+	if steamExe != "" {
+		if info, err := os.Stat(steamExe); err == nil && !info.IsDir() {
 			st.SteamReady = true
 		}
 	}
-	// Windows 版游戏是否已安装（检查游戏 exe）
-	if m.docker != nil {
-		// 容器模式：跨容器检查 gameserver 容器内的游戏 exe（容器停止也能判断）
-		st.WindowsInstalled = m.docker.fileExists("Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe")
-	} else if st.WindowsExe != "" {
-		if info, err := os.Stat(st.WindowsExe); err == nil && !info.IsDir() {
-			st.WindowsInstalled = true
+
+	// Windows 版游戏是否已安装（检查游戏 exe）。
+	// 游戏目录挂载到面板时直接 stat；否则跨容器检查。
+	exeRel := "Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe"
+	if m.docker != nil && m.gameFsRoot() == "" {
+		st.WindowsInstalled = m.docker.fileExists(exeRel)
+	} else {
+		if root := m.gameFsRoot(); root != "" {
+			if _, err := os.Stat(filepath.Join(root, exeRel)); err == nil {
+				st.WindowsInstalled = true
+			}
+		} else if st.WindowsExe != "" {
+			if info, err := os.Stat(st.WindowsExe); err == nil && !info.IsDir() {
+				st.WindowsInstalled = true
+			}
 		}
 	}
 	st.Installed = st.WindowsInstalled

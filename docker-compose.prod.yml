@@ -51,11 +51,18 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock  # 面板管控/自更新需要读写
       # 部署目录（含 docker-compose.yml），面板自更新在此执行 compose pull/up
       - ${COMPOSE_DIR:-.}:/compose
+      # 共享游戏目录与 SteamCMD 目录：面板直接读写宿主机文件，
+      # 无需 docker exec/cp，配置/PalDefender/存档操作可靠且容器停止时也能用。
+      # 容器内路径必须与 gameserver 一致。
+      - ${GAMESERVER_DIR:-./data/gameserver}:/home/steam/palserver
+      - ${STEAMCMD_DIR:-./data/steamcmd}:/opt/steamcmd
     environment:
       - GAMESERVER_CONTAINER=palworld-gameserver
       - GAMESERVER_URL=http://gameserver:8212
       - REST_PASSWORD=${REST_PASSWORD:-paladmin}
       - COMPOSE_PROJECT_DIR=/compose
+      # 告诉面板游戏目录已以相同路径挂载，直接用文件系统访问
+      - GAMESERVER_GAME_DIR=/home/steam/palserver
     networks:
       - palnet
 

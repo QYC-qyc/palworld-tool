@@ -136,7 +136,11 @@ func selfUpdateCheck(c *gin.Context) {
 		return
 	}
 	hasUpdate, image, err := imageHasUpdate()
-	resp := gin.H{"container": true, "has_update": hasUpdate, "image": image}
+	_, _, tag := parseImageRef(image)
+	if tag == "" {
+		tag = "latest"
+	}
+	resp := gin.H{"container": true, "has_update": hasUpdate, "image": image, "latest": tag}
 	if err != nil {
 		resp["error"] = err.Error()
 		// 检查失败不阻断，默认无更新
