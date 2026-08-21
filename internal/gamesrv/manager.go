@@ -67,6 +67,9 @@ type Manager struct {
 	getSetting func(string) string
 	// docker 非空时通过 Docker CLI 管控游戏服容器（容器化部署）
 	docker *dockerCtl
+	// startingUntil：点启动后的宽限期截止时间。这段内容器在跑但游戏进程
+	// 尚未出现时显示"启动中"；超时仍未起来则视为"待启动"。
+	startingUntil time.Time
 	// dockerUpdating 标记容器内正在执行 SteamCMD 安装/更新（原子访问）
 	dockerUpdating atomic.Bool
 }
@@ -185,10 +188,14 @@ func (m *Manager) GetStatus() (*Status, error) {
 	case st.Updating:
 		st.State = "updating"
 	case m.docker != nil && st.ContainerRunning && !st.WindowsInstalled:
-		// 容器在跑但游戏还没装好/没启动：正在安装或启动中
+		// 容器在跑但游戏还没装好：正在安装
 		st.State = "installing"
-	case m.docker != nil && st.ContainerRunning:
+	case m.docker != nil && st.ContainerRunning && time.Now().Before(m.startingUntil):
+		// 点了启动、容器在跑，但游戏进程尚未就绪的宽限期：真正启动中
 		st.State = "starting"
+	case m.docker != nil && st.ContainerRunning:
+		// 容器在跑、游戏已装、但进程没起来：等待启动（空闲/启动失败）
+		st.State = "pending"
 	default:
 		st.State = "stopped"
 	}
@@ -585,6 +592,8 @@ func (m *Manager) Start() error {
 		if err := m.docker.start(); err != nil {
 			return err
 		}
+		// 启动宽限期：60 秒内容器在跑但游戏进程未就绪，状态显示"启动中"
+		m.startingUntil = time.Now().Add(60 * time.Second)
 		return nil
 	}
 
@@ -762,6 +771,7 @@ func (m *Manager) Stop() error {
 	// 容器化部署：通过 Docker 停止游戏服容器
 	if m.docker != nil {
 		m.logBuf.WriteString(fmt.Sprintf("停止游戏服容器 %s...\n", m.docker.container))
+		m.startingUntil = time.Time{}
 		return m.docker.stop()
 	}
 	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {

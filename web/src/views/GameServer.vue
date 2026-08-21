@@ -228,11 +228,11 @@ const isUpdating = computed(
   () => !!status.value?.status?.updating || acting.value === 'install' || steamcmdInstalling.value
 )
 
-const stateStatus = computed<'running' | 'stopped' | 'updating' | 'installing' | 'starting' | 'error'>(() => {
+const stateStatus = computed<'running' | 'stopped' | 'pending' | 'updating' | 'installing' | 'starting' | 'error'>(() => {
   if (isUpdating.value) return 'updating'
-  // 后端 state 已区分 running/installing/starting/stopped
+  // 后端 state：running 游戏在跑 / pending 待启动 / starting 启动中 / installing 安装中 / stopped 容器停
   const s = status.value?.status?.state
-  if (s === 'running' || s === 'installing' || s === 'starting') return s
+  if (s === 'running' || s === 'installing' || s === 'starting' || s === 'pending') return s
   if (isRunning.value) return 'running'
   return 'stopped'
 })
