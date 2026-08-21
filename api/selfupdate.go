@@ -83,38 +83,65 @@ func imageHasUpdate() (bool, string, error) {
 		return true, imageRef, nil
 	}
 	localDigest := strings.TrimSpace(string(localOut))
+	if localDigest == "" {
+		// 本地镜像没有 digest 信息（比如本地构建的），无法比较，提示可更新
+		return true, imageRef, nil
+	}
 
-	// 用 registry HTTP API v2 获取远端 manifest digest
-	registry, repo, tag := parseImageRef(imageRef)
-	if registry == "" || repo == "" {
+	// 用 docker manifest inspect 获取远端 digest（自动处理 registry 认证/token）
+	remoteDigest, err := remoteImageDigest(bin, imageRef)
+	if err != nil || remoteDigest == "" {
+		// 查不到远端（网络/认证问题）就不提示更新，避免误报
 		return false, imageRef, nil
 	}
-	url := fmt.Sprintf("https://%s/v2/%s/manifests/%s", registry, repo, tag)
-	req, _ := http.NewRequest("HEAD", url, nil)
-	req.Header.Set("Accept",
-		"application/vnd.docker.distribution.manifest.list.v2+json, "+
-			"application/vnd.oci.image.index.v1+json, "+
-			"application/vnd.docker.distribution.manifest.v2+json, "+
-			"application/vnd.oci.image.manifest.v1+json")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		if resp != nil {
-			resp.Body.Close()
-		}
-		// 查不到就不提示更新（避免误报）
-		return false, imageRef, nil
-	}
-	remoteDigest := resp.Header.Get("Docker-Content-Digest")
-	resp.Body.Close()
 
-	if remoteDigest == "" {
-		return false, imageRef, nil
-	}
-	// 本地 RepoDigests 形如 registry/repo@sha256:xxx
 	if strings.Contains(localDigest, remoteDigest) {
 		return false, imageRef, nil
 	}
 	return true, imageRef, nil
+}
+
+// remoteImageDigest 用 docker buildx imagetools inspect（或 manifest inspect）
+// 获取远端镜像的 digest，自动使用 docker 的 registry 认证。
+func remoteImageDigest(bin, imageRef string) (string, error) {
+	// buildx imagetools inspect 输出含 Digest: sha256:...，优先尝试
+	out, err := exec.Command(bin, "buildx", "imagetools", "inspect", imageRef).Output()
+	if err == nil {
+		if d := extractDigest(string(out)); d != "" {
+			return d, nil
+		}
+	}
+	// 回退：docker manifest inspect
+	cmd := exec.Command(bin, "manifest", "inspect", imageRef)
+	cmd.Env = append(os.Environ(), "DOCKER_CLI_EXPERIMENTAL=enabled")
+	out, err = cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return extractDigest(string(out)), nil
+}
+
+// extractDigest 从 manifest inspect 输出中提取 sha256:... digest
+func extractDigest(s string) string {
+	// 匹配 "Digest": "sha256:..." 或裸 sha256:...
+	idx := strings.Index(s, "sha256:")
+	if idx < 0 {
+		return ""
+	}
+	rest := s[idx+7:]
+	// 取到非 hex 字符为止
+	end := 0
+	for end < len(rest) && isHex(rest[end]) {
+		end++
+	}
+	if end == 0 {
+		return ""
+	}
+	return "sha256:" + rest[:end]
+}
+
+func isHex(c byte) bool {
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
 }
 
 // parseImageRef 把 "registry/repo:tag" 拆成 registry、repo、tag。
