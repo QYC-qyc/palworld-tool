@@ -143,6 +143,8 @@ export const api = {
 
   // 面板动态设置
   getSettings: () => request<Record<string, any>>('/api/settings'),
+  revealSecret: (key: string) =>
+    request<{ key: string; value: string }>(`/api/settings/secret?key=${encodeURIComponent(key)}`),
   saveSettings: (settings: Record<string, any>) =>
     request('/api/settings', { method: 'PUT', body: JSON.stringify(settings) }),
 

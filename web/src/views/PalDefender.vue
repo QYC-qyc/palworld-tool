@@ -125,6 +125,10 @@
                   show-password-on="click"
                   :placeholder="pdTokenSet ? '已设置（留空不修改）' : '未设置'"
                 />
+                <n-button size="small" :loading="revealingToken"
+                  style="margin-left:8px;flex-shrink:0" @click="revealPdToken">
+                  <template #icon><n-icon :component="EyeOutline" /></template>
+                </n-button>
                 <n-button type="primary" size="small" :loading="generatingToken"
                   style="margin-left:8px;flex-shrink:0" @click="generateToken">
                   生成 Token
@@ -467,7 +471,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { ShieldOutline, SwapHorizontalOutline, HelpCircleOutline } from '@vicons/ionicons5'
+import { ShieldOutline, SwapHorizontalOutline, HelpCircleOutline, EyeOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
 
 const message = useMessage()
@@ -574,6 +578,21 @@ const pdForm = reactive({
 const pdTokenSet = ref(false)
 const pdSaving = ref(false)
 const generatingToken = ref(false)
+const revealingToken = ref(false)
+
+// 点击眼睛：获取已保存的 Token 明文
+async function revealPdToken() {
+  if (revealingToken.value) return
+  revealingToken.value = true
+  try {
+    const res = await api.revealSecret('paldefender.token')
+    pdForm.token = res.value || ''
+  } catch (e: any) {
+    message.error(e.message || '获取失败')
+  } finally {
+    revealingToken.value = false
+  }
+}
 
 async function loadPdSettings() {
   try {

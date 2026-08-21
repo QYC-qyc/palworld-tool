@@ -16,12 +16,18 @@
           </n-input>
         </n-form-item>
         <n-form-item label="管理员密码">
-          <n-input
-            v-model:value="adminPwd"
-            type="password"
-            show-password-on="click"
-            :placeholder="form['rest.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置，需与游戏配置 AdminPassword 一致'"
-          />
+          <n-input-group>
+            <n-input
+              v-model:value="adminPwd"
+              type="password"
+              show-password-on="click"
+              :placeholder="form['rest.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置，需与游戏配置 AdminPassword 一致'"
+            />
+            <n-button :loading="revealing === 'rest.password'"
+              @click="reveal('rest.password', adminPwd)">
+              <template #icon><n-icon :component="EyeOutline" /></template>
+            </n-button>
+          </n-input-group>
         </n-form-item>
       </n-form>
     </n-card>
@@ -114,8 +120,14 @@
     <n-card title="面板" size="small">
       <n-form label-placement="left" label-width="140">
         <n-form-item label="面板新密码">
-          <n-input v-model:value="webPwd" type="password" show-password-on="click"
-            :placeholder="form['web.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置'" />
+          <n-input-group>
+            <n-input v-model:value="webPwd" type="password" show-password-on="click"
+              :placeholder="form['web.password__set'] === 'true' ? '已设置（留空不修改）' : '未设置'" />
+            <n-button :loading="revealing === 'web.password'"
+              @click="reveal('web.password', webPwd)">
+              <template #icon><n-icon :component="EyeOutline" /></template>
+            </n-button>
+          </n-input-group>
         </n-form-item>
       </n-form>
     </n-card>
@@ -208,13 +220,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, type Ref } from 'vue'
 import {
-  NSpace, NCard, NForm, NFormItem, NInput, NSwitch, NGrid, NGi,
+  NSpace, NCard, NForm, NFormItem, NInput, NInputGroup, NSwitch, NGrid, NGi,
   NSelect, NButton, NTag, NText, NAlert, NModal, NProgress,
   NTooltip, NIcon, NInputNumber, useMessage,
 } from 'naive-ui'
-import { HelpCircleOutline } from '@vicons/ionicons5'
+import { HelpCircleOutline, EyeOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
 
 const message = useMessage()
@@ -224,6 +236,21 @@ const saving = ref(false)
 const testing = ref<string>('')
 const adminPwd = ref('')
 const webPwd = ref('')
+const revealing = ref<string>('')
+
+// 点击眼睛：从后端获取已保存的敏感字段明文并填入
+async function reveal(key: string, target: Ref<string>) {
+  if (revealing.value) return
+  revealing.value = key
+  try {
+    const res = await api.revealSecret(key)
+    target.value = res.value || ''
+  } catch (e: any) {
+    message.error(e.message || '获取失败')
+  } finally {
+    revealing.value = ''
+  }
+}
 const checking = ref(false)
 const updating = ref(false)
 const showUpdateProgress = ref(false)

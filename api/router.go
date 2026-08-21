@@ -121,6 +121,7 @@ func RegisterRouter(r *gin.Engine) {
 
 		// 面板动态设置
 		authGroup.GET("/settings", getSettings)
+		authGroup.GET("/settings/secret", revealSecret)
 		authGroup.PUT("/settings", saveSettings)
 		authGroup.POST("/settings/test-connection", testConnection)
 

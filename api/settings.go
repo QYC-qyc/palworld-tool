@@ -44,6 +44,35 @@ func testConnection(c *gin.Context) {
 	}
 }
 
+// revealSecret 返回单个敏感字段的明文（点击眼睛图标时调用）。
+// 仅允许白名单内的字段，且需已登录鉴权。
+func revealSecret(c *gin.Context) {
+	key := c.Query("key")
+	if !isRevealableSecret(key) {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "不允许查看该字段"})
+		return
+	}
+	settings, err := service.GetAllSettings(db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return
+	}
+	value, ok := settings[key]
+	if !ok {
+		value = ""
+	}
+	c.JSON(http.StatusOK, gin.H{"key": key, "value": value})
+}
+
+// isRevealableSecret 限定可查看明文的敏感字段
+func isRevealableSecret(k string) bool {
+	switch k {
+	case service.SettingWebPassword, service.SettingRestPassword, service.SettingPalDefenderToken:
+		return true
+	}
+	return false
+}
+
 // getSettings 返回全部动态配置（密码做脱敏：仅返回是否已设置）
 func getSettings(c *gin.Context) {
 	settings, err := service.GetAllSettings(db)
