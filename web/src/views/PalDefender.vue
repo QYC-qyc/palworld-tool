@@ -72,72 +72,49 @@
             端口默认 17993；生成 Token 后需保存才生效。
           </n-alert>
           <n-form label-placement="left" label-width="120">
-            <n-form-item>
-              <template #label>
-                <span class="field-label">
-                  API 主机
+            <n-form-item label="API 主机">
+              <n-input v-model:value="pdForm.host" placeholder="gameserver（Docker）或 127.0.0.1">
+                <template #suffix>
                   <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:340px">
                     <template #trigger>
                       <n-icon :component="HelpCircleOutline" class="help-icon" />
                     </template>
-                    <div class="tooltip-content">
-                      PalDefender REST API 所在主机。Docker 部署填 <code>gameserver</code>（容器名）；
-                      游戏服与面板在同一机器的非 Docker 部署填 <code>127.0.0.1</code>。
-                    </div>
+                    PalDefender REST API 所在主机。Docker 部署填 <code>gameserver</code>（容器名）；
+                    游戏服与面板在同一机器的非 Docker 部署填 <code>127.0.0.1</code>。
                   </n-tooltip>
-                </span>
-              </template>
-              <n-input v-model:value="pdForm.host" placeholder="gameserver（Docker）或 127.0.0.1" />
+                </template>
+              </n-input>
             </n-form-item>
-            <n-form-item>
-              <template #label>
-                <span class="field-label">
-                  API 端口
-                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:340px">
-                    <template #trigger>
-                      <n-icon :component="HelpCircleOutline" class="help-icon" />
-                    </template>
-                    <div class="tooltip-content">
-                      PalDefender REST API 监听端口，需与游戏配置中的 REST API 端口一致（默认 17993）。
-                      请勿将该端口暴露到公网。
-                    </div>
-                  </n-tooltip>
-                </span>
-              </template>
+            <n-form-item label="API 端口">
               <n-input-number v-model:value="pdForm.port" :min="1" :max="65535" :step="1"
-                style="width:200px" placeholder="17993" />
+                style="width:100%" placeholder="17993" />
             </n-form-item>
-            <n-form-item>
-              <template #label>
-                <span class="field-label">
-                  Token
-                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
-                    <template #trigger>
-                      <n-icon :component="HelpCircleOutline" class="help-icon" />
-                    </template>
-                    <div class="tooltip-content">
-                      点击右侧「生成 Token」自动写入 PalDefender 令牌，也可手动粘贴。
-                      请勿将 API 端口暴露到公网。
-                    </div>
-                  </n-tooltip>
-                </span>
-              </template>
-              <div style="display:flex;align-items:center;width:100%">
+            <n-form-item label="Token">
+              <n-input-group>
                 <n-input
                   v-model:value="pdForm.token"
                   type="password"
                   show-password-on="click"
                   :placeholder="pdTokenSet ? '已设置（留空不修改）' : '未设置'"
-                />
+                >
+                  <template #suffix>
+                    <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
+                      <template #trigger>
+                        <n-icon :component="HelpCircleOutline" class="help-icon" />
+                      </template>
+                      点击「生成 Token」自动写入 PalDefender 令牌，也可手动粘贴。请勿将 API 端口暴露到公网。
+                    </n-tooltip>
+                  </template>
+                </n-input>
                 <n-button size="small" :loading="revealingToken"
-                  style="margin-left:8px;flex-shrink:0" @click="revealPdToken">
+                  style="flex-shrink:0" @click="revealPdToken">
                   <template #icon><n-icon :component="EyeOutline" /></template>
                 </n-button>
                 <n-button type="primary" size="small" :loading="generatingToken"
-                  style="margin-left:8px;flex-shrink:0" @click="generateToken">
+                  style="flex-shrink:0" @click="generateToken">
                   生成 Token
                 </n-button>
-              </div>
+              </n-input-group>
             </n-form-item>
           </n-form>
         </n-card>
@@ -147,72 +124,25 @@
             设置检测到作弊时的处置方式。保存后写入 Config.json 并热重载，需先安装并启用 PalDefender。
           </n-alert>
           <n-form label-placement="left" label-width="160">
-            <n-form-item>
-              <template #label>
-                <span class="field-label">
-                  启用反作弊
-                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:360px">
-                    <template #trigger>
-                      <n-icon :component="HelpCircleOutline" class="help-icon" />
-                    </template>
-                    <div class="tooltip-content">
-                      由 PalDefender 在游戏进程内实时检测作弊。需先安装 PalDefender。
-                      关闭后下方处置选项均不生效，保存时写入 Config.json 并热重载。
-                    </div>
-                  </n-tooltip>
-                </span>
-              </template>
+            <n-form-item label="启用反作弊">
               <n-switch :value="pdForm.anticheat_enabled !== 'false'"
                 @update:value="(v) => (pdForm.anticheat_enabled = v ? 'true' : 'false')" />
             </n-form-item>
-            <n-form-item>
-              <template #label>
-                <span class="field-label">
-                  检测到即踢出
-                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
-                    <template #trigger>
-                      <n-icon :component="HelpCircleOutline" class="help-icon" />
-                    </template>
-                    检测到作弊时自动踢出玩家（shouldKickCheaters）。
-                  </n-tooltip>
-                </span>
-              </template>
+            <n-form-item label="检测到即踢出">
               <n-switch :value="pdForm.cheaters_kick === 'true'"
                 @update:value="(v) => (pdForm.cheaters_kick = v ? 'true' : 'false')">
                 <template #checked>踢出</template>
                 <template #unchecked>不踢出</template>
               </n-switch>
             </n-form-item>
-            <n-form-item>
-              <template #label>
-                <span class="field-label">
-                  检测到即封禁
-                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
-                    <template #trigger>
-                      <n-icon :component="HelpCircleOutline" class="help-icon" />
-                    </template>
-                    检测到作弊时将玩家加入 Banlist（shouldBanCheaters），封禁后该玩家无法再进入服务器。
-                  </n-tooltip>
-                </span>
-              </template>
+            <n-form-item label="检测到即封禁">
               <n-switch :value="pdForm.cheaters_ban === 'true'"
                 @update:value="(v) => (pdForm.cheaters_ban = v ? 'true' : 'false')">
                 <template #checked>封禁</template>
                 <template #unchecked>不封禁</template>
               </n-switch>
             </n-form-item>
-            <n-form-item>
-              <template #label>
-                <span class="field-label">
-                  同时封禁 IP
-                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
-                    <template #trigger>
-                      <n-icon :component="HelpCircleOutline" class="help-icon" />
-                    </template>
-                    封禁玩家的同时封禁其 IP（shouldBanIpCheaters），阻止该 IP 下的其他账号进入。
-                  </n-tooltip>
-                </span>
-              </template>
+            <n-form-item label="同时封禁 IP">
               <n-switch :value="pdForm.cheaters_ipban === 'true'"
                 @update:value="(v) => (pdForm.cheaters_ipban = v ? 'true' : 'false')">
                 <template #checked>IP 封禁</template>
