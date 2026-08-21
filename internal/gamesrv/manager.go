@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	ghub "palworld-panel/internal/github"
@@ -66,6 +67,8 @@ type Manager struct {
 	getSetting func(string) string
 	// docker 非空时通过 Docker CLI 管控游戏服容器（容器化部署）
 	docker *dockerCtl
+	// dockerUpdating 标记容器内正在执行 SteamCMD 安装/更新（原子访问）
+	dockerUpdating atomic.Bool
 }
 
 func NewManager() *Manager {
@@ -158,8 +161,10 @@ func (m *Manager) GetStatus() (*Status, error) {
 		}
 	}
 	st.Installed = st.WindowsInstalled
-	// 是否在更新
-	if m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid) {
+	// 是否在更新（本地 updateCmd 进程，或容器内 SteamCMD 更新中）
+	if m.dockerUpdating.Load() {
+		st.Updating = true
+	} else if m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid) {
 		st.Updating = true
 	}
 	// 服务端是否在运行
@@ -311,10 +316,25 @@ func (m *Manager) installSteamCmdWindows() error {
 
 // Install 用 SteamCMD 安装/更新 Windows 版游戏服（阻塞直到完成，实时输出日志）。
 func (m *Manager) Install() error {
-	// 容器化部署：在游戏服容器内执行安装/更新
+	// 容器化部署：在游戏服容器内执行更新（异步，避免 HTTP 请求长时间阻塞）
 	if m.docker != nil {
-		m.logBuf.WriteString(fmt.Sprintf("在容器 %s 内安装/更新游戏服...\n", m.docker.container))
-		return m.docker.installOrUpdate()
+		if m.dockerUpdating.Load() {
+			return errors.New("游戏服正在更新中")
+		}
+		if !m.docker.isRunning() {
+			return errors.New("游戏服容器未运行，请先启动容器")
+		}
+		m.dockerUpdating.Store(true)
+		m.logBuf.WriteString(fmt.Sprintf("在容器 %s 内更新游戏服...\n", m.docker.container))
+		go func() {
+			defer m.dockerUpdating.Store(false)
+			if err := m.docker.installOrUpdate(); err != nil {
+				m.logBuf.WriteString("更新游戏服失败: " + err.Error() + "\n")
+				return
+			}
+			m.logBuf.WriteString("游戏服更新完成\n")
+		}()
+		return nil
 	}
 	steamExe := m.steamCmdExe()
 	if steamExe == "" {

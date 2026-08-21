@@ -61,25 +61,28 @@
     <!-- 操作 -->
     <n-card title="操作" size="small">
       <n-space :size="10" wrap>
-        <n-button type="success" :disabled="!canStart" :loading="acting === 'start'" @click="doStart">
+        <n-button type="success" :disabled="!canStart || isUpdating" :loading="acting === 'start'" @click="doStart">
           <template #icon><n-icon :component="PlayOutline" /></template>
           启动
         </n-button>
-        <n-button type="error" :disabled="!isRunning" :loading="acting === 'stop'" @click="doStop">
+        <n-button type="error" :disabled="!isRunning || isUpdating" :loading="acting === 'stop'" @click="doStop">
           <template #icon><n-icon :component="StopOutline" /></template>
           停止
         </n-button>
-        <n-button type="warning" :disabled="!isRunning" :loading="acting === 'restart'" @click="doRestart">
+        <n-button type="warning" :disabled="!isRunning || isUpdating" :loading="acting === 'restart'" @click="doRestart">
           <template #icon><n-icon :component="RefreshOutline" /></template>
           重启
         </n-button>
         <n-button type="info" :loading="acting === 'install'" @click="openInstall">
           <template #icon><n-icon :component="CloudDownloadOutline" /></template>
-          安装 / 更新游戏服
+          更新游戏服
         </n-button>
       </n-space>
       <n-text depth="3" style="font-size:12px;display:block;margin-top:10px">
-        <template v-if="isDocker">提示：在游戏服容器内通过 SteamCMD 安装/更新，首次可能需要几分钟，进度见日志。</template>
+        <template v-if="isDocker">
+          游戏服首次启动会自动安装。点击「更新游戏服」可在容器内通过 SteamCMD 校验/更新游戏文件；
+          <n-text strong>更新时请勿停止或重启容器</n-text>，否则下载会中断。
+        </template>
         <template v-else>提示：首次安装可能需要较长时间，请在日志中查看 SteamCMD 下载进度。安装完成后再启动。</template>
       </n-text>
     </n-card>
@@ -164,18 +167,14 @@
       <pre ref="logEl" class="logs">{{ logs || '暂无日志' }}</pre>
     </n-card>
 
-    <!-- 安装/更新进度弹窗 -->
-    <n-modal v-model:show="showInstallModal" preset="card" title="安装 / 更新游戏服"
+    <!-- 更新进度弹窗 -->
+    <n-modal v-model:show="showInstallModal" preset="card" title="更新游戏服"
       style="max-width:680px" :mask-closable="false">
       <n-space vertical :size="12">
-        <n-text>正在通过 SteamCMD 下载/更新 Windows 版游戏服，首次安装可能需要几分钟，请耐心等待。</n-text>
+        <n-text>正在游戏服容器内通过 SteamCMD 校验/更新游戏文件，期间请不要停止或重启容器。可在日志中查看进度。</n-text>
         <pre ref="installLogEl" class="logs logs-modal">{{ installLogs || '等待输出...' }}</pre>
         <n-space>
           <n-button size="small" @click="loadLogs">刷新日志</n-button>
-          <n-button size="small" type="primary" @click="doStart"
-            :disabled="!(status?.status?.installed)" :loading="acting === 'start'">
-            安装完成，启动游戏服
-          </n-button>
         </n-space>
       </n-space>
     </n-modal>
@@ -224,7 +223,10 @@ const isRunning = computed(() => !!status.value?.status?.running)
 const isInstalled = computed(() => !!status.value?.status?.installed)
 const isDocker = computed(() => !!status.value?.status?.docker_mode)
 const canStart = computed(() => isInstalled.value && !isRunning.value)
-const isUpdating = computed(() => !!status.value?.status?.updating)
+// 后端 updating 标志 + 前端正在执行安装/更新动作，任一为真都视为更新中
+const isUpdating = computed(
+  () => !!status.value?.status?.updating || acting.value === 'install' || steamcmdInstalling.value
+)
 
 const stateStatus = computed<'running' | 'stopped' | 'updating' | 'installing' | 'starting' | 'error'>(() => {
   if (isUpdating.value) return 'updating'
