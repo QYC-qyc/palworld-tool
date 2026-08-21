@@ -224,6 +224,15 @@ func runSelfUpdate() {
 	}
 	appendLog("更新指令已提交，面板即将重启...")
 
+	// 清理旧的悬空镜像（<none>），释放磁盘空间。
+	// 用 setsid 脱离进程组，面板被杀掉后仍继续执行。
+	go func() {
+		time.Sleep(3 * time.Second)
+		prune := exec.Command("docker", "image", "prune", "-f")
+		prune.SysProcAttr = sysProcAttrSetsid()
+		_ = prune.Run()
+	}()
+
 	selfUpdate.mu.Lock()
 	selfUpdate.Success = true
 	selfUpdate.mu.Unlock()
