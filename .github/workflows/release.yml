@@ -103,9 +103,10 @@ jobs:
 
       - name: Build and push gameserver image
         run: |
-          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:latest ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:${{ github.ref_name }}"
+          # 只推版本号标签（如 v3.0.2），不推 latest，减少推送次数并锁定版本
+          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:${{ github.ref_name }}"
           if [ -n "${{ secrets.ALIYUN_REGISTRY }}" ] && [ -n "${{ secrets.ALIYUN_NAMESPACE }}" ]; then
-            TAGS="$TAGS ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/palworld-gameserver:latest ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/palworld-gameserver:${{ github.ref_name }}"
+            TAGS="$TAGS ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/palworld-gameserver:${{ github.ref_name }}"
           fi
           BUILD_ARGS=""
           for t in $TAGS; do BUILD_ARGS="$BUILD_ARGS -t $t"; done
@@ -143,9 +144,10 @@ jobs:
 
       - name: Build and push palworld-panel image
         run: |
-          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-panel:latest ghcr.io/${{ steps.owner.outputs.owner }}/palworld-panel:${{ github.ref_name }}"
+          # 只推版本号标签（如 v3.0.2），不推 latest
+          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-panel:${{ github.ref_name }}"
           if [ -n "${{ secrets.ALIYUN_REGISTRY }}" ] && [ -n "${{ secrets.ALIYUN_NAMESPACE }}" ]; then
-            TAGS="$TAGS ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/palworld-panel:latest ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/palworld-panel:${{ github.ref_name }}"
+            TAGS="$TAGS ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/palworld-panel:${{ github.ref_name }}"
           fi
           BUILD_ARGS=""
           for t in $TAGS; do BUILD_ARGS="$BUILD_ARGS -t $t"; done

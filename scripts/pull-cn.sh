@@ -4,15 +4,17 @@
 # 默认从阿里云 ACR 拉取（国内高速，仓库已公开无需登录）。
 #
 # 用法:
-#   ./scripts/pull-cn.sh              # 拉取 latest
-#   ./scripts/pull-cn.sh v3.0.1       # 拉取指定版本
+#   ./scripts/pull-cn.sh              # 拉取默认版本（与 compose 锁定版本一致）
+#   ./scripts/pull-cn.sh v3.0.2       # 拉取指定版本
 #   USE_GHCR=1 ./scripts/pull-cn.sh   # 改从 GHCR 拉取（海外服务器）
 #
 # 拉取后自动 retag 为 docker-compose.yml 使用的镜像名，可直接 docker compose up -d。
 
 set -e
 
-VERSION="${1:-latest}"
+# 默认拉取的版本，与 docker-compose*.yml 中 ${TAG:-...} 保持一致
+DEFAULT_VERSION="v3.0.2"
+VERSION="${1:-$DEFAULT_VERSION}"
 IMAGES=("palworld-panel" "palworld-gameserver")
 
 # 阿里云 ACR（默认，国内高速）
@@ -38,10 +40,9 @@ for image in "${IMAGES[@]}"; do
     echo ">>> 拉取 ${src}"
     docker pull "$src"
 
-    # 标记为 compose 使用的名字
-    docker tag "$src" "${ALIYUN_REGISTRY}/${image}:${VERSION}"
-    if [ "$VERSION" != "latest" ]; then
-        docker tag "$src" "${ALIYUN_REGISTRY}/${image}:latest"
+    # 若从 GHCR 拉取，额外打一个阿里云标签（compose 默认从阿里云拉）
+    if [ -n "$USE_GHCR" ]; then
+        docker tag "$src" "${ALIYUN_REGISTRY}/${image}:${VERSION}"
     fi
     echo ""
 done
