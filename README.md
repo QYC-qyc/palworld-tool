@@ -211,51 +211,41 @@ docker compose up -d
 docker compose exec palworld-gameserver bash
 ```
 
-> 更新镜像后，旧镜像会变成悬空镜像（`<none>`）仍占用磁盘。
-> 下面每条更新命令都附带 `docker image prune -f` 自动清理旧镜像（只删未被使用的悬空镜像，安全）。
-
 ### 更新面板程序
 
-只拉取并重启面板，**不影响游戏服**：
+只拉取并重启面板，**不影响游戏服**（游戏继续运行）：
 
 ```bash
 docker compose pull palworld-panel
 docker compose up -d palworld-panel
-docker image prune -f
 ```
 
-也可以在面板「设置 → 面板更新」点 **一键更新**（自动完成拉取、重启、清理）。
+也可以在面板「设置 → 面板更新」点 **一键更新**。
 
 ### 更新游戏服镜像
 
-游戏服运行环境（Proton/SteamCMD）有更新时，定向拉取游戏服镜像：
+游戏服运行环境（Proton/SteamCMD）很少变化，需要时定向拉取：
 
 ```bash
 docker compose pull palworld-gameserver
 docker compose up -d palworld-gameserver
-docker image prune -f
 ```
 
 ### 更新游戏本体（PalServer）
 
-游戏文件在挂载卷里，更新游戏**不需要拉镜像**：
+游戏文件在挂载卷里，更新游戏**不需要拉镜像、不重启容器**：
 
 - 面板「游戏服」页点 **「更新游戏服」**
 - 或命令行：
   ```bash
   docker compose exec palworld-gameserver /home/steam/entrypoint.sh update
-  docker compose restart palworld-gameserver
   ```
 
-### 一次性更新全部镜像并清理
+### 一次性更新全部镜像
 
 ```bash
 docker compose pull && docker compose up -d
-docker image prune -f
 ```
-
-> 如果想清理所有未被运行中容器使用的镜像（释放更多空间），用
-> `docker image prune -a -f`——注意这会删除旧版本镜像，之后无法快速回滚。
 
 ---
 
