@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/tool"
-	"paladmin/service"
+	"palworld-panel/internal/tool"
+	"palworld-panel/service"
 )
 
 func listBackups(c *gin.Context) {

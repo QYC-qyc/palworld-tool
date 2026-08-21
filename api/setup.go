@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/config"
-	"paladmin/service"
+	"palworld-panel/internal/config"
+	"palworld-panel/service"
 )
 
 // setupStatus 返回系统是否已初始化（无需认证）

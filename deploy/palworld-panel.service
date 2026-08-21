@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/opt/paladmin
-ExecStart=/opt/paladmin/paladmin --config /opt/paladmin/config.yaml
+WorkingDirectory=/opt/palworld-panel
+ExecStart=/opt/palworld-panel/palworld-panel --config /opt/palworld-panel/config.yaml
 Restart=always
 RestartSec=5
 LimitNOFILE=65536

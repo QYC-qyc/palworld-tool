@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/auth"
-	"paladmin/service"
+	"palworld-panel/internal/auth"
+	"palworld-panel/service"
 )
 
 type loginRequest struct {

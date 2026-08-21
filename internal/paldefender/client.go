@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"go.etcd.io/bbolt"
-	"paladmin/service"
+	"palworld-panel/service"
 )
 
 // ErrNotConfigured 表示 PalDefender REST API 未启用或 Token 未配置。

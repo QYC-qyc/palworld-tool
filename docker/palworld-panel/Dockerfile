@@ -20,7 +20,7 @@ RUN go mod download
 COPY . .
 COPY --from=web-builder /src/web/dist ./web/dist
 ARG VERSION=dev
-RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/paladmin .
+RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/palworld-panel .
 
 # ---- 存档解析器（Python，用 PyInstaller 打包为单文件）----
 # 在目标架构构建，保证 sav_cli 与镜像架构一致（amd64/arm64）
@@ -51,13 +51,13 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=go-builder /out/paladmin /app/paladmin
+COPY --from=go-builder /out/palworld-panel /app/palworld-panel
 # 前端静态资源（主程序无 go:embed，运行时从 /app/web/dist 提供）
 COPY --from=web-builder /src/web/dist /app/web/dist
 # 存档解析器
 COPY --from=savcli /sav/dist/sav_cli /app/sav_cli
 RUN chmod +x /app/sav_cli
-COPY docker/paladmin/entrypoint.sh /entrypoint.sh
+COPY docker/palworld-panel/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # 存档解析器路径（容器内固定位置）

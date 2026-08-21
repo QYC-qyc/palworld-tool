@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"go.etcd.io/bbolt"
-	"paladmin/internal/tool"
+	"palworld-panel/internal/tool"
 )
 
 // PruneBackups 按保留策略清理旧备份：

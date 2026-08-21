@@ -1,4 +1,4 @@
-module paladmin
+module palworld-panel
 
 go 1.21
 

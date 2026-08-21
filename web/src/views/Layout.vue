@@ -206,7 +206,7 @@ function navigate(v: string) {
 
 function onUserMenu(key: string) {
   if (key === 'logout') {
-    localStorage.removeItem('paladmin_token')
+    localStorage.removeItem('palworld-panel_token')
     router.push('/login')
   }
 }

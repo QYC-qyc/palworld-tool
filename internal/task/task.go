@@ -10,11 +10,11 @@ import (
 	"github.com/go-co-op/gocron/v2"
 	"github.com/spf13/viper"
 	"go.etcd.io/bbolt"
-	"paladmin/internal/database"
-	"paladmin/internal/gamesrv"
-	"paladmin/internal/logger"
-	"paladmin/internal/tool"
-	"paladmin/service"
+	"palworld-panel/internal/database"
+	"palworld-panel/internal/gamesrv"
+	"palworld-panel/internal/logger"
+	"palworld-panel/internal/tool"
+	"palworld-panel/service"
 )
 
 var (

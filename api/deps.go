@@ -2,8 +2,8 @@ package api
 
 import (
 	"go.etcd.io/bbolt"
-	"paladmin/internal/config"
-	"paladmin/internal/gamesrv"
+	"palworld-panel/internal/config"
+	"palworld-panel/internal/gamesrv"
 )
 
 var (

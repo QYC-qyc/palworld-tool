@@ -1,13 +1,18 @@
-# PalAdmin + PalServer (Proton + PalDefender) Docker Compose 编排
+# PalWorld Panel + PalServer (Proton + PalDefender) Docker Compose 编排
 #
 # 快速开始：
 #   1. 首次使用：docker compose build && docker compose up -d
-#   2. 或使用预构建镜像（设 GHCR_OWNER 后 docker compose pull && docker compose up -d）
+#   2. 或使用预构建镜像（默认从阿里云 ACR 拉取，国内高速）：docker compose pull && docker compose up -d
 #   3. 访问面板：http://服务器IP:8190
 #
 # 数据持久化：
 #   ./data/gameserver  游戏服安装目录、存档、配置、PalDefender
-#   ./data/paladmin    面板数据库、配置
+#   ./data/palworld-panel    面板数据库、备份
+#
+# 可通过 .env 覆盖：
+#   REGISTRY=crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal
+#   TAG=latest
+#   REST_PASSWORD=你的密码
 
 services:
   # 游戏服：SteamCMD + GE-Proton + PalServer + PalDefender
@@ -15,7 +20,7 @@ services:
     build:
       context: .
       dockerfile: docker/gameserver/Dockerfile
-    image: ${GHCR_OWNER:+ghcr.io/${GHCR_OWNER}/}palworld-gameserver:latest
+    image: ${REGISTRY:-crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal}/palworld-gameserver:${TAG:-latest}
     container_name: palworld-gameserver
     restart: unless-stopped
     ports:
@@ -32,21 +37,21 @@ services:
       - palnet
 
   # 面板：Go + Vue，通过 Docker API 管控游戏服容器
-  paladmin:
+  palworld-panel:
     build:
       context: .
-      dockerfile: docker/paladmin/Dockerfile
+      dockerfile: docker/palworld-panel/Dockerfile
       args:
         VERSION: dev
-    image: ${GHCR_OWNER:+ghcr.io/${GHCR_OWNER}/}paladmin:latest
-    container_name: paladmin
+    image: ${REGISTRY:-crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal}/palworld-panel:${TAG:-latest}
+    container_name: palworld-panel
     restart: unless-stopped
     depends_on:
       - gameserver
     ports:
       - "8190:8190/tcp"   # 面板 Web
     volumes:
-      - ./data/paladmin:/data
+      - ./data/palworld-panel:/data
       - /var/run/docker.sock:/var/run/docker.sock:ro  # 管控游戏服容器
     environment:
       - GAMESERVER_CONTAINER=palworld-gameserver

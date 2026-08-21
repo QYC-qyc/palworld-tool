@@ -7,8 +7,8 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/gamesrv"
-	ghub "paladmin/internal/github"
+	"palworld-panel/internal/gamesrv"
+	ghub "palworld-panel/internal/github"
 )
 
 const (

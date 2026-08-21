@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	ghub "paladmin/internal/github"
+	ghub "palworld-panel/internal/github"
 )
 
 // Palworld Steam APP ID
@@ -542,7 +542,7 @@ func (m *Manager) checkProtonReady() error {
 // Start 启动游戏服。
 // 面板以 root 运行，但 PalServer 拒绝 root 启动，因此：
 //   - 若面板以 root 运行：查找安装目录属主用户，以该用户身份启动（su -c）；
-//   - 若目录属主就是 root：自动创建/使用 paladmin 用户并 chown。
+//   - 若目录属主就是 root：自动创建/使用 palworld-panel 用户并 chown。
 //   - 若面板非 root：直接启动。
 func (m *Manager) Start() error {
 	// 容器化部署：通过 Docker 启动游戏服容器
@@ -667,7 +667,7 @@ func (m *Manager) winServerExePath() string {
 }
 
 // ensureRunUser 确定启动游戏服使用的非 root 用户：
-// 优先使用游戏安装目录的属主；若属主为 root，则创建 paladmin 用户并 chown。
+// 优先使用游戏安装目录的属主；若属主为 root，则创建 palworld-panel 用户并 chown。
 func (m *Manager) ensureRunUser() (string, error) {
 	if runtime.GOOS == "windows" {
 		return "", nil
@@ -692,20 +692,20 @@ func (m *Manager) ensureRunUser() (string, error) {
 		}
 	}
 
-	// 属主是 root 或找不到，使用 paladmin
-	const gameUser = "paladmin"
+	// 属主是 root 或找不到，使用 palworld-panel
+	const gameUser = "palworld-panel"
 	if _, err := exec.LookPath("id"); err == nil {
 		out, err := exec.Command("id", "-u", gameUser).Output()
 		if err != nil || strings.TrimSpace(string(out)) == "" {
 			// 创建用户
-			m.logBuf.WriteString("创建 paladmin 用户用于运行游戏服\n")
+			m.logBuf.WriteString("创建 palworld-panel 用户用于运行游戏服\n")
 			cmd := exec.Command("useradd", "-r", "-m", "-d", installDir, "-s", "/bin/bash", gameUser)
 			if out, err := cmd.CombinedOutput(); err != nil {
 				return "", fmt.Errorf("创建用户失败: %v: %s", err, strings.TrimSpace(string(out)))
 			}
 		}
 	}
-	// chown 游戏目录给 paladmin
+	// chown 游戏目录给 palworld-panel
 	m.logBuf.WriteString(fmt.Sprintf("将 %s 属主改为 %s\n", installDir, gameUser))
 	cmd := exec.Command("chown", "-R", gameUser+":"+gameUser, installDir)
 	if out, err := cmd.CombinedOutput(); err != nil {
@@ -854,7 +854,7 @@ func (m *Manager) isAlive(pid int) bool {
 
 // checkWritable 在目录中创建并删除临时文件，验证可写性
 func checkWritable(dir string) error {
-	f, err := os.CreateTemp(dir, ".paladmin-wtest-*")
+	f, err := os.CreateTemp(dir, ".palworld-panel-wtest-*")
 	if err != nil {
 		return err
 	}

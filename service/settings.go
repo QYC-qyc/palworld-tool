@@ -2,7 +2,7 @@ package service
 
 import (
 	"go.etcd.io/bbolt"
-	"paladmin/internal/database"
+	"palworld-panel/internal/database"
 )
 
 // 可动态调整的运行时配置键

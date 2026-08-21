@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	ghub "paladmin/internal/github"
+	ghub "palworld-panel/internal/github"
 )
 
 const (
@@ -75,15 +75,15 @@ func assetName() string {
 	switch runtime.GOOS {
 	case "windows":
 		if runtime.GOARCH == "amd64" {
-			return "paladmin_windows_amd64.zip"
+			return "palworld-panel_windows_amd64.zip"
 		}
 		return ""
 	default: // linux 等
 		switch runtime.GOARCH {
 		case "amd64":
-			return "paladmin_linux_amd64.tar.gz"
+			return "palworld-panel_linux_amd64.tar.gz"
 		case "arm64":
-			return "paladmin_linux_arm64.tar.gz"
+			return "palworld-panel_linux_arm64.tar.gz"
 		default:
 			return ""
 		}

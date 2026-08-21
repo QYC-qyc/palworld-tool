@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
-	"paladmin/internal/logger"
+	"palworld-panel/internal/logger"
 )
 
 // Config 全局配置，结构映射 config.yaml

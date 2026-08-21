@@ -8,10 +8,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"paladmin/internal/config"
-	"paladmin/internal/tool"
-	"paladmin/service"
-	"paladmin/service/audit"
+	"palworld-panel/internal/config"
+	"palworld-panel/internal/tool"
+	"palworld-panel/service"
+	"palworld-panel/service/audit"
 )
 
 // testConnection 测试 REST 连通性

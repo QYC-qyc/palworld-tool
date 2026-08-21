@@ -86,7 +86,7 @@ async function submit() {
       rest_password: form.rest_password,
     })
     if (res.token) {
-      localStorage.setItem('paladmin_token', res.token)
+      localStorage.setItem('palworld-panel_token', res.token)
     }
     router.push('/dashboard')
   } catch (e: any) {

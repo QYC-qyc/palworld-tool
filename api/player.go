@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/database"
-	"paladmin/internal/paldefender"
-	"paladmin/internal/tool"
-	"paladmin/service"
-	"paladmin/service/audit"
+	"palworld-panel/internal/database"
+	"palworld-panel/internal/paldefender"
+	"palworld-panel/internal/tool"
+	"palworld-panel/service"
+	"palworld-panel/service/audit"
 )
 
 func listPlayers(c *gin.Context) {

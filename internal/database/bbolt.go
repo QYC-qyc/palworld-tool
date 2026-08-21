@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"go.etcd.io/bbolt"
-	"paladmin/internal/logger"
+	"palworld-panel/internal/logger"
 )
 
 var (

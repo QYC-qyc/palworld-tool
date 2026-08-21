@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"go.etcd.io/bbolt"
-	"paladmin/internal/database"
+	"palworld-panel/internal/database"
 )
 
 // extractSteamID 从存档的 platform_id（steam_xxx / gdk_xxx）提取纯 SteamID

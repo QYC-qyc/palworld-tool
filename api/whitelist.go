@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/database"
-	"paladmin/service"
+	"palworld-panel/internal/database"
+	"palworld-panel/service"
 )
 
 func listWhite(c *gin.Context) {

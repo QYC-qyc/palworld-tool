@@ -87,7 +87,7 @@ const cols: DataTableColumns<any> = [
 
 onMounted(async () => {
   try {
-    const token = localStorage.getItem('paladmin_token') || ''
+    const token = localStorage.getItem('palworld-panel_token') || ''
     const resp = await fetch('/api/audit', {
       headers: { Authorization: `Bearer ${token}` },
     })

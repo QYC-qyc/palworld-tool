@@ -37,7 +37,7 @@ router.beforeEach(async (to, _from, next) => {
     // 接口异常不阻塞
   }
 
-  const token = localStorage.getItem('paladmin_token')
+  const token = localStorage.getItem('palworld-panel_token')
   if (!token) return next({ name: 'login' })
   next()
 })

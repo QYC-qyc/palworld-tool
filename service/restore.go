@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"go.etcd.io/bbolt"
-	"paladmin/internal/database"
-	"paladmin/internal/gamesrv"
-	"paladmin/internal/logger"
-	"paladmin/internal/system"
-	"paladmin/internal/tool"
+	"palworld-panel/internal/database"
+	"palworld-panel/internal/gamesrv"
+	"palworld-panel/internal/logger"
+	"palworld-panel/internal/system"
+	"palworld-panel/internal/tool"
 )
 
 // RestoreBackup 回档：停服→备份当前存档→解压目标备份→推送回游戏目录→启服。

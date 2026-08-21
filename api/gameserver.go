@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"paladmin/internal/gamesrv"
-	"paladmin/service"
+	"palworld-panel/internal/gamesrv"
+	"palworld-panel/service"
 )
 
 type gameServerAPI struct {

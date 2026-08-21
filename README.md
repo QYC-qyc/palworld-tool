@@ -33,10 +33,10 @@
 
 ### 2. 一条命令启动
 
-在你想存放数据的目录下（例如 `~/paladmin`）执行：
+在你想存放数据的目录下（例如 `~/palworld-panel`）执行：
 
 ```bash
-mkdir -p ~/paladmin && cd ~/paladmin
+mkdir -p ~/palworld-panel && cd ~/palworld-panel
 curl -fsSL -o docker-compose.yml \
   https://gitee.com/qyc-qyc/palworld-tool/raw/main/docker-compose.prod.yml
 docker compose up -d
@@ -44,7 +44,7 @@ docker compose up -d
 
 首次启动会自动拉取两个镜像（约 1GB，国内网络可能需要几分钟）：
 
-- `paladmin`：管理面板
+- `palworld-panel`：管理面板
 - `palworld-gameserver`：游戏服（内含 SteamCMD + GE-Proton + PalServer）
 
 查看启动状态：
@@ -109,7 +109,7 @@ REST_PASSWORD=你的强密码
 ```
 ./data/
 ├── gameserver/   # 游戏安装、存档、配置、PalDefender DLL
-└── paladmin/     # 面板数据库、备份 zip、日志
+└── palworld-panel/     # 面板数据库、备份 zip、日志
 ```
 
 **备份整个服务器**：只需备份 `./data` 目录。建议定期打包下载。
@@ -137,9 +137,9 @@ REST_PASSWORD=你的强密码
 ## 五、日常运维
 
 ```bash
-docker compose logs -f paladmin      # 面板日志
+docker compose logs -f palworld-panel      # 面板日志
 docker compose logs -f gameserver    # 游戏服日志（网页内也能看）
-docker compose restart paladmin      # 重启面板
+docker compose restart palworld-panel      # 重启面板
 docker compose restart gameserver    # 重启游戏服
 docker compose down                  # 停止全部（数据保留）
 docker compose up -d                 # 启动
@@ -176,7 +176,7 @@ docker compose exec gameserver /home/steam/entrypoint.sh update
 不需要。面板通过 Docker 内部网络访问它，不要对公网开放 8212。
 
 **Q：忘了面板密码怎么办？**
-目前没有找回功能。可停止容器后删除 `./data/paladmin/pst.db` 重新初始化（会清空面板设置，但不影响游戏存档），或直接 SSH 进数据库修改。
+目前没有找回功能。可停止容器后删除 `./data/palworld-panel/pst.db` 重新初始化（会清空面板设置，但不影响游戏存档），或直接 SSH 进数据库修改。
 
 ---
 

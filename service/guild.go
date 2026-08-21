@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"go.etcd.io/bbolt"
-	"paladmin/internal/database"
+	"palworld-panel/internal/database"
 )
 
 // PutGuilds 批量写入公会

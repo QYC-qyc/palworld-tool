@@ -44,7 +44,7 @@ async function login() {
   loading.value = true
   try {
     const { token } = await api.login(password.value)
-    localStorage.setItem('paladmin_token', token)
+    localStorage.setItem('palworld-panel_token', token)
     router.push('/dashboard')
   } catch (e: any) {
     message.error(e.message || '登录失败')

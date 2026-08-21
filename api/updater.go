@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/updater"
+	"palworld-panel/internal/updater"
 )
 
 type updaterAPI struct{}
@@ -77,7 +77,7 @@ func (u *updaterAPI) do(c *gin.Context) {
 		}
 
 		installDir := resolveInstallDir()
-		err = updater.DoUpdate(rel, installDir, "paladmin", func(p updater.Progress) {
+		err = updater.DoUpdate(rel, installDir, "palworld-panel", func(p updater.Progress) {
 			updateState.Lock()
 			updateState.progress = p
 			updateState.Unlock()

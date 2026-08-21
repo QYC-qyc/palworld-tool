@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/logger"
-	"paladmin/internal/task"
+	"palworld-panel/internal/logger"
+	"palworld-panel/internal/task"
 )
 
 func syncData(c *gin.Context) {

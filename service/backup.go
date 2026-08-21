@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"go.etcd.io/bbolt"
-	"paladmin/internal/database"
+	"palworld-panel/internal/database"
 )
 
 func AddBackup(db *bbolt.DB, b database.Backup) error {

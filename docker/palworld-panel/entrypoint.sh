@@ -35,4 +35,4 @@ export PALDEFENDER__HOST="${PALDEFENDER__HOST:-gameserver}"
 export PROCESS__MODE=docker
 export PROCESS__CONTAINER="${GAMESERVER_CONTAINER}"
 
-exec /app/paladmin "$@"
+exec /app/palworld-panel "$@"

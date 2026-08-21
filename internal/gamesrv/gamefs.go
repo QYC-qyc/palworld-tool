@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	ghub "paladmin/internal/github"
+	ghub "palworld-panel/internal/github"
 )
 
 // 本文件为 Manager 提供与部署模式无关的"游戏文件系统"访问：

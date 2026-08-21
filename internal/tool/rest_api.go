@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
-	"paladmin/internal/database"
+	"palworld-panel/internal/database"
 )
 
 var httpClient = &http.Client{}

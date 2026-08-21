@@ -1,7 +1,7 @@
 const BASE = ''
 
 function getToken(): string {
-  return localStorage.getItem('paladmin_token') || ''
+  return localStorage.getItem('palworld-panel_token') || ''
 }
 
 export async function request<T = any>(
@@ -17,7 +17,7 @@ export async function request<T = any>(
 
   const resp = await fetch(BASE + url, { ...options, headers })
   if (resp.status === 401) {
-    localStorage.removeItem('paladmin_token')
+    localStorage.removeItem('palworld-panel_token')
     if (location.pathname !== '/login') location.href = '/login'
     throw new Error('未授权')
   }

@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
-	"paladmin/internal/auth"
-	"paladmin/internal/gamesrv"
-	"paladmin/internal/logger"
-	"paladmin/internal/source"
-	"paladmin/internal/system"
+	"palworld-panel/internal/auth"
+	"palworld-panel/internal/gamesrv"
+	"palworld-panel/internal/logger"
+	"palworld-panel/internal/source"
+	"palworld-panel/internal/system"
 )
 
 type Structure struct {

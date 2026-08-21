@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 COPY --from=webbuilder /web/dist ./web/dist
 # CGO_ENABLED=0 纯静态
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags "-s -w -X main.version=docker" -o /out/paladmin .
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags "-s -w -X main.version=docker" -o /out/palworld-panel .
 
 # ---- 存档解析器（Python，用 PyInstaller 打包为单文件）----
 FROM python:3.12-bookworm AS savcli
@@ -33,7 +33,7 @@ RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y --no-in
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-COPY --from=backend /out/paladmin /app/paladmin
+COPY --from=backend /out/palworld-panel /app/palworld-panel
 COPY --from=savcli /sav/dist/sav_cli /app/sav_cli
 COPY --from=webbuilder /web/dist /app/web/dist
 # 内置示例配置（真实 config.yaml 通过 compose 挂载覆盖，含密码不进镜像）
@@ -46,4 +46,4 @@ ENV SAVE__DECODE_PATH=/app/sav_cli
 
 EXPOSE 8190
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["/app/paladmin", "--config", "/app/config.yaml"]
+CMD ["/app/palworld-panel", "--config", "/app/config.yaml"]

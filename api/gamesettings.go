@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/gamesrv"
-	"paladmin/internal/palconfig"
-	"paladmin/service"
+	"palworld-panel/internal/gamesrv"
+	"palworld-panel/internal/palconfig"
+	"palworld-panel/service"
 )
 
 // iniRelElems 是 PalWorldSettings.ini 相对游戏根目录的路径段。

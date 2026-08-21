@@ -10,10 +10,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/gamesrv"
-	"paladmin/internal/paldefender"
-	"paladmin/service"
-	"paladmin/service/audit"
+	"palworld-panel/internal/gamesrv"
+	"palworld-panel/internal/paldefender"
+	"palworld-panel/service"
+	"palworld-panel/service/audit"
 )
 
 // pdLoad 加载 PalDefender 客户端，未配置时直接写入 400 错误并返回 nil。

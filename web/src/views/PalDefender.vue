@@ -413,7 +413,7 @@ const pdDone = ref(false)
 const pdSuccess = ref(false)
 const pdError = ref('')
 
-const token = () => localStorage.getItem('paladmin_token') || ''
+const token = () => localStorage.getItem('palworld-panel_token') || ''
 
 async function refreshStatus() {
   loading.value = true

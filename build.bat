@@ -15,7 +15,7 @@ echo === go mod tidy ===
 go mod tidy
 if errorlevel 1 exit /b 1
 echo === go build ===
-go build -o paladmin.exe .
+go build -o palworld-panel.exe .
 if errorlevel 1 exit /b 1
 echo === BUILD OK ===
-dir paladmin.exe
+dir palworld-panel.exe

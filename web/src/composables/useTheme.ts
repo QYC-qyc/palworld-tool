@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { darkTheme } from '@/theme'
 
-const STORAGE_KEY = 'paladmin-theme'
+const STORAGE_KEY = 'palworld-panel-theme'
 
 export type ThemeMode = 'dark' | 'light'
 

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/tool"
+	"palworld-panel/internal/tool"
 )
 
 func getServer(c *gin.Context) {

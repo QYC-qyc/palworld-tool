@@ -357,7 +357,7 @@ async function testConn(type: 'rest') {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('paladmin_token')}`,
+        Authorization: `Bearer ${localStorage.getItem('palworld-panel_token')}`,
       },
       body: JSON.stringify({
         type,
@@ -449,7 +449,7 @@ async function doUpdate() {
   updateProgress.percent = 0
   updateProgress.message = '正在准备更新...'
 
-  const token = localStorage.getItem('paladmin_token') || ''
+  const token = localStorage.getItem('palworld-panel_token') || ''
   try {
     // 触发更新
     const resp = await fetch('/api/updater/do', {

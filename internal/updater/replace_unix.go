@@ -13,7 +13,7 @@ import (
 // applyUpdate 在 Unix 上解压 tar.gz 并通过 bash 脚本替换文件、重启服务。
 func applyUpdate(asset, tmpTar, installDir, service string, onProgress func(Progress)) error {
 	// 先解压到临时目录（不能 defer 删除，替换脚本还要用）
-	tmpDir := filepath.Join(os.TempDir(), "paladmin-update-"+time.Now().Format("20060102150405"))
+	tmpDir := filepath.Join(os.TempDir(), "palworld-panel-update-"+time.Now().Format("20060102150405"))
 	if err := os.MkdirAll(tmpDir, 0755); err != nil {
 		return fmt.Errorf("创建临时目录失败: %w", err)
 	}
@@ -25,7 +25,7 @@ func applyUpdate(asset, tmpTar, installDir, service string, onProgress func(Prog
 	}
 
 	// 设置权限
-	_ = os.Chmod(filepath.Join(tmpDir, "paladmin"), 0755)
+	_ = os.Chmod(filepath.Join(tmpDir, "palworld-panel"), 0755)
 	if sav := filepath.Join(tmpDir, "sav_cli"); fileExists(sav) {
 		_ = os.Chmod(sav, 0755)
 	}
@@ -34,7 +34,7 @@ func applyUpdate(asset, tmpTar, installDir, service string, onProgress func(Prog
 	// 替换脚本：sleep 等待当前进程退出，然后复制文件、清理临时目录、重启服务
 	replaceScript := fmt.Sprintf(`sleep 2
 cp -rf %s/* %s/
-chmod +x %s/paladmin
+chmod +x %s/palworld-panel
 [ -f %s/sav_cli ] && chmod +x %s/sav_cli
 rm -rf %s
 systemctl restart %s

@@ -4,9 +4,9 @@
 #   curl -fsSL https://gitee.com/QYC-qyc/palworld-tool/raw/main/scripts/install.sh | sudo bash
 set -e
 
-INSTALL_DIR="/opt/paladmin"
-DATA_DIR="/var/lib/paladmin"
-SERVICE="paladmin"
+INSTALL_DIR="/opt/palworld-panel"
+DATA_DIR="/var/lib/palworld-panel"
+SERVICE="palworld-panel"
 REPO="QYC-qyc/palworld-tool"
 
 # 面板以 root 运行，以便通过 SteamCMD 向任意用户指定目录安装/更新游戏服，
@@ -22,8 +22,8 @@ mkdir -p "$INSTALL_DIR" "$DATA_DIR/backups" "$DATA_DIR/evidence" "$DATA_DIR/logs
 echo "==> 检测架构"
 ARCH="$(uname -m)"
 case "$ARCH" in
-  x86_64|amd64) ASSET="paladmin_linux_amd64.tar.gz" ;;
-  aarch64|arm64) ASSET="paladmin_linux_arm64.tar.gz" ;;
+  x86_64|amd64) ASSET="palworld-panel_linux_amd64.tar.gz" ;;
+  aarch64|arm64) ASSET="palworld-panel_linux_arm64.tar.gz" ;;
   *) echo "不支持的架构: $ARCH"; exit 1 ;;
 esac
 
@@ -61,7 +61,7 @@ if [ "$DOWNLOADED" != "1" ]; then
   echo "    1) 配置代理后重试: export https_proxy=http://你的代理IP:端口"
   echo "    2) 或在能访问 GitHub 的机器手动下载后上传到服务器："
   echo "       https://github.com/$REPO/releases/latest/download/$ASSET"
-  echo "       上传后执行: tar -xzf $ASSET -C /tmp/paladmin && cp /tmp/paladmin/paladmin $INSTALL_DIR/"
+  echo "       上传后执行: tar -xzf $ASSET -C /tmp/palworld-panel && cp /tmp/palworld-panel/palworld-panel $INSTALL_DIR/"
   exit 1
 fi
 echo "  下载完成"
@@ -72,12 +72,12 @@ tar -xzf "$TMP/$ASSET" -C "$TMP"
 systemctl stop "$SERVICE" 2>/dev/null || true
 # 清理旧前端产物（带 hash 的旧分片不会自动删除，残留会导致半更新/新旧混杂）
 rm -rf "$INSTALL_DIR/web"
-cp "$TMP/paladmin" "$INSTALL_DIR/"
+cp "$TMP/palworld-panel" "$INSTALL_DIR/"
 # sav_cli、web 前端、data 游戏数据（若包含）
 [ -f "$TMP/sav_cli" ] && cp "$TMP/sav_cli" "$INSTALL_DIR/"
 [ -d "$TMP/web" ] && cp -r "$TMP/web" "$INSTALL_DIR/"
 [ -d "$TMP/data" ] && cp -r "$TMP/data" "$INSTALL_DIR/"
-chmod +x "$INSTALL_DIR/paladmin"
+chmod +x "$INSTALL_DIR/palworld-panel"
 [ -f "$INSTALL_DIR/sav_cli" ] && chmod +x "$INSTALL_DIR/sav_cli"
 
 # 生成默认配置
@@ -96,14 +96,14 @@ EOF
 fi
 
 echo "==> 安装 systemd 服务"
-cp "$TMP/paladmin.service" /etc/systemd/system/ 2>/dev/null || cat > /etc/systemd/system/paladmin.service <<EOF
+cp "$TMP/palworld-panel.service" /etc/systemd/system/ 2>/dev/null || cat > /etc/systemd/system/palworld-panel.service <<EOF
 [Unit]
 Description=PalAdmin Panel
 After=network.target
 [Service]
 Type=simple
 WorkingDirectory=${INSTALL_DIR}
-ExecStart=${INSTALL_DIR}/paladmin --config ${INSTALL_DIR}/config.yaml
+ExecStart=${INSTALL_DIR}/palworld-panel --config ${INSTALL_DIR}/config.yaml
 Restart=always
 RestartSec=5
 [Install]
@@ -126,4 +126,4 @@ echo ""
 echo "==> 安装完成！"
 echo "    面板地址: http://${SERVER_IP}:${PANEL_PORT}"
 echo "    配置文件: ${INSTALL_DIR}/config.yaml"
-echo "    查看日志: journalctl -u paladmin -f"
+echo "    查看日志: journalctl -u palworld-panel -f"

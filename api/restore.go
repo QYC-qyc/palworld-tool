@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"paladmin/internal/tool"
-	"paladmin/service"
+	"palworld-panel/internal/tool"
+	"palworld-panel/service"
 )
 
 func restoreBackup(c *gin.Context) {

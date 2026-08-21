@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"go.etcd.io/bbolt"
-	"paladmin/internal/database"
+	"palworld-panel/internal/database"
 )
 
 // IsBanned 检查 UserId 或 IP 是否被封禁
