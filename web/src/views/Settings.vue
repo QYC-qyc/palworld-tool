@@ -507,9 +507,18 @@ onUnmounted(() => {
 async function checkUpdate() {
   checking.value = true
   try {
-    const info = await api.checkUpdate()
-    isContainer.value = !!info.container
-    Object.assign(updateInfo, info)
+    if (isContainer.value) {
+      // 容器模式：检查镜像是否有更新（而非二进制更新）
+      const check = await api.selfUpdateCheck()
+      isContainer.value = true
+      updateInfo.has_update = !!check.has_update
+      updateInfo.container = true
+      updateInfo.error = check.error
+    } else {
+      const info = await api.checkUpdate()
+      isContainer.value = !!info.container
+      Object.assign(updateInfo, info)
+    }
   } catch (e: any) {
     updateInfo.error = e.message
   } finally {

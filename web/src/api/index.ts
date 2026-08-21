@@ -161,6 +161,10 @@ export const api = {
   doUpdateURL: () => '/api/updater/do',
 
   // 容器内一键自更新（compose pull + up）
+  selfUpdateCheck: () =>
+    request<{ has_update: boolean; container?: boolean; image?: string; error?: string }>(
+      '/api/self-update/check'
+    ),
   selfUpdateStatus: () =>
     request<{
       running: boolean

@@ -131,6 +131,7 @@ func RegisterRouter(r *gin.Engine) {
 		authGroup.GET("/updater/status", updaterAPI.status)
 
 		// 容器内一键自更新（compose pull + up）
+		authGroup.GET("/self-update/check", selfUpdateCheck)
 		authGroup.GET("/self-update/status", selfUpdateStatus)
 		authGroup.POST("/self-update/do", selfUpdateDo)
 

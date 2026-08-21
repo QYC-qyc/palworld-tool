@@ -2,6 +2,7 @@ package api
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -41,6 +42,107 @@ func selfUpdateStatus(c *gin.Context) {
 		"logs":       selfUpdate.Logs,
 		"container":  inContainer(),
 	})
+}
+
+// panelImageRef 返回面板容器使用的镜像名:标签（从 compose 项目解析）。
+func panelImageRef() (string, error) {
+	dir := composeProjectDir()
+	cmd := exec.Command("docker", "compose", "-f", filepath.Join(dir, "docker-compose.yml"), "config", "--images")
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("解析 compose 镜像失败: %w", err)
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		// 取包含 palworld-panel 的镜像（排除 gameserver）
+		if strings.Contains(line, "palworld-panel") {
+			return line, nil
+		}
+	}
+	return "", fmt.Errorf("未找到 palworld-panel 镜像配置")
+}
+
+// imageHasUpdate 检查 registry 上的镜像 digest 是否与本地不同。
+func imageHasUpdate() (bool, string, error) {
+	imageRef, err := panelImageRef()
+	if err != nil {
+		return false, "", err
+	}
+	bin, err := exec.LookPath("docker")
+	if err != nil {
+		return false, "", err
+	}
+
+	// 本地镜像的 RepoDigests（形如 registry/repo@sha256:...）
+	localOut, err := exec.Command(bin, "image", "inspect", imageRef,
+		"--format", "{{range .RepoDigests}}{{.}}{{end}}").Output()
+	if err != nil {
+		// 本地没有该镜像，需要拉取
+		return true, imageRef, nil
+	}
+	localDigest := strings.TrimSpace(string(localOut))
+
+	// 用 registry HTTP API v2 获取远端 manifest digest
+	registry, repo, tag := parseImageRef(imageRef)
+	if registry == "" || repo == "" {
+		return false, imageRef, nil
+	}
+	url := fmt.Sprintf("https://%s/v2/%s/manifests/%s", registry, repo, tag)
+	req, _ := http.NewRequest("HEAD", url, nil)
+	req.Header.Set("Accept",
+		"application/vnd.docker.distribution.manifest.list.v2+json, "+
+			"application/vnd.oci.image.index.v1+json, "+
+			"application/vnd.docker.distribution.manifest.v2+json, "+
+			"application/vnd.oci.image.manifest.v1+json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		// 查不到就不提示更新（避免误报）
+		return false, imageRef, nil
+	}
+	remoteDigest := resp.Header.Get("Docker-Content-Digest")
+	resp.Body.Close()
+
+	if remoteDigest == "" {
+		return false, imageRef, nil
+	}
+	// 本地 RepoDigests 形如 registry/repo@sha256:xxx
+	if strings.Contains(localDigest, remoteDigest) {
+		return false, imageRef, nil
+	}
+	return true, imageRef, nil
+}
+
+// parseImageRef 把 "registry/repo:tag" 拆成 registry、repo、tag。
+func parseImageRef(ref string) (registry, repo, tag string) {
+	tag = "latest"
+	if idx := strings.LastIndex(ref, ":"); idx > strings.LastIndex(ref, "/") {
+		tag = ref[idx+1:]
+		ref = ref[:idx]
+	}
+	parts := strings.SplitN(ref, "/", 2)
+	if len(parts) == 2 {
+		return parts[0], parts[1], tag
+	}
+	return "", ref, tag
+}
+
+func selfUpdateCheck(c *gin.Context) {
+	if !inContainer() {
+		c.JSON(http.StatusOK, gin.H{"has_update": false, "container": false})
+		return
+	}
+	hasUpdate, image, err := imageHasUpdate()
+	resp := gin.H{"container": true, "has_update": hasUpdate, "image": image}
+	if err != nil {
+		resp["error"] = err.Error()
+		// 检查失败不阻断，默认无更新
+		resp["has_update"] = false
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 func selfUpdateDo(c *gin.Context) {
