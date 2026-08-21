@@ -108,10 +108,10 @@ jobs:
 
       - name: Build and push gameserver image
         run: |
-          # 推 latest（自动更新）+ 版本号（可回滚旧版本）
-          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:latest ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:${{ github.ref_name }}"
+          # 游戏服运行环境用固定标签 runtime-N（很少变化），避免面板更新时连带拉取
+          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:runtime-1"
           if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_NAMESPACE" ]; then
-            TAGS="$TAGS $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-gameserver:latest $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-gameserver:${{ github.ref_name }}"
+            TAGS="$TAGS $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-gameserver:runtime-1"
           fi
           BUILD_ARGS=""
           for t in $TAGS; do BUILD_ARGS="$BUILD_ARGS -t $t"; done

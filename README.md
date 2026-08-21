@@ -161,7 +161,8 @@ REST_PASSWORD=你的强密码
 ./data/
 ├── gameserver/     # 游戏安装、存档、配置、PalDefender DLL
 ├── palworld-panel/ # 面板数据库、备份 zip、日志
-└── steamcmd/       # SteamCMD（首次启动自动安装，持久化）
+├── steamcmd/       # SteamCMD（首次启动自动安装，持久化）
+└── prefix/         # Proton 运行时数据（Wine prefix）
 ```
 
 **备份整个服务器**：只需备份 `./data` 目录。建议定期打包下载。
@@ -210,29 +211,45 @@ docker compose up -d
 docker compose exec palworld-gameserver bash
 ```
 
-### 更新面板程序
+两个镜像职责不同，更新是分开的：
 
-面板运行环境（`palworld-gameserver` 镜像）很少变化，日常只需更新面板镜像：
+| 镜像 | 内容 | 更新频率 | 标签 |
+|---|---|---|---|
+| `palworld-panel` | 面板程序 | 频繁 | `latest` |
+| `palworld-gameserver` | Proton + SteamCMD 运行环境 | 很少 | `runtime-1` |
+
+### 更新面板（日常最常用）
+
+只拉面板镜像，**不会动游戏服镜像**，游戏不中断（重启面板容器即可）：
 
 ```bash
 docker compose pull palworld-panel
 docker compose up -d palworld-panel
 ```
 
-或直接在面板「设置 → 面板更新」点 **一键更新**（自动执行 compose pull && up）。
+也可以在面板「设置 → 面板更新」点 **一键更新**。
 
 ### 更新游戏本体（PalServer）
 
-游戏文件在挂载卷里，无需重新拉镜像。两种方式：
+游戏文件在挂载卷里，更新游戏**不需要拉镜像**：
 
-- 面板「游戏服」页点 **「安装 / 更新游戏服」**
+- 面板「游戏服」页点 **「更新游戏服」**
 - 或命令行：
   ```bash
   docker compose exec palworld-gameserver /home/steam/entrypoint.sh update
   docker compose restart palworld-gameserver
   ```
 
-### 更新全部镜像
+### 更新游戏服运行环境镜像（很少需要）
+
+只有当 Proton/SteamCMD 环境升级时才需要（例如发版说明提到 gameserver 镜像更新）：
+
+```bash
+docker compose pull palworld-gameserver
+docker compose up -d palworld-gameserver
+```
+
+### 一次性更新全部
 
 ```bash
 docker compose pull && docker compose up -d
