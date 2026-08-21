@@ -21,14 +21,16 @@
       <n-grid cols="1 s:2 m:4" responsive="screen" :x-gap="16" :y-gap="16" item-responsive>
         <n-gi>
           <div class="status-cell">
-            <div class="status-cell__label">状态</div>
+            <div class="status-cell__label">游戏状态</div>
             <StatusTag :status="stateStatus" />
           </div>
         </n-gi>
         <n-gi>
           <div class="status-cell">
-            <div class="status-cell__label">进程 PID</div>
-            <div class="status-cell__value">{{ status?.status?.pid || '-' }}</div>
+            <div class="status-cell__label">容器</div>
+            <n-tag :type="status?.status?.container_running ? 'success' : 'default'" size="small" round :bordered="false">
+              {{ status?.status?.container_running ? '运行中' : '已停止' }}
+            </n-tag>
           </div>
         </n-gi>
         <n-gi>
@@ -49,7 +51,7 @@
         </n-gi>
         <n-gi>
           <div class="status-cell">
-            <div class="status-cell__label">Windows 版</div>
+            <div class="status-cell__label">游戏文件</div>
             <n-tag :type="status?.status?.windows_installed ? 'success' : 'default'" size="small" round :bordered="false">
               {{ status?.status?.windows_installed ? '已安装' : '未安装' }}
             </n-tag>
