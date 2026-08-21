@@ -108,14 +108,15 @@ jobs:
 
       - name: Build and push gameserver image
         run: |
-          # 只推版本号标签（如 v3.0.2），不推 latest，减少推送次数并锁定版本
-          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:${{ github.ref_name }}"
+          # 推 latest + 版本号：latest 便于直接 pull 更新，版本号用于回滚
+          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:latest ghcr.io/${{ steps.owner.outputs.owner }}/palworld-gameserver:${{ github.ref_name }}"
           if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_NAMESPACE" ]; then
-            TAGS="$TAGS $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-gameserver:${{ github.ref_name }}"
+            TAGS="$TAGS $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-gameserver:latest $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-gameserver:${{ github.ref_name }}"
           fi
           BUILD_ARGS=""
           for t in $TAGS; do BUILD_ARGS="$BUILD_ARGS -t $t"; done
-          docker buildx build --push $BUILD_ARGS \
+          # provenance=false 兼容阿里云 ACR（其不支持 OCI empty manifest）
+          docker buildx build --push --provenance=false --sbom=false $BUILD_ARGS \
             --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
             -f docker/gameserver/Dockerfile .
 
@@ -154,14 +155,15 @@ jobs:
 
       - name: Build and push palworld-panel image
         run: |
-          # 只推版本号标签（如 v3.0.2），不推 latest
-          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-panel:${{ github.ref_name }}"
+          # 推 latest + 版本号：latest 便于直接 pull 更新，版本号用于回滚
+          TAGS="ghcr.io/${{ steps.owner.outputs.owner }}/palworld-panel:latest ghcr.io/${{ steps.owner.outputs.owner }}/palworld-panel:${{ github.ref_name }}"
           if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_NAMESPACE" ]; then
-            TAGS="$TAGS $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-panel:${{ github.ref_name }}"
+            TAGS="$TAGS $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-panel:latest $ALIYUN_REGISTRY/$ALIYUN_NAMESPACE/palworld-panel:${{ github.ref_name }}"
           fi
           BUILD_ARGS=""
           for t in $TAGS; do BUILD_ARGS="$BUILD_ARGS -t $t"; done
-          docker buildx build --push $BUILD_ARGS \
+          # provenance=false 兼容阿里云 ACR（其不支持 OCI empty manifest）
+          docker buildx build --push --provenance=false --sbom=false $BUILD_ARGS \
             --build-arg VERSION=${{ github.ref_name }} \
             --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
             -f docker/palworld-panel/Dockerfile .

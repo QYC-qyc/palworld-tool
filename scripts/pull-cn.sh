@@ -12,8 +12,8 @@
 
 set -e
 
-# 默认拉取的版本，与 docker-compose*.yml 中 ${TAG:-...} 保持一致
-DEFAULT_VERSION="v3.0.2"
+# 默认拉取 latest（与 compose 默认一致）；可传版本号，如 ./pull-cn.sh v3.0.2
+DEFAULT_VERSION="latest"
 VERSION="${1:-$DEFAULT_VERSION}"
 IMAGES=("palworld-panel" "palworld-gameserver")
 

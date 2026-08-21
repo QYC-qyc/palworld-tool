@@ -42,7 +42,8 @@ curl -fsSL -o docker-compose.yml \
 docker compose up -d
 ```
 
-> 镜像默认锁定在具体版本（如 `v3.0.2`），不会随 latest 漂移。升级时只需在 `.env` 里改 `TAG=新版本号`，再 `docker compose pull && docker compose up -d`。
+> 镜像默认用 `latest` 标签，执行 `docker compose pull && docker compose up -d` 即可更新到最新版。
+> 若需锁定版本，在 `.env` 中设置 `TAG=v3.0.2` 即可。
 
 首次启动会自动拉取两个镜像（约 1GB，国内网络可能需要几分钟）：
 
@@ -100,8 +101,8 @@ docker compose logs -f gameserver   # 看游戏服安装进度（首次会自动
 # REST API 密码（同时作为游戏服 REST 连接密码，默认 paladmin，建议修改）
 REST_PASSWORD=你的强密码
 
-# 镜像版本（compose 文件里已锁定一个默认版本）。升级时改成新版本号即可
-TAG=v3.0.2
+# 镜像标签（默认 latest，自动跟随最新版；想锁版本可设为 v3.0.2）
+# TAG=latest
 ```
 
 > 改完 `.env` 执行 `docker compose up -d` 即可生效。
@@ -149,7 +150,7 @@ docker compose restart gameserver    # 重启游戏服
 docker compose down                  # 停止全部（数据保留）
 docker compose up -d                 # 启动
 
-# 更新到新版本：在 .env 里写 TAG=新版本号（如 TAG=v3.0.3），然后：
+# 更新到最新版：
 docker compose pull && docker compose up -d
 ```
 
@@ -177,7 +178,7 @@ docker compose exec gameserver /home/steam/entrypoint.sh update
 首次需要从 Steam 下载约 3GB。若卡在 SteamCMD 自更新，通常是服务器到 Steam 的网络不通，可重试，或为 Docker 配置网络代理。
 
 **Q：更新面板会丢数据吗？**
-不会。数据库、备份、存档都在 `./data` 目录，镜像更新只替换程序。更新方法：查看最新版本号，在 `.env` 中设置 `TAG=新版本`，执行 `docker compose pull && docker compose up -d`。
+不会。数据库、备份、存档都在 `./data` 目录，镜像更新只替换程序。执行 `docker compose pull && docker compose up -d` 即可更新到最新版。
 
 **Q：REST API 的 8212 端口要对公网开放吗？**
 不需要。面板通过 Docker 内部网络访问它，不要对公网开放 8212。
