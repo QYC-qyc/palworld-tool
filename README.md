@@ -188,6 +188,16 @@ docker compose exec gameserver /home/steam/entrypoint.sh update
 
 ---
 
+## 致谢
+
+本项目站在众多优秀开源项目的肩膀上：
+
+- [palworld-server-tool](https://github.com/zaigie/palworld-server-tool) — 存档解析与管理框架参考
+- [PalDefender](https://github.com/PalDefender/PalDefender) — 反作弊
+- [palworld-save-tools](https://github.com/cheahjs/palworld-save-tools) — 存档格式解析
+- [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom) — Windows 兼容层（在 Linux 上运行 Windows 版游戏服）
+- [LootLab](https://lootlab.cn) / [LootPal](https://www.lootlab.cn/pal) — 配置参数范围、物品图标、地图数据
+
 ## 许可
 
 MIT
