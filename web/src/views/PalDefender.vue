@@ -45,6 +45,9 @@
 
         <n-card title="PalDefender 插件" size="small">
           <n-space vertical>
+            <n-alert type="info" :show-icon="false" style="font-size:12px">
+              安装或更新 PalDefender 反作弊 DLL 到游戏目录。安装后启动游戏服即会加载。
+            </n-alert>
             <n-space>
               <n-button @click="refreshStatus" :loading="loading">刷新状态</n-button>
               <n-button type="primary" @click="install" :loading="installing">
@@ -60,13 +63,14 @@
             <n-alert v-if="!status.win64_path" type="info" :show-icon="false" style="font-size:12px">
               未找到 Win64 目录，安装时会自动创建
             </n-alert>
-            <n-text depth="3" style="font-size:12px">
-              安装后启动游戏服即可加载 DLL。
-            </n-text>
           </n-space>
         </n-card>
 
         <n-card title="反作弊连接配置" size="small">
+          <n-alert type="info" :show-icon="false" style="margin-bottom:16px;font-size:12px">
+            配置面板连接 PalDefender REST API 的地址。Docker 部署主机填 <code>gameserver</code>，
+            端口默认 17993；生成 Token 后需保存才生效。
+          </n-alert>
           <n-form label-placement="left" label-width="120">
             <n-form-item>
               <template #label>
@@ -139,6 +143,9 @@
         </n-card>
 
         <n-card title="反作弊处置" size="small">
+          <n-alert type="info" :show-icon="false" style="margin-bottom:16px;font-size:12px">
+            设置检测到作弊时的处置方式。保存后写入 Config.json 并热重载，需先安装并启用 PalDefender。
+          </n-alert>
           <n-form label-placement="left" label-width="160">
             <n-form-item>
               <template #label>
