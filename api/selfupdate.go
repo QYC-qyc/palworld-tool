@@ -217,8 +217,9 @@ func runSelfUpdate() {
 	}
 	appendLog("镜像拉取完成")
 
-	// docker compose up -d（会重建面板容器，本进程随后被杀，但 detached 命令已提交）
-	if err := runCmd(dir, "docker", "compose", "-f", composeFile, "up", "-d"); err != nil {
+	// docker compose up -d --force-recreate：强制重建容器，
+	// 避免旧崩溃容器名字占用导致 "container name already in use"。
+	if err := runCmd(dir, "docker", "compose", "-f", composeFile, "up", "-d", "--force-recreate", "--remove-orphans"); err != nil {
 		appendLog("重启容器失败: " + err.Error())
 		return
 	}
