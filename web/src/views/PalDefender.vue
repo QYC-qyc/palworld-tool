@@ -68,10 +68,38 @@
 
         <n-card title="反作弊连接配置" size="small">
           <n-form label-placement="left" label-width="120">
-            <n-form-item label="API 主机">
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  API 主机
+                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:340px">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    <div class="tooltip-content">
+                      PalDefender REST API 所在主机。Docker 部署填 <code>gameserver</code>（容器名）；
+                      游戏服与面板在同一机器的非 Docker 部署填 <code>127.0.0.1</code>。
+                    </div>
+                  </n-tooltip>
+                </span>
+              </template>
               <n-input v-model:value="pdForm.host" placeholder="gameserver（Docker）或 127.0.0.1" />
             </n-form-item>
-            <n-form-item label="API 端口">
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  API 端口
+                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:340px">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    <div class="tooltip-content">
+                      PalDefender REST API 监听端口，需与游戏配置中的 REST API 端口一致（默认 17993）。
+                      请勿将该端口暴露到公网。
+                    </div>
+                  </n-tooltip>
+                </span>
+              </template>
               <n-input-number v-model:value="pdForm.port" :min="1" :max="65535" :step="1"
                 style="width:200px" placeholder="17993" />
             </n-form-item>
@@ -144,14 +172,36 @@
                 <template #unchecked>不踢出</template>
               </n-switch>
             </n-form-item>
-            <n-form-item label="检测到即封禁">
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  检测到即封禁
+                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    检测到作弊时将玩家加入 Banlist（shouldBanCheaters），封禁后该玩家无法再进入服务器。
+                  </n-tooltip>
+                </span>
+              </template>
               <n-switch :value="pdForm.cheaters_ban === 'true'"
                 @update:value="(v) => (pdForm.cheaters_ban = v ? 'true' : 'false')">
                 <template #checked>封禁</template>
                 <template #unchecked>不封禁</template>
               </n-switch>
             </n-form-item>
-            <n-form-item label="同时封禁 IP">
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  同时封禁 IP
+                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    封禁玩家的同时封禁其 IP（shouldBanIpCheaters），阻止该 IP 下的其他账号进入。
+                  </n-tooltip>
+                </span>
+              </template>
               <n-switch :value="pdForm.cheaters_ipban === 'true'"
                 @update:value="(v) => (pdForm.cheaters_ipban = v ? 'true' : 'false')">
                 <template #checked>IP 封禁</template>
