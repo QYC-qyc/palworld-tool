@@ -65,6 +65,102 @@
             </n-text>
           </n-space>
         </n-card>
+
+        <n-card title="反作弊连接配置" size="small">
+          <n-form label-placement="left" label-width="120">
+            <n-form-item label="API 主机">
+              <n-input v-model:value="pdForm.host" placeholder="gameserver（Docker）或 127.0.0.1" />
+            </n-form-item>
+            <n-form-item label="API 端口">
+              <n-input-number v-model:value="pdForm.port" :min="1" :max="65535" :step="1"
+                style="width:200px" placeholder="17993" />
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  Token
+                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    <div class="tooltip-content">
+                      点击右侧「生成 Token」自动写入 PalDefender 令牌，也可手动粘贴。
+                      请勿将 API 端口暴露到公网。
+                    </div>
+                  </n-tooltip>
+                </span>
+              </template>
+              <div style="display:flex;align-items:center;width:100%">
+                <n-input
+                  v-model:value="pdForm.token"
+                  type="password"
+                  show-password-on="click"
+                  :placeholder="pdTokenSet ? '已设置（留空不修改）' : '未设置'"
+                />
+                <n-button type="primary" size="small" :loading="generatingToken"
+                  style="margin-left:8px;flex-shrink:0" @click="generateToken">
+                  生成 Token
+                </n-button>
+              </div>
+            </n-form-item>
+          </n-form>
+        </n-card>
+
+        <n-card title="反作弊处置" size="small">
+          <n-form label-placement="left" label-width="160">
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  启用反作弊
+                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:360px">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    <div class="tooltip-content">
+                      由 PalDefender 在游戏进程内实时检测作弊。需先安装 PalDefender。
+                      关闭后下方处置选项均不生效，保存时写入 Config.json 并热重载。
+                    </div>
+                  </n-tooltip>
+                </span>
+              </template>
+              <n-switch :value="pdForm.anticheat_enabled !== 'false'"
+                @update:value="(v) => (pdForm.anticheat_enabled = v ? 'true' : 'false')" />
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="field-label">
+                  检测到即踢出
+                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
+                    <template #trigger>
+                      <n-icon :component="HelpCircleOutline" class="help-icon" />
+                    </template>
+                    检测到作弊时自动踢出玩家（shouldKickCheaters）。
+                  </n-tooltip>
+                </span>
+              </template>
+              <n-switch :value="pdForm.cheaters_kick === 'true'"
+                @update:value="(v) => (pdForm.cheaters_kick = v ? 'true' : 'false')">
+                <template #checked>踢出</template>
+                <template #unchecked>不踢出</template>
+              </n-switch>
+            </n-form-item>
+            <n-form-item label="检测到即封禁">
+              <n-switch :value="pdForm.cheaters_ban === 'true'"
+                @update:value="(v) => (pdForm.cheaters_ban = v ? 'true' : 'false')">
+                <template #checked>封禁</template>
+                <template #unchecked>不封禁</template>
+              </n-switch>
+            </n-form-item>
+            <n-form-item label="同时封禁 IP">
+              <n-switch :value="pdForm.cheaters_ipban === 'true'"
+                @update:value="(v) => (pdForm.cheaters_ipban = v ? 'true' : 'false')">
+                <template #checked>IP 封禁</template>
+                <template #unchecked>不封 IP</template>
+              </n-switch>
+            </n-form-item>
+            <n-button type="primary" :loading="pdSaving" @click="savePdSettings">保存配置</n-button>
+          </n-form>
+        </n-card>
       </n-space>
     </n-tab-pane>
 
@@ -317,11 +413,11 @@ import { computed, h, onMounted, reactive, ref } from 'vue'
 import {
   NSpace, NCard, NAlert, NDescriptions, NDescriptionsItem, NTag,
   NButton, NText, NModal, NProgress, NPopconfirm, NTabs, NTabPane,
-  NDataTable, NInput, NSelect, NSwitch, NFormItem, NSpin, NDivider, NIcon,
+  NDataTable, NInput, NInputNumber, NSelect, NSwitch, NForm, NFormItem, NSpin, NDivider, NIcon,
   useMessage,
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { ShieldOutline, SwapHorizontalOutline } from '@vicons/ionicons5'
+import { ShieldOutline, SwapHorizontalOutline, HelpCircleOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
 
 const message = useMessage()
@@ -414,6 +510,81 @@ const pdSuccess = ref(false)
 const pdError = ref('')
 
 const token = () => localStorage.getItem('palworld-panel_token') || ''
+
+// PalDefender 连接与处置配置（从「设置」页迁移至此）
+const pdForm = reactive({
+  host: 'gameserver',
+  port: 17993,
+  token: '',
+  anticheat_enabled: 'true',
+  cheaters_kick: 'true',
+  cheaters_ban: 'true',
+  cheaters_ipban: 'false',
+})
+const pdTokenSet = ref(false)
+const pdSaving = ref(false)
+const generatingToken = ref(false)
+
+async function loadPdSettings() {
+  try {
+    const s = await api.getSettings()
+    if (s['paldefender.host']) pdForm.host = s['paldefender.host']
+    if (s['paldefender.port']) pdForm.port = parseInt(s['paldefender.port']) || 17993
+    pdForm.anticheat_enabled = s['paldefender.anticheat_enabled'] ?? 'true'
+    pdForm.cheaters_kick = s['paldefender.cheaters_kick'] ?? 'true'
+    pdForm.cheaters_ban = s['paldefender.cheaters_ban'] ?? 'true'
+    pdForm.cheaters_ipban = s['paldefender.cheaters_ipban'] ?? 'false'
+    pdForm.token = ''
+    pdTokenSet.value = s['paldefender.token__set'] === 'true'
+  } catch (e) {
+    // 设置接口可能需要初始化，忽略
+  }
+}
+
+async function generateToken() {
+  generatingToken.value = true
+  try {
+    const res = await api.createPalDefenderToken('PalWorldPanel')
+    pdForm.token = res.token
+    pdTokenSet.value = true
+    message.success(`Token 已生成并写入 ${res.tokens_dir}，保存配置后生效`, { duration: 6000 })
+  } catch (e: any) {
+    message.error(e.message)
+  } finally {
+    generatingToken.value = false
+  }
+}
+
+async function savePdSettings() {
+  pdSaving.value = true
+  try {
+    const payload: Record<string, any> = {
+      'paldefender.host': pdForm.host,
+      'paldefender.port': String(pdForm.port),
+      'paldefender.anticheat_enabled': pdForm.anticheat_enabled,
+      'paldefender.cheaters_kick': pdForm.cheaters_kick,
+      'paldefender.cheaters_ban': pdForm.cheaters_ban,
+      'paldefender.cheaters_ipban': pdForm.cheaters_ipban,
+    }
+    if (pdForm.token) payload['paldefender.token'] = pdForm.token
+    const resp = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      body: JSON.stringify(payload),
+    })
+    const data = await resp.json()
+    if (resp.ok) {
+      message.success(data.message || '已保存')
+      await loadPdSettings()
+    } else {
+      message.error(data.error || '保存失败')
+    }
+  } catch (e: any) {
+    message.error(e.message)
+  } finally {
+    pdSaving.value = false
+  }
+}
 
 async function refreshStatus() {
   loading.value = true
@@ -919,6 +1090,7 @@ async function reloadConfig() {
 onMounted(() => {
   refreshStatus()
   testConnection()
+  loadPdSettings()
 })
 </script>
 

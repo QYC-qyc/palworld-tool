@@ -26,102 +26,6 @@
       </n-form>
     </n-card>
 
-    <n-card title="PalDefender 反作弊" size="small">
-      <n-form label-placement="left" label-width="140">
-        <n-form-item label="API 主机">
-          <n-input v-model:value="form['paldefender.host']" placeholder="127.0.0.1" />
-        </n-form-item>
-        <n-form-item label="API 端口">
-          <n-input-number v-model:value="pdPort" :min="1" :max="65535" :step="1"
-            style="width:200px" placeholder="17993" />
-        </n-form-item>
-        <n-form-item>
-          <template #label>
-            <span class="field-label">
-              Token
-              <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
-                <template #trigger>
-                  <n-icon :component="HelpCircleOutline" class="help-icon" />
-                </template>
-                <div class="tooltip-content">
-                  点击右侧「生成 Token」自动写入 PalDefender 令牌，也可手动粘贴已有 Token。
-                  REST API 的启用/端口在游戏配置中设置。请勿将 API 端口暴露到公网。
-                </div>
-              </n-tooltip>
-            </span>
-          </template>
-          <div style="display:flex;align-items:center;width:100%">
-            <n-input
-              v-model:value="pdToken"
-              type="password"
-              show-password-on="click"
-              :placeholder="pdTokenSet ? '已设置（留空不修改）' : '未设置'"
-            />
-            <n-button type="primary" size="small" :loading="generatingToken"
-              style="margin-left:8px;flex-shrink:0" @click="generateToken">
-              生成 Token
-            </n-button>
-          </div>
-        </n-form-item>
-      </n-form>
-    </n-card>
-
-    <n-card title="反作弊（PalDefender）" size="small">
-      <n-form label-placement="left" label-width="180">
-        <n-form-item>
-          <template #label>
-            <span class="field-label">
-              启用反作弊
-              <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:360px">
-                <template #trigger>
-                  <n-icon :component="HelpCircleOutline" class="help-icon" />
-                </template>
-                <div class="tooltip-content">
-                  由 PalDefender 在游戏进程内实时检测作弊（非法属性、违禁物品、作弊指令等）。
-                  需安装 PalDefender。关闭后下方处置选项均不生效，
-                  保存时会写入 PalDefender/Config.json 并热重载。
-                </div>
-              </n-tooltip>
-            </span>
-          </template>
-          <n-switch :value="form['paldefender.anticheat_enabled'] !== 'false'"
-            @update:value="(v) => (form['paldefender.anticheat_enabled'] = v ? 'true' : 'false')" />
-        </n-form-item>
-        <n-form-item>
-          <template #label>
-            <span class="field-label">
-              检测到即踢出
-              <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
-                <template #trigger>
-                  <n-icon :component="HelpCircleOutline" class="help-icon" />
-                </template>
-                检测到作弊行为时自动踢出玩家（对应 Config.json 的 shouldKickCheaters）。
-              </n-tooltip>
-            </span>
-          </template>
-          <n-switch :value="form['paldefender.cheaters_kick'] === 'true'"
-            @update:value="(v) => (form['paldefender.cheaters_kick'] = v ? 'true' : 'false')">
-            <template #checked>踢出</template>
-            <template #unchecked>不踢出</template>
-          </n-switch>
-        </n-form-item>
-        <n-form-item label="检测到即封禁">
-          <n-switch :value="form['paldefender.cheaters_ban'] === 'true'"
-            @update:value="(v) => (form['paldefender.cheaters_ban'] = v ? 'true' : 'false')">
-            <template #checked>封禁</template>
-            <template #unchecked>不封禁</template>
-          </n-switch>
-        </n-form-item>
-        <n-form-item label="同时封禁 IP">
-          <n-switch :value="form['paldefender.cheaters_ipban'] === 'true'"
-            @update:value="(v) => (form['paldefender.cheaters_ipban'] = v ? 'true' : 'false')">
-            <template #checked>IP 封禁</template>
-            <template #unchecked>不封 IP</template>
-          </n-switch>
-        </n-form-item>
-      </n-form>
-    </n-card>
-
     <n-card title="存档与进程" size="small">
       <n-form label-placement="top">
         <n-form-item>
@@ -396,10 +300,6 @@ const processModes = [
 ]
 
 const backupInterval = ref(60)
-const pdPort = ref(17993)
-const pdToken = ref('')
-const pdTokenSet = ref(false)
-const generatingToken = ref(false)
 
 async function load() {
   const s = await api.getSettings()
@@ -407,10 +307,6 @@ async function load() {
   // 备份间隔：秒转分钟
   const sec = parseInt(s['save.backup_interval'] || '3600')
   backupInterval.value = sec > 0 ? Math.round(sec / 60) : 0
-  // PalDefender
-  pdPort.value = parseInt(s['paldefender.port'] || '17993') || 17993
-  pdToken.value = ''
-  pdTokenSet.value = s['paldefender.token__set'] === 'true'
 }
 
 async function testConn(type: 'rest') {
@@ -448,23 +344,6 @@ async function testConn(type: 'rest') {
   }
 }
 
-async function generateToken() {
-  generatingToken.value = true
-  try {
-    const res = await api.createPalDefenderToken('PalAdmin')
-    pdToken.value = res.token
-    pdTokenSet.value = true
-    message.success(
-      `Token 已生成并写入 ${res.tokens_dir}。请确保已在游戏配置中启用 PalDefender REST API，然后点击保存设置`,
-      { duration: 6000 },
-    )
-  } catch (e: any) {
-    message.error(e.message)
-  } finally {
-    generatingToken.value = false
-  }
-}
-
 async function save() {
   saving.value = true
   try {
@@ -477,16 +356,12 @@ async function save() {
       payload['rest.password'] = adminPwd.value
     }
     if (webPwd.value) payload['web.password'] = webPwd.value
-    // PalDefender 端口与 Token（Token 留空表示不修改，脱敏占位符由后端忽略）
-    payload['paldefender.port'] = String(pdPort.value)
-    if (pdToken.value) payload['paldefender.token'] = pdToken.value
     // 备份间隔：分钟转秒
     payload['save.backup_interval'] = String(backupInterval.value * 60)
     await api.saveSettings(payload)
     message.success('设置已保存')
     adminPwd.value = ''
     webPwd.value = ''
-    pdToken.value = ''
     load()
   } catch (e: any) {
     message.error(e.message)
