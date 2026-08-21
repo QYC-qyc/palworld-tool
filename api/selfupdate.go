@@ -210,17 +210,18 @@ func runSelfUpdate() {
 	}
 	appendLog("使用 compose 文件: " + composeFile)
 
-	// docker compose pull
-	if err := runCmd(dir, "docker", "compose", "-f", composeFile, "pull"); err != nil {
-		appendLog("拉取镜像失败: " + err.Error())
+	// 只拉取面板镜像，不动游戏服镜像
+	if err := runCmd(dir, "docker", "compose", "-f", composeFile, "pull", "palworld-panel"); err != nil {
+		appendLog("拉取面板镜像失败: " + err.Error())
 		return
 	}
-	appendLog("镜像拉取完成")
+	appendLog("面板镜像拉取完成")
 
-	// docker compose up -d --force-recreate：强制重建容器，
-	// 避免旧崩溃容器名字占用导致 "container name already in use"。
-	if err := runCmd(dir, "docker", "compose", "-f", composeFile, "up", "-d", "--force-recreate", "--remove-orphans"); err != nil {
-		appendLog("重启容器失败: " + err.Error())
+	// 只重建面板容器，--force-recreate 避免旧容器名占用，
+	// 不影响 palworld-gameserver 容器。
+	if err := runCmd(dir, "docker", "compose", "-f", composeFile, "up", "-d",
+		"--force-recreate", "--no-deps", "palworld-panel"); err != nil {
+		appendLog("重启面板容器失败: " + err.Error())
 		return
 	}
 	appendLog("更新指令已提交，面板即将重启...")
