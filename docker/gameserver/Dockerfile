@@ -47,6 +47,8 @@ RUN dpkg --add-architecture i386 && \
         && \
     sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
+    # 生成 machine-id（Proton/Wine 启动需要，slim 镜像默认没有）
+    cat /proc/sys/kernel/random/uuid | tr -d '-' > /etc/machine-id && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 创建非 root 用户
