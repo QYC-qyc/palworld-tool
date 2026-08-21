@@ -592,16 +592,17 @@ func (m *Manager) checkProtonReady() error {
 //   - 若目录属主就是 root：自动创建/使用 palworld-panel 用户并 chown。
 //   - 若面板非 root：直接启动。
 func (m *Manager) Start() error {
-	// 容器化部署：通过 Docker 启动游戏服容器
+	// 容器化部署：容器常驻，通过 docker exec 控制游戏进程启停
 	if m.docker != nil {
-		if m.docker.isRunning() {
-			return errors.New("游戏服容器已在运行")
+		// 游戏已在运行则不重复启动
+		if m.docker.isGameRunning() {
+			return errors.New("游戏服已在运行")
 		}
-		m.logBuf.WriteString(fmt.Sprintf("启动游戏服容器 %s...\n", m.docker.container))
+		m.logBuf.WriteString("启动游戏服...\n")
 		if err := m.docker.start(); err != nil {
 			return err
 		}
-		// 启动宽限期：60 秒内容器在跑但游戏进程未就绪，状态显示"启动中"
+		// 启动宽限期：60 秒内游戏进程可能正在拉起，状态显示"启动中"
 		m.startingUntil = time.Now().Add(60 * time.Second)
 		return nil
 	}
@@ -775,11 +776,11 @@ func shellQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
 
-// Stop 停止游戏服（停止所有 PalServer 进程，包括非面板启动的）
+// Stop 停止游戏服（停止游戏进程，容器保持常驻）
 func (m *Manager) Stop() error {
-	// 容器化部署：通过 Docker 停止游戏服容器
+	// 容器化部署：通过 docker exec 停止游戏进程（不停止容器）
 	if m.docker != nil {
-		m.logBuf.WriteString(fmt.Sprintf("停止游戏服容器 %s...\n", m.docker.container))
+		m.logBuf.WriteString("停止游戏服...\n")
 		m.startingUntil = time.Time{}
 		return m.docker.stop()
 	}

@@ -257,22 +257,40 @@ func (d *dockerCtl) available() bool {
 	return err == nil && d.container != ""
 }
 
-// start 启动游戏服容器
+// start 在游戏服容器内启动游戏进程（容器本身应保持常驻）。
 func (d *dockerCtl) start() error {
-	return d.run("start")
+	if !d.isRunning() {
+		// 容器没在跑，先启动容器（它会进入 run 守护模式）
+		if err := d.run("start"); err != nil {
+			return err
+		}
+		// 等待容器就绪
+		time.Sleep(2 * time.Second)
+	}
+	// 通知守护进程启动游戏
+	_, err := d.execOutput("/home/steam/entrypoint.sh", "start")
+	return err
 }
 
-// stop 停止游戏服容器
+// stop 停止容器内的游戏进程（不停止容器）。
 func (d *dockerCtl) stop() error {
-	return d.run("stop", "-t", "30")
+	if !d.isRunning() {
+		return nil
+	}
+	_, err := d.execOutput("/home/steam/entrypoint.sh", "stop")
+	return err
 }
 
-// restart 重启游戏服容器
+// restart 在容器内重启游戏进程（不重启容器）。
 func (d *dockerCtl) restart() error {
-	return d.run("restart")
+	if !d.isRunning() {
+		return d.start()
+	}
+	_, err := d.execOutput("/home/steam/entrypoint.sh", "restart")
+	return err
 }
 
-// isRunning 检查容器是否在运行
+// isRunning 检查容器是否在运行（容器常驻，应始终为 true）。
 func (d *dockerCtl) isRunning() bool {
 	bin, err := exec.LookPath("docker")
 	if err != nil {
@@ -286,11 +304,17 @@ func (d *dockerCtl) isRunning() bool {
 }
 
 // isGameRunning 检查容器内游戏进程（PalServer）是否真的在运行。
-// 仅容器 Up 不代表游戏在跑（可能正在下载/安装/启动失败）。
+// 容器常驻不代表游戏在跑——游戏可能被停止或正在重启。
 func (d *dockerCtl) isGameRunning() bool {
 	if !d.isRunning() {
 		return false
 	}
+	// 用 entrypoint status 判断（读 PID 文件 + pgrep）
+	out, err := d.execOutput("/home/steam/entrypoint.sh", "status")
+	if err == nil && strings.Contains(string(out), "running") {
+		return true
+	}
+	// 兜底：直接 pgrep
 	// pgrep -f 在进程命令行中匹配 PalServer（兼容 PalServer-Win64-Shipping-Cmd.exe）
 	out, err := d.execOutput("pgrep", "-f", "PalServer")
 	if err != nil {

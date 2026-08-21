@@ -1,10 +1,18 @@
 #!/bin/bash
-# PalServer 游戏服入口脚本
-# 用法: entrypoint.sh [start|stop|restart|install|update|status]
+# PalServer 游戏服入口脚本（方案 A：容器常驻，游戏进程由面板控制）
 #
-# 路径均可通过环境变量覆盖（在 docker-compose.yml 中配置）：
-#   STEAMCMD_DIR   SteamCMD 安装目录（默认 /opt/steamcmd，建议挂卷持久化）
-#   PALSERVER_DIR  游戏安装目录（默认 /home/steam/palserver，已挂卷持久化）
+# 用法（通常由面板通过 docker exec 调用）：
+#   entrypoint.sh run       容器默认命令：常驻并守护游戏进程（崩溃自动重启）
+#   entrypoint.sh start     启动游戏（交给守护进程拉起）
+#   entrypoint.sh stop      停止游戏（不重启）
+#   entrypoint.sh restart   重启游戏
+#   entrypoint.sh status    查看游戏是否在运行（running/stopped）
+#   entrypoint.sh install   安装/更新游戏（SteamCMD app_update）
+#   entrypoint.sh update    同 install
+#
+# 路径均可通过环境变量覆盖：
+#   STEAMCMD_DIR   SteamCMD 目录（默认 /opt/steamcmd，挂卷持久化）
+#   PALSERVER_DIR  游戏安装目录（默认 /home/steam/palserver，挂卷持久化）
 
 set -e
 
@@ -15,14 +23,19 @@ STEAMCMD="${STEAMCMD_DIR}/steamcmd.sh"
 REST_PORT="${REST_PORT:-8212}"
 REST_PASSWORD="${REST_PASSWORD:-}"
 
+# 游戏工作目录与 PID / 控制文件
+RUN_DIR="/tmp/palworld"
+PID_FILE="${RUN_DIR}/palserver.pid"
+STOP_FILE="${RUN_DIR}/manual.stop"
+LOG_FILE="${PALSERVER_DIR}/palserver.log"
+
 install_steamcmd() {
     if [ -x "${STEAMCMD}" ]; then
         return 0
     fi
     echo ">>> 首次运行：安装 SteamCMD 到 ${STEAMCMD_DIR} ..."
-    mkdir -p "${STEAMCMD_DIR}"
+    mkdir -p "${STEAMCMD_DIR}" "${RUN_DIR}"
     cd "${STEAMCMD_DIR}"
-    # cloudflare 的 steamstatic CDN 在国内可访问；akamaihd 作为兜底
     curl -fSL --retry 5 --retry-delay 3 --connect-timeout 30 \
         "https://cdn.cloudflare.steamstatic.com/client/installer/steamcmd_linux.tar.gz" \
         -o steamcmd.tar.gz \
@@ -39,8 +52,7 @@ install_steamcmd() {
 
 install_server() {
     echo ">>> 安装/更新 PalServer 到 ${PALSERVER_DIR}"
-    mkdir -p "${PALSERVER_DIR}"
-    # 首次自更新（可能因网络失败，不阻断，app_update 时会再试）
+    mkdir -p "${PALSERVER_DIR}" "${RUN_DIR}"
     "${STEAMCMD}" +login anonymous +quit || true
     "${STEAMCMD}" \
         +@sSteamCmdForcePlatformType windows \
@@ -51,89 +63,150 @@ install_server() {
     echo ">>> 安装/更新完成"
 }
 
-start_server() {
-    if [ ! -f "${EXE}" ]; then
-        echo ">>> 游戏服未安装，先执行安装..."
-        if ! install_server; then
-            echo "!!! 游戏安装失败（通常是服务器到 Steam 的网络问题），容器退出"
-            exit 1
-        fi
-    fi
-
-    if [ ! -f "${EXE}" ]; then
-        echo "!!! 安装后仍未找到 ${EXE}，容器退出"
-        exit 1
-    fi
-
-    echo ">>> 启动 PalServer (Proton)"
+# 实际启动游戏进程（前台运行，由守护进程调用）
+launch_game() {
     cd "${PALSERVER_DIR}"
 
-    # 若配置文件不存在，按官方推荐从 DefaultPalWorldSettings.ini 复制一份
+    # 首次启动：从 DefaultPalWorldSettings.ini 生成配置
     INI_DIR="${PALSERVER_DIR}/Pal/Saved/Config/WindowsServer"
     INI_FILE="${INI_DIR}/PalWorldSettings.ini"
+    mkdir -p "${INI_DIR}"
     if [ ! -f "${INI_FILE}" ] && [ -f "${PALSERVER_DIR}/DefaultPalWorldSettings.ini" ]; then
-        echo ">>> 首次启动：从 DefaultPalWorldSettings.ini 生成配置文件"
-        mkdir -p "${INI_DIR}"
         cp "${PALSERVER_DIR}/DefaultPalWorldSettings.ini" "${INI_FILE}"
         chown steam:steam "${INI_FILE}" 2>/dev/null || true
     fi
 
-    # 注入 PalDefender DLL（若已安装：d3d9.dll + PalDefender.dll）
+    # PalDefender 注入
     WIN64_DIR="${PALSERVER_DIR}/Pal/Binaries/Win64"
     if [ -f "${WIN64_DIR}/d3d9.dll" ] && [ -f "${WIN64_DIR}/PalDefender.dll" ]; then
-        echo ">>> 检测到 PalDefender，通过 WINEDLLOVERRIDES 注入"
         export WINEDLLOVERRIDES="d3d9=n,b"
     else
-        echo ">>> 未检测到 PalDefender，以无反作弊模式启动"
         unset WINEDLLOVERRIDES
     fi
 
-    REST_ARGS=(-RESTAPI -RESTPort="${REST_PORT}")
-    if [ -n "${REST_PASSWORD}" ]; then
-        REST_ARGS+=(-RESTPassword="${REST_PASSWORD}")
-    else
-        echo ">>> 警告：未设置 REST_PASSWORD，REST API 可能拒绝连接"
-    fi
+    # 游戏端口固定 8211（UDP），REST API 端口用 -RESTPort
+    local args=(-port=8211 -RESTPort="${REST_PORT}" -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS)
+    [ -n "${REST_PASSWORD}" ] && args+=(-RESTPassword="${REST_PASSWORD}")
 
-    # 用 exec：游戏进程成为主进程，退出时容器随之退出，
-    # Docker restart policy 据此决定是否重启。信号也能正确传递。
-    exec "${PROTONPATH}" run "${EXE}" \
-        -port=8211 \
-        -publiclobby \
-        -useperfthreads \
-        -NoAsyncLoadingThread \
-        -UseMultithreadForDS \
-        "${REST_ARGS[@]}"
+    echo ">>> 启动 PalServer (Proton)..."
+    exec "${PROTONPATH}" run "${EXE}" "${args[@]}"
 }
 
-stop_server() {
-    echo ">>> 停止 PalServer..."
-    wineserver -k 2>/dev/null || pkill -f PalServer-Win64 || true
+# 守护循环：游戏崩溃自动重启，除非用户手动 stop
+supervise() {
+    mkdir -p "${RUN_DIR}"
+    # 清除可能残留的手动停止标记
+    rm -f "${STOP_FILE}"
+
+    while true; do
+        if [ -f "${STOP_FILE}" ]; then
+            echo ">>> 检测到停止标记，游戏保持停止"
+            # 守护不退出（容器常驻），等待 start 清除标记
+            sleep 5
+            continue
+        fi
+
+        if [ ! -f "${EXE}" ]; then
+            echo ">>> 游戏未安装，等待安装..."
+            sleep 10
+            continue
+        fi
+
+        echo ">>> 守护：启动游戏进程"
+        launch_game &
+        local child=$!
+        echo "${child}" > "${PID_FILE}"
+        wait "${child}"
+        local rc=$?
+        rm -f "${PID_FILE}"
+        echo ">>> 游戏进程退出（退出码 $rc）"
+
+        if [ -f "${STOP_FILE}" ]; then
+            echo ">>> 手动停止，不自动重启"
+            continue
+        fi
+        echo ">>> 5 秒后自动重启游戏..."
+        sleep 5
+    done
+}
+
+cmd_start() {
+    mkdir -p "${RUN_DIR}"
+    rm -f "${STOP_FILE}"
+    if [ -f "${PID_FILE}" ] && kill -0 "$(cat "${PID_FILE}")" 2>/dev/null; then
+        echo "already running (pid $(cat "${PID_FILE}"))"
+        return 0
+    fi
+    # 通知守护进程拉起（守护在跑的话，清除停止标记后它会自动启动）
+    if pgrep -f "entrypoint.sh run" >/dev/null 2>&1 || pgrep -f "supervise" >/dev/null 2>&1; then
+        echo ">>> 已通知守护进程启动游戏"
+        return 0
+    fi
+    # 守护没在跑（不应该发生），直接后台启动
+    nohup "${0}" run >>"${LOG_FILE}" 2>&1 &
+    echo ">>> 已启动守护进程"
+}
+
+cmd_stop() {
+    mkdir -p "${RUN_DIR}"
+    touch "${STOP_FILE}"
+    if [ -f "${PID_FILE}" ]; then
+        local pid
+        pid=$(cat "${PID_FILE}")
+        if kill -0 "${pid}" 2>/dev/null; then
+            echo ">>> 停止游戏进程 ${pid}..."
+            wineserver -k 2>/dev/null || kill -TERM "${pid}" 2>/dev/null || true
+            sleep 3
+            kill -KILL "${pid}" 2>/dev/null || true
+        fi
+        rm -f "${PID_FILE}"
+    else
+        wineserver -k 2>/dev/null || pkill -f PalServer-Win64 2>/dev/null || true
+    fi
+    echo "stopped"
+}
+
+cmd_status() {
+    if [ -f "${PID_FILE}" ] && kill -0 "$(cat "${PID_FILE}")" 2>/dev/null; then
+        echo "running (pid $(cat "${PID_FILE}"))"
+        exit 0
+    fi
+    # 兜底：pgrep
+    if pgrep -f PalServer-Win64 >/dev/null 2>&1; then
+        echo "running"
+        exit 0
+    fi
+    echo "stopped"
+    exit 1
+}
+
+cmd_restart() {
+    cmd_stop
+    sleep 2
+    rm -f "${STOP_FILE}"
+    cmd_start
 }
 
 # ---- 主流程 ----
 
-# 容器以 root 启动：先装好 SteamCMD 并确保卷权限，再降权给 steam 运行游戏
+# 容器以 root 启动：安装 SteamCMD、修权限，然后降权为 steam 执行
 if [ "$(id -u)" = "0" ]; then
-    # root 阶段：确保挂载卷可写
-    mkdir -p "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix
-    chown -R steam:steam "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix /home/steam 2>/dev/null || true
+    mkdir -p "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix "${RUN_DIR}"
+    chown -R steam:steam "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix /home/steam "${RUN_DIR}" 2>/dev/null || true
 
-    # 安装 SteamCMD。失败则容器退出，由 Docker restart policy 重试
     if ! install_steamcmd; then
-        echo "!!! SteamCMD 安装失败（通常是网络问题），容器退出，将由 Docker 重启重试"
+        echo "!!! SteamCMD 安装失败"
         exit 1
     fi
     chown -R steam:steam "${STEAMCMD_DIR}" 2>/dev/null || true
 
-    # 以 steam 身份重新执行本脚本。用环境变量传参，避免 su 下 $@ 引号问题。
-    export _ENTRY_ARG="${1:-start}"
+    # 降权为 steam 重新执行本脚本
     exec su steam -c '
         STEAMCMD_DIR="'"$STEAMCMD_DIR"'" PALSERVER_DIR="'"$PALSERVER_DIR"'" \
         REST_PORT="'"$REST_PORT"'" REST_PASSWORD="'"$REST_PASSWORD"'" \
         PROTONPATH="'"$PROTONPATH"'" WINEDLLOVERRIDES="'"$WINEDLLOVERRIDES"'" \
         STEAMAPPID="'"${STEAMAPPID:-2394010}"'" XDG_RUNTIME_DIR=/tmp/runtime-steam \
-        _ENTRY_ARG="'"${_ENTRY_ARG}"'" bash "'"$0"'"
+        _ENTRY_ARG="'"${1:-run}"'" bash "'"$0"'"
     '
 fi
 
@@ -141,30 +214,25 @@ fi
 export XDG_RUNTIME_DIR=/tmp/runtime-steam
 mkdir -p "${XDG_RUNTIME_DIR}" 2>/dev/null || true
 
-case "${_ENTRY_ARG:-start}" in
+case "${_ENTRY_ARG:-run}" in
+    run)
+        # 容器常驻：守护游戏进程
+        supervise
+        ;;
     start)
-        # start_server 最后用 exec 把游戏进程替换为主进程，
-        # 游戏退出时容器随之退出，由 Docker restart policy 决定是否重启。
-        trap stop_server SIGTERM SIGINT
-        start_server
+        cmd_start
+        ;;
+    stop)
+        cmd_stop
+        ;;
+    restart)
+        cmd_restart
+        ;;
+    status)
+        cmd_status
         ;;
     install|update)
         install_server
-        ;;
-    stop)
-        stop_server
-        ;;
-    restart)
-        stop_server
-        sleep 2
-        start_server
-        ;;
-    status)
-        if pgrep -f PalServer-Win64 >/dev/null; then
-            echo "running"; exit 0
-        else
-            echo "stopped"; exit 1
-        fi
         ;;
     *)
         exec "$@"

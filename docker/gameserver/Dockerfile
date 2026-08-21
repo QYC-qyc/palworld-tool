@@ -108,6 +108,6 @@ VOLUME ["/home/steam/palserver", "/opt/steamcmd"]
 USER root
 WORKDIR /home/steam
 
-# 默认启动游戏服
+# 容器常驻：entrypoint run 启动守护进程，游戏由面板通过 docker exec 控制
 ENTRYPOINT ["/home/steam/entrypoint.sh"]
-CMD ["start"]
+CMD ["run"]
