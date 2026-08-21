@@ -4,6 +4,7 @@ package gamesrv
 
 import (
 	"archive/tar"
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -326,6 +327,37 @@ func (d *dockerCtl) isGameRunning() bool {
 // installOrUpdate 在游戏服容器内执行安装/更新（steamcmd app_update）
 func (d *dockerCtl) installOrUpdate() error {
 	return d.execRun("/home/steam/entrypoint.sh", "update")
+}
+
+// installOrUpdateWithLog 执行安装/更新，并把 SteamCMD 实时输出通过 logFn 写出。
+func (d *dockerCtl) installOrUpdateWithLog(logFn func(string)) error {
+	bin, err := exec.LookPath("docker")
+	if err != nil {
+		return fmt.Errorf("未找到 docker: %w", err)
+	}
+	args := []string{"exec", d.container, "/home/steam/entrypoint.sh", "update"}
+	cmd := exec.Command(bin, args...)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	cmd.Stderr = cmd.Stdout
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	// 实时逐行读取并回调
+	scanner := bufio.NewScanner(stdout)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if logFn != nil {
+			logFn(line + "\n")
+		}
+	}
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("更新失败: %w", err)
+	}
+	return nil
 }
 
 // logs 返回游戏服容器最近日志

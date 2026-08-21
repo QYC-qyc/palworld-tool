@@ -344,7 +344,11 @@ func (m *Manager) Install() error {
 		m.logBuf.WriteString(fmt.Sprintf("在容器 %s 内更新游戏服...\n", m.docker.container))
 		go func() {
 			defer m.dockerUpdating.Store(false)
-			if err := m.docker.installOrUpdate(); err != nil {
+			m.logBuf.WriteString("开始下载/更新游戏文件（SteamCMD 输出如下，请耐心等待）...\n")
+			err := m.docker.installOrUpdateWithLog(func(line string) {
+				m.logBuf.WriteString(line)
+			})
+			if err != nil {
 				m.logBuf.WriteString("更新游戏服失败: " + err.Error() + "\n")
 				return
 			}
