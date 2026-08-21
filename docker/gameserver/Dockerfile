@@ -90,7 +90,8 @@ RUN mkdir -p /home/steam/.steam/root/compatibilitytools.d && \
 ENV STEAM_COMPAT_CLIENT_INSTALL_PATH=/home/steam/.steam/root \
     STEAM_COMPAT_DATA_PATH=/home/steam/prefix \
     PROTONPATH=/home/steam/.steam/root/compatibilitytools.d/GE-Proton${PROTON_VERSION}/proton \
-    WINEDLLOVERRIDES="d3d9=n,b" \
+    PROTON_LOG=1 \
+    WINEDEBUG=err+all \
     LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8
 
