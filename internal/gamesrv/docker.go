@@ -189,21 +189,25 @@ func makeTarWithFile(name string, data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// stat 返回容器内文件信息
+// stat 返回容器内文件信息。容器停止/重启时 exec 会失败，
+// 回退到 docker cp 探测文件是否存在（大小未知时返回 0）。
 func (d *dockerCtl) stat(rel string) (os.FileInfo, error) {
 	abs := d.absPath(rel)
 	out, err := d.execOutput("stat", "-c", "%s %f %F", abs)
-	if err != nil {
-		return nil, &os.PathError{Op: "stat", Path: abs, Err: os.ErrNotExist}
+	if err == nil {
+		fields := strings.Fields(strings.TrimSpace(string(out)))
+		if len(fields) >= 3 {
+			var size int64
+			fmt.Sscanf(fields[0], "%d", &size)
+			isDir := strings.Contains(fields[2], "directory")
+			return &dockerFileInfo{name: filepath.Base(abs), size: size, isDir: isDir}, nil
+		}
 	}
-	fields := strings.Fields(strings.TrimSpace(string(out)))
-	if len(fields) < 3 {
-		return nil, &os.PathError{Op: "stat", Path: abs, Err: os.ErrNotExist}
+	// 回退：用 docker cp 探测（容器停止也能检测）
+	if d.fileExists(rel) {
+		return &dockerFileInfo{name: filepath.Base(abs), size: 0, isDir: false}, nil
 	}
-	var size int64
-	fmt.Sscanf(fields[0], "%d", &size)
-	isDir := strings.Contains(fields[2], "directory")
-	return &dockerFileInfo{name: filepath.Base(abs), size: size, isDir: isDir}, nil
+	return nil, &os.PathError{Op: "stat", Path: abs, Err: os.ErrNotExist}
 }
 
 // mkdirAll 创建目录。容器重启中 exec 会失败；writeFile 的 tar 会自动建目录，
