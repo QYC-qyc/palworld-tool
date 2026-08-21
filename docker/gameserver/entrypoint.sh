@@ -78,9 +78,45 @@ launch_game() {
     INI_DIR="${PALSERVER_DIR}/Pal/Saved/Config/WindowsServer"
     INI_FILE="${INI_DIR}/PalWorldSettings.ini"
     mkdir -p "${INI_DIR}"
-    if [ ! -f "${INI_FILE}" ] && [ -f "${PALSERVER_DIR}/DefaultPalWorldSettings.ini" ]; then
-        cp "${PALSERVER_DIR}/DefaultPalWorldSettings.ini" "${INI_FILE}"
+    if [ ! -f "${INI_FILE}" ]; then
+        if [ -f "${PALSERVER_DIR}/DefaultPalWorldSettings.ini" ]; then
+            cp "${PALSERVER_DIR}/DefaultPalWorldSettings.ini" "${INI_FILE}"
+        else
+            # 兜底：创建最小配置，确保游戏能启动
+            cat > "${INI_FILE}" <<'INIEOF'
+[/Script/Pal.PalGameWorldSettings]
+OptionSettings=(ServerName="Palworld Server",ServerDescription="",AdminPassword="",ServerPassword="",MaxPlayerNum=32)
+INIEOF
+        fi
         chown steam:steam "${INI_FILE}" 2>/dev/null || true
+    fi
+
+    # 确保 REST API 在 ini 中启用。
+    # PalWorldSettings.ini 格式：OptionSettings=(Key=Value,Key=Value,...)
+    # REST 只能通过 ini 配置，不能用命令行参数（传了会导致退出码 3）。
+    if [ -f "${INI_FILE}" ]; then
+        # RESTAPIEnabled=True
+        if grep -q "RESTAPIEnabled" "${INI_FILE}"; then
+            sed -i 's/RESTAPIEnabled=[^,)]*/RESTAPIEnabled=True/' "${INI_FILE}"
+        else
+            sed -i "s/OptionSettings=(/OptionSettings=(RESTAPIEnabled=True,/" "${INI_FILE}"
+        fi
+        # RESTAPIPort
+        if grep -q "RESTAPIPort" "${INI_FILE}"; then
+            sed -i "s/RESTAPIPort=[^,)]*/RESTAPIPort=${REST_PORT}/" "${INI_FILE}"
+        else
+            sed -i "s/OptionSettings=(/OptionSettings=(RESTAPIPort=${REST_PORT},/" "${INI_FILE}"
+        fi
+        # AdminPassword（REST 鉴权用）
+        if [ -n "${REST_PASSWORD}" ]; then
+            if grep -q "AdminPassword" "${INI_FILE}"; then
+                sed -i "s/AdminPassword=\"[^\"]*\"/AdminPassword=\"${REST_PASSWORD}\"/" "${INI_FILE}"
+            else
+                sed -i "s/OptionSettings=(/OptionSettings=(AdminPassword=\"${REST_PASSWORD}\",/" "${INI_FILE}"
+            fi
+        fi
+        chown steam:steam "${INI_FILE}" 2>/dev/null || true
+        echo ">>> 已在配置中启用 REST API（端口 ${REST_PORT}）"
     fi
 
     # PalDefender 注入
@@ -92,9 +128,9 @@ launch_game() {
         unset WINEDLLOVERRIDES
     fi
 
-    # 游戏端口固定 8211（UDP），REST API 端口用 -RESTPort
-    local args=(-port=8211 -RESTPort="${REST_PORT}" -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS)
-    [ -n "${REST_PASSWORD}" ] && args+=(-RESTPassword="${REST_PASSWORD}")
+    # 启动参数：仅游戏端口和性能参数。
+    # REST API 通过 PalWorldSettings.ini 启用，不是命令行参数（传了会导致退出码 3）。
+    local args=(-port=8211 -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS)
 
     echo ">>> 启动 PalServer (Proton)，参数: ${args[*]}"
     echo ">>> PROTONPATH=${PROTONPATH}"
