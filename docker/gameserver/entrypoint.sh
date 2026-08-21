@@ -55,18 +55,14 @@ start_server() {
     if [ ! -f "${EXE}" ]; then
         echo ">>> 游戏服未安装，先执行安装..."
         if ! install_server; then
-            echo "!!!"
-            echo "!!! 游戏安装失败（通常是服务器到 Steam 的网络问题）。"
-            echo "!!! 容器保持运行，请稍后在面板点「更新游戏服」重试。"
-            echo "!!!"
-            # 保持容器运行，避免 crash loop，面板可 exec 进来重试
-            exec tail -f /dev/null
+            echo "!!! 游戏安装失败（通常是服务器到 Steam 的网络问题），容器退出"
+            exit 1
         fi
     fi
 
     if [ ! -f "${EXE}" ]; then
-        echo "!!! 安装后仍未找到 ${EXE}，保持容器运行以便排查"
-        exec tail -f /dev/null
+        echo "!!! 安装后仍未找到 ${EXE}，容器退出"
+        exit 1
     fi
 
     echo ">>> 启动 PalServer (Proton)"
@@ -99,9 +95,9 @@ start_server() {
         echo ">>> 警告：未设置 REST_PASSWORD，REST API 可能拒绝连接"
     fi
 
-    # 不用 exec：游戏进程退出后回到 start 分支，由 tail 保持容器运行，避免 crash loop。
-    # trap 会在收到 SIGTERM 时转发给游戏进程。
-    "${PROTONPATH}" run "${EXE}" \
+    # 用 exec：游戏进程成为主进程，退出时容器随之退出，
+    # Docker restart policy 据此决定是否重启。信号也能正确传递。
+    exec "${PROTONPATH}" run "${EXE}" \
         -port=8211 \
         -publiclobby \
         -useperfthreads \
@@ -123,14 +119,10 @@ if [ "$(id -u)" = "0" ]; then
     mkdir -p "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix
     chown -R steam:steam "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix /home/steam 2>/dev/null || true
 
-    # 安装 SteamCMD。失败不退出容器（避免 crash loop），保持运行以便排查/重试
+    # 安装 SteamCMD。失败则容器退出，由 Docker restart policy 重试
     if ! install_steamcmd; then
-        echo "!!!"
-        echo "!!! SteamCMD 安装失败（通常是网络问题）。容器保持运行，"
-        echo "!!! 可在面板点「更新游戏服」重试，或 docker compose exec 进容器排查。"
-        echo "!!!"
-        # 保持容器运行，不退出（不触发 restart 循环）
-        tail -f /dev/null
+        echo "!!! SteamCMD 安装失败（通常是网络问题），容器退出，将由 Docker 重启重试"
+        exit 1
     fi
     chown -R steam:steam "${STEAMCMD_DIR}" 2>/dev/null || true
 
@@ -151,22 +143,10 @@ mkdir -p "${XDG_RUNTIME_DIR}" 2>/dev/null || true
 
 case "${_ENTRY_ARG:-start}" in
     start)
+        # start_server 最后用 exec 把游戏进程替换为主进程，
+        # 游戏退出时容器随之退出，由 Docker restart policy 决定是否重启。
         trap stop_server SIGTERM SIGINT
-        # 启动阶段关闭 set -e：游戏安装/启动失败不应导致容器退出（避免 crash loop），
-        # 改为保持容器运行以便排查和重试。
-        set +e
         start_server
-        start_rc=$?
-        set -e
-        echo ">>> start_server 退出码: $start_rc"
-        # 游戏进程退出（崩溃/启动失败/正常退出）后保持容器运行，避免 crash loop，
-        # 这样面板能 docker exec 排查，用户也能在面板点「启动」重试。
-        echo "!!!"
-        echo "!!! PalServer 进程已退出（可能是启动失败或崩溃）。"
-        echo "!!! 容器保持运行以便排查。查看上方日志定位原因，"
-        echo "!!! 或在面板点「启动」重试。"
-        echo "!!!"
-        tail -f /dev/null
         ;;
     install|update)
         install_server
