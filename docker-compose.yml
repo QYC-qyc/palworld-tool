@@ -61,9 +61,10 @@ services:
       # 部署目录（含 docker-compose.yml），面板自更新时在此执行 compose pull/up。
       # 宿主机路径可用 COMPOSE_DIR 覆盖，默认是当前目录。
       - ${COMPOSE_DIR:-./}:/compose
-      # 共享游戏目录与 SteamCMD 目录：面板直接读写宿主机文件
+      # 共享游戏目录、SteamCMD 目录、prefix：面板直接读写宿主机文件
       - ${GAMESERVER_DIR:-./data/gameserver}:/home/steam/palserver
       - ${STEAMCMD_DIR:-./data/steamcmd}:/opt/steamcmd
+      - ./data/prefix:/home/steam/prefix
     environment:
       - GAMESERVER_CONTAINER=palworld-gameserver
       - GAMESERVER_URL=http://gameserver:8212   # 面板连接游戏服 REST
