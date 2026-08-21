@@ -125,19 +125,68 @@ func extractFirstFileFromTar(tarData []byte) ([]byte, error) {
 	return nil, &os.PathError{Op: "tar", Path: "", Err: os.ErrNotExist}
 }
 
-// writeFile 写入容器内文件，自动创建父目录（二进制安全）
+// writeFile 写入容器内文件，自动创建父目录。
+// 优先用 docker cp（容器停止/重启中也能写文件系统），容器运行时再 chmod。
+// 回退到 exec（容器运行时）。
 func (d *dockerCtl) writeFile(rel string, data []byte, perm os.FileMode) error {
 	abs := d.absPath(rel)
-	// 确保父目录存在
-	dir := filepath.Dir(abs)
-	if err := d.execRun("mkdir", "-p", dir); err != nil {
+	// 构造 tar：包含完整相对目录和文件，docker cp - 会自动创建父目录
+	tarData, err := makeTarWithFile(filepath.Base(abs), data)
+	if err != nil {
 		return err
 	}
-	// 用 cat 重定向写入，经 stdin 传原始字节
-	if err := d.execInput(bytes.NewReader(data), "sh", "-c", fmt.Sprintf("cat > %s && chmod %o %s", abs, perm, abs)); err != nil {
+	// docker cp container:- <tar  ：从 stdin 读取 tar 解压到目标目录
+	destDir := filepath.Dir(abs)
+	cpArgs := []string{"cp", "-", d.container + ":" + destDir}
+	if err := d.runDockerInput(bytes.NewReader(tarData), cpArgs...); err == nil {
+		// 容器运行时设置权限；不运行就跳过（cp 已写入文件系统）
+		_ = d.execRun("chmod", fmt.Sprintf("%o", perm), abs)
+		_ = d.execRun("chown", "steam:steam", abs)
+		return nil
+	}
+	// 回退：容器运行时用 exec 直接写
+	if err := d.execRun("mkdir", "-p", destDir); err != nil {
 		return err
+	}
+	return d.execInput(bytes.NewReader(data), "sh", "-c",
+		fmt.Sprintf("cat > %s && chmod %o %s", abs, perm, abs))
+}
+
+// runDockerInput 执行 docker 命令并通过 stdin 传入数据
+func (d *dockerCtl) runDockerInput(stdin io.Reader, args ...string) error {
+	bin, err := exec.LookPath("docker")
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(bin, args...)
+	cmd.Stdin = stdin
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("docker %s: %s: %w", strings.Join(args, " "), stderr.String(), err)
 	}
 	return nil
+}
+
+// makeTarWithFile 构造一个 tar，内容为单文件（放在根），供 docker cp 解压
+func makeTarWithFile(name string, data []byte) ([]byte, error) {
+	var buf bytes.Buffer
+	tw := tar.NewWriter(&buf)
+	hdr := &tar.Header{
+		Name: name,
+		Mode: 0644,
+		Size: int64(len(data)),
+	}
+	if err := tw.WriteHeader(hdr); err != nil {
+		return nil, err
+	}
+	if _, err := tw.Write(data); err != nil {
+		return nil, err
+	}
+	if err := tw.Close(); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // stat 返回容器内文件信息
@@ -157,8 +206,11 @@ func (d *dockerCtl) stat(rel string) (os.FileInfo, error) {
 	return &dockerFileInfo{name: filepath.Base(abs), size: size, isDir: isDir}, nil
 }
 
+// mkdirAll 创建目录。容器重启中 exec 会失败；writeFile 的 tar 会自动建目录，
+// 因此这里失败不视为致命错误（返回 nil 让上层继续，docker cp 兜底）。
 func (d *dockerCtl) mkdirAll(rel string, perm os.FileMode) error {
-	return d.execRun("mkdir", "-p", "-m", fmt.Sprintf("%o", perm), d.absPath(rel))
+	_ = d.execRun("mkdir", "-p", "-m", fmt.Sprintf("%o", perm), d.absPath(rel))
+	return nil
 }
 
 func (d *dockerCtl) remove(rel string) error {
