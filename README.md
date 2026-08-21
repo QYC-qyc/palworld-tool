@@ -96,7 +96,7 @@ docker run -d \
 
 ```bash
 docker compose ps                          # 两个容器应均为 Up
-docker compose logs -f gameserver # 看游戏服安装进度
+docker compose logs -f palworld-gameserver # 看游戏服安装进度
 # 或纯 docker：
 docker ps
 docker logs -f palworld-gameserver
@@ -197,10 +197,10 @@ docker compose ps
 
 # 查看日志
 docker compose logs -f palworld-panel     # 面板日志
-docker compose logs -f gameserver # 游戏服日志（网页内也能看）
+docker compose logs -f palworld-gameserver # 游戏服日志（网页内也能看）
 
 # 重启
-docker compose restart gameserver # 重启游戏服
+docker compose restart palworld-gameserver # 重启游戏服
 docker compose restart palworld-panel     # 重启面板
 
 # 停止 / 启动（数据保留在 ./data）
@@ -208,7 +208,7 @@ docker compose down
 docker compose up -d
 
 # 进入游戏服容器排查
-docker compose exec gameserver bash
+docker compose exec palworld-gameserver bash
 ```
 
 ### 更新面板程序
@@ -227,8 +227,8 @@ docker compose up -d palworld-panel
 游戏服运行环境（Proton/SteamCMD）很少变化，需要时定向拉取：
 
 ```bash
-docker compose pull gameserver
-docker compose up -d gameserver
+docker compose pull palworld-gameserver
+docker compose up -d palworld-gameserver
 ```
 
 ### 更新游戏本体（PalServer）
@@ -238,7 +238,7 @@ docker compose up -d gameserver
 - 面板「游戏服」页点 **「更新游戏服」**
 - 或命令行：
   ```bash
-  docker compose exec gameserver /home/steam/entrypoint.sh update
+  docker compose exec palworld-gameserver /home/steam/entrypoint.sh update
   ```
 
 ### 一次性更新全部镜像

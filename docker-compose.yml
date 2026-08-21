@@ -16,7 +16,7 @@
 
 services:
   # 游戏服：SteamCMD + GE-Proton + PalServer + PalDefender
-  gameserver:
+  palworld-gameserver:
     build:
       context: .
       dockerfile: docker/gameserver/Dockerfile
@@ -52,7 +52,7 @@ services:
     container_name: palworld-panel
     restart: unless-stopped
     depends_on:
-      - gameserver
+      - palworld-gameserver
     ports:
       - "8190:8190/tcp"   # 面板 Web
     volumes:
@@ -67,7 +67,7 @@ services:
       - ./data/prefix:/home/steam/prefix
     environment:
       - GAMESERVER_CONTAINER=palworld-gameserver
-      - GAMESERVER_URL=http://gameserver:8212   # 面板连接游戏服 REST
+      - GAMESERVER_URL=http://palworld-gameserver:8212   # 面板连接游戏服 REST
       # REST 密码须与 gameserver 的 REST_PASSWORD 一致
       - REST_PASSWORD=${REST_PASSWORD:-paladmin}
       # compose 项目目录（容器内路径），面板自更新用

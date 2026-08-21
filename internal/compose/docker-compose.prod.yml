@@ -15,7 +15,7 @@
 
 services:
   # 游戏服：SteamCMD + GE-Proton + PalServer + PalDefender
-  gameserver:
+  palworld-gameserver:
     image: ${REGISTRY:-crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal}/palworld-gameserver:${TAG:-latest}
     container_name: palworld-gameserver
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
     container_name: palworld-panel
     restart: unless-stopped
     depends_on:
-      - gameserver
+      - palworld-gameserver
     ports:
       - "8190:8190/tcp"   # 面板 Web
     volumes:
@@ -59,7 +59,7 @@ services:
       - ./data/prefix:/home/steam/prefix
     environment:
       - GAMESERVER_CONTAINER=palworld-gameserver
-      - GAMESERVER_URL=http://gameserver:8212
+      - GAMESERVER_URL=http://palworld-gameserver:8212
       - REST_PASSWORD=${REST_PASSWORD:-paladmin}
       - COMPOSE_PROJECT_DIR=/compose
       # 告诉面板游戏目录已以相同路径挂载，直接用文件系统访问
