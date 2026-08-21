@@ -41,5 +41,6 @@ func (d *dockerCtl) execInput(stdin io.Reader, cmd ...string) error  { return er
 func (d *dockerCtl) execRun(cmd ...string) error                     { return errWindowsDocker }
 func (d *dockerCtl) tarStreamTo(w io.Writer, sub string) error       { return errWindowsDocker }
 func (d *dockerCtl) tarStreamFrom(r io.Reader, sub string) error     { return errWindowsDocker }
+func (d *dockerCtl) fileExists(rel string) bool                      { return false }
 
 var errWindowsDocker = fmt.Errorf("docker 管控在 Windows 上不可用")

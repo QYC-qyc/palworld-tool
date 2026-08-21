@@ -3,6 +3,7 @@
 package gamesrv
 
 import (
+	"archive/tar"
 	"bytes"
 	"fmt"
 	"io"
@@ -38,6 +39,26 @@ func (d *dockerCtl) execOutput(cmd ...string) ([]byte, error) {
 	return stdout.Bytes(), nil
 }
 
+// fileExists 检查容器内某路径是否存在（文件或目录均可）。
+// 容器运行时用 `docker exec test -e`；容器停止时用 `docker cp` 探测（对停止容器也有效）。
+func (d *dockerCtl) fileExists(rel string) bool {
+	bin, err := exec.LookPath("docker")
+	if err != nil {
+		return false
+	}
+	containerPath := d.absPath(rel)
+
+	// 1) 容器运行时：test -e
+	if c := exec.Command(bin, "exec", d.container, "test", "-e", containerPath); c.Run() == nil {
+		return true
+	}
+	// 2) 容器可能已停止：用 docker cp 到 /dev/null 探测
+	c := exec.Command(bin, "cp", d.container+":"+containerPath, "-")
+	c.Stdout = io.Discard
+	c.Stderr = io.Discard
+	return c.Run() == nil
+}
+
 // execInput 在容器内执行命令并通过 stdin 传入数据
 func (d *dockerCtl) execInput(stdin io.Reader, cmd ...string) error {
 	bin, err := exec.LookPath("docker")
@@ -55,17 +76,53 @@ func (d *dockerCtl) execInput(stdin io.Reader, cmd ...string) error {
 	return nil
 }
 
-// readFile 读取容器内文件（二进制安全）
+// readFile 读取容器内文件。优先 docker exec cat（容器运行时）；
+// exec 失败（容器停止或文件不存在）时回退到 docker cp，停止的容器也能读取。
 func (d *dockerCtl) readFile(rel string) ([]byte, error) {
-	out, err := d.execOutput("cat", d.absPath(rel))
-	if err != nil {
-		// 文件不存在时返回 os.ErrNotExist，便于上层 os.IsNotExist 判断
-		if strings.Contains(err.Error(), "No such file") || strings.Contains(err.Error(), "no such file") {
-			return nil, &os.PathError{Op: "cat", Path: d.absPath(rel), Err: os.ErrNotExist}
-		}
-		return nil, err
+	abs := d.absPath(rel)
+	if out, err := d.execOutput("cat", abs); err == nil {
+		return out, nil
 	}
-	return out, nil
+	// 回退：docker cp container:path - （输出 tar 流，需解包取出文件内容）
+	bin, lookErr := exec.LookPath("docker")
+	if lookErr != nil {
+		return nil, fmt.Errorf("未找到 docker: %w", lookErr)
+	}
+	cmd := exec.Command(bin, "cp", d.container+":"+abs, "-")
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		errMsg := stderr.String()
+		// 文件/路径不存在
+		if strings.Contains(errMsg, "Could not find the file") ||
+			strings.Contains(errMsg, "no such file") ||
+			strings.Contains(errMsg, "No such") ||
+			strings.Contains(errMsg, "Could not find") {
+			return nil, &os.PathError{Op: "cat", Path: abs, Err: os.ErrNotExist}
+		}
+		return nil, fmt.Errorf("读取容器文件失败: %s: %w", errMsg, err)
+	}
+	// docker cp 输出 tar，解包取首个 regular 文件的内容
+	return extractFirstFileFromTar(stdout.Bytes())
+}
+
+// extractFirstFileFromTar 从 tar 流中提取第一个普通文件的内容
+func extractFirstFileFromTar(tarData []byte) ([]byte, error) {
+	tr := tar.NewReader(bytes.NewReader(tarData))
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("解析 tar 失败: %w", err)
+		}
+		if hdr.Typeflag == tar.TypeReg {
+			return io.ReadAll(tr)
+		}
+	}
+	return nil, &os.PathError{Op: "tar", Path: "", Err: os.ErrNotExist}
 }
 
 // writeFile 写入容器内文件，自动创建父目录（二进制安全）

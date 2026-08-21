@@ -7,6 +7,11 @@
       保存时可选择"保存并重启"。
     </n-alert>
 
+    <n-alert v-if="exists === false" type="warning" :show-icon="false">
+      尚未检测到 PalWorldSettings.ini。游戏安装完成并首次启动后会自动生成该文件；
+      现在保存的配置会在游戏启动时写入并生效。
+    </n-alert>
+
     <n-input v-model:value="keyword" placeholder="搜索配置项（名称 / 字段名）" clearable>
       <template #prefix>
         <n-icon :component="SearchOutline" />
@@ -118,6 +123,7 @@ const message = useMessage()
 const schema = ref<ConfigField[]>([])
 const data = ref<GameSettingsData | null>(null)
 const iniPath = ref('')
+const exists = ref<boolean | null>(null)
 const form = reactive<Record<string, string>>({})
 const saving = ref(false)
 const keyword = ref('')
@@ -236,6 +242,7 @@ async function load() {
   schema.value = s.fields
   iniPath.value = s.iniPath
   data.value = d
+  exists.value = d.exists
   Object.keys(form).forEach((k) => delete form[k])
   Object.entries(d.settings).forEach(([k, v]) => (form[k] = v))
   if (groups.value.length && !groups.value.includes(activeGroup.value)) {

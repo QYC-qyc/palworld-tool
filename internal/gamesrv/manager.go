@@ -139,13 +139,19 @@ func (m *Manager) GetStatus() (*Status, error) {
 	}
 
 	// steamcmd 是否存在
-	if st.SteamExe != "" {
+	if m.docker != nil {
+		// 容器模式：SteamCMD 在 gameserver 容器内（启动时自动安装到挂载卷）
+		st.SteamReady = m.docker.fileExists("/opt/steamcmd/steamcmd.sh")
+	} else if st.SteamExe != "" {
 		if info, err := os.Stat(st.SteamExe); err == nil && !info.IsDir() {
 			st.SteamReady = true
 		}
 	}
-	// Windows 版是否已安装
-	if st.WindowsExe != "" {
+	// Windows 版游戏是否已安装（检查游戏 exe）
+	if m.docker != nil {
+		// 容器模式：跨容器检查 gameserver 容器内的游戏 exe（容器停止也能判断）
+		st.WindowsInstalled = m.docker.fileExists("Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe")
+	} else if st.WindowsExe != "" {
 		if info, err := os.Stat(st.WindowsExe); err == nil && !info.IsDir() {
 			st.WindowsInstalled = true
 		}
@@ -159,9 +165,6 @@ func (m *Manager) GetStatus() (*Status, error) {
 	if m.docker != nil {
 		// 容器化部署：查询容器状态
 		st.Running = m.docker.isRunning()
-		st.SteamReady = true // 容器内已内置 steamcmd
-		st.WindowsInstalled = true
-		st.Installed = true
 	} else if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
 		st.Running = true
 		st.PID = m.serverCmd.Process.Pid
