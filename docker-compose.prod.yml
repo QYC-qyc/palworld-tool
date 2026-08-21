@@ -27,6 +27,8 @@ services:
       - ${GAMESERVER_DIR:-./data/gameserver}:/home/steam/palserver
       # SteamCMD 持久化（自更新成功一次后保留，重启不重新联网）
       - ${STEAMCMD_DIR:-./data/steamcmd}:/opt/steamcmd
+      # Proton prefix 持久化（Wine 运行时数据）
+      - ./data/prefix:/home/steam/prefix
     environment:
       - STEAMAPPID=2394010
       - PROTON_VERSION=9-22

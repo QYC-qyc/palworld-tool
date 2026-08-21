@@ -68,6 +68,8 @@ RUN mkdir -p /home/steam/.steam/root/compatibilitytools.d && \
     echo "清理后 Proton 大小：" && du -sh "$PROTODIR" && \
     chown -R steam:steam /home/steam
 
+# Proton 运行时数据（Wine prefix）独立挂载持久化，避免容器重建后 Proton 重新初始化。
+# 注意：PalServer 存档始终写在游戏目录 Pal/Saved 下，与 prefix 位置无关。
 ENV STEAM_COMPAT_CLIENT_INSTALL_PATH=/home/steam/.steam/root \
     STEAM_COMPAT_DATA_PATH=/home/steam/prefix \
     PROTONPATH=/home/steam/.steam/root/compatibilitytools.d/GE-Proton${PROTON_VERSION}/proton \

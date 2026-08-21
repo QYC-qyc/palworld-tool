@@ -54,11 +54,33 @@ install_server() {
 start_server() {
     if [ ! -f "${EXE}" ]; then
         echo ">>> 游戏服未安装，先执行安装..."
-        install_server
+        if ! install_server; then
+            echo "!!!"
+            echo "!!! 游戏安装失败（通常是服务器到 Steam 的网络问题）。"
+            echo "!!! 容器保持运行，请稍后在面板点「更新游戏服」重试。"
+            echo "!!!"
+            # 保持容器运行，避免 crash loop，面板可 exec 进来重试
+            exec tail -f /dev/null
+        fi
+    fi
+
+    if [ ! -f "${EXE}" ]; then
+        echo "!!! 安装后仍未找到 ${EXE}，保持容器运行以便排查"
+        exec tail -f /dev/null
     fi
 
     echo ">>> 启动 PalServer (Proton)"
     cd "${PALSERVER_DIR}"
+
+    # 若配置文件不存在，按官方推荐从 DefaultPalWorldSettings.ini 复制一份
+    INI_DIR="${PALSERVER_DIR}/Pal/Saved/Config/WindowsServer"
+    INI_FILE="${INI_DIR}/PalWorldSettings.ini"
+    if [ ! -f "${INI_FILE}" ] && [ -f "${PALSERVER_DIR}/DefaultPalWorldSettings.ini" ]; then
+        echo ">>> 首次启动：从 DefaultPalWorldSettings.ini 生成配置文件"
+        mkdir -p "${INI_DIR}"
+        cp "${PALSERVER_DIR}/DefaultPalWorldSettings.ini" "${INI_FILE}"
+        chown steam:steam "${INI_FILE}" 2>/dev/null || true
+    fi
 
     # 注入 PalDefender DLL（若已安装：d3d9.dll + PalDefender.dll）
     WIN64_DIR="${PALSERVER_DIR}/Pal/Binaries/Win64"
@@ -96,9 +118,18 @@ stop_server() {
 # 容器以 root 启动：先装好 SteamCMD 并确保卷权限，再降权给 steam 运行游戏
 if [ "$(id -u)" = "0" ]; then
     # root 阶段：确保挂载卷可写
-    mkdir -p "${STEAMCMD_DIR}" "${PALSERVER_DIR}"
-    chown -R steam:steam "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam 2>/dev/null || true
-    install_steamcmd
+    mkdir -p "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix
+    chown -R steam:steam "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix /home/steam 2>/dev/null || true
+
+    # 安装 SteamCMD。失败不退出容器（避免 crash loop），保持运行以便排查/重试
+    if ! install_steamcmd; then
+        echo "!!!"
+        echo "!!! SteamCMD 安装失败（通常是网络问题）。容器保持运行，"
+        echo "!!! 可在面板点「更新游戏服」重试，或 docker compose exec 进容器排查。"
+        echo "!!!"
+        # 保持容器运行，不退出（不触发 restart 循环）
+        tail -f /dev/null
+    fi
     chown -R steam:steam "${STEAMCMD_DIR}" 2>/dev/null || true
 
     # 以 steam 身份重新执行本脚本。用环境变量传参，避免 su 下 $@ 引号问题。
