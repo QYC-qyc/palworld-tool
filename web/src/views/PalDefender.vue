@@ -75,13 +75,9 @@
             <n-form-item label="API 主机">
               <n-input v-model:value="pdForm.host" placeholder="gameserver（Docker）或 127.0.0.1">
                 <template #suffix>
-                  <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:340px">
-                    <template #trigger>
-                      <n-icon :component="HelpCircleOutline" class="help-icon" />
-                    </template>
-                    PalDefender REST API 所在主机。Docker 部署填 <code>gameserver</code>（容器名）；
-                    游戏服与面板在同一机器的非 Docker 部署填 <code>127.0.0.1</code>。
-                  </n-tooltip>
+                  <n-icon :component="HelpCircleOutline"
+                    title="PalDefender REST API 所在主机。Docker 部署填 gameserver（容器名）；游戏服与面板在同一机器的非 Docker 部署填 127.0.0.1。"
+                    class="help-icon" />
                 </template>
               </n-input>
             </n-form-item>
@@ -98,12 +94,9 @@
                   :placeholder="pdTokenSet ? '已设置（留空不修改）' : '未设置'"
                 >
                   <template #suffix>
-                    <n-tooltip trigger="hover" placement="top" :show-arrow="false" style="max-width:320px">
-                      <template #trigger>
-                        <n-icon :component="HelpCircleOutline" class="help-icon" />
-                      </template>
-                      点击「生成 Token」自动写入 PalDefender 令牌，也可手动粘贴。请勿将 API 端口暴露到公网。
-                    </n-tooltip>
+                    <n-icon :component="HelpCircleOutline"
+                      title="点击「生成 Token」自动写入 PalDefender 令牌，也可手动粘贴。请勿将 API 端口暴露到公网。"
+                      class="help-icon" />
                   </template>
                 </n-input>
                 <n-button size="small" :loading="revealingToken"
