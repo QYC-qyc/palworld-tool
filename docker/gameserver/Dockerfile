@@ -22,13 +22,28 @@ RUN set -eux; \
 # - ca-certificates：HTTPS
 # - 32/64 位库：Proton 运行 Windows 程序所需
 # - dbus-x11：Proton 初始化需要
+# Proton 运行所需的常见依赖（含 python3、字体、X/输入库等），避免逐个缺失报错
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        ca-certificates wget curl xz-utils cabextract \
-        lib32gcc-s1 lib32stdc++6 procps \
+        ca-certificates wget curl xz-utils cabextract procps python3 \
+        lib32gcc-s1 lib32stdc++6 \
         libc6:i386 libstdc++6:i386 libgcc-s1:i386 \
         dbus-x11 locales \
+        libfreetype6 libfreetype6:i386 \
+        libpng16-16 libpng16-16:i386 \
+        libjpeg62-turbo libjpeg62-turbo:i386 \
+        libxinerama1 libxinerama1:i386 \
+        libxrandr2 libxrandr2:i386 \
+        libxi6 libxi6:i386 \
+        libxxf86vm1 libxxf86vm1:i386 \
+        libxcomposite1 libxcomposite1:i386 \
+        libxdamage1 libxdamage1:i386 \
+        libxfixes3 libxfixes3:i386 \
+        libxcursor1 libxcursor1:i386 \
+        libxslt1.1 libxslt1.1:i386 \
+        libgl1 libgl1:i386 \
+        libvulkan1 libvulkan1:i386 \
         && \
     sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
