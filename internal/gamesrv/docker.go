@@ -316,7 +316,7 @@ func (d *dockerCtl) isGameRunning() bool {
 	}
 	// 兜底：直接 pgrep
 	// pgrep -f 在进程命令行中匹配 PalServer（兼容 PalServer-Win64-Shipping-Cmd.exe）
-	out, err := d.execOutput("pgrep", "-f", "PalServer")
+	out, err = d.execOutput("pgrep", "-f", "PalServer")
 	if err != nil {
 		return false
 	}
