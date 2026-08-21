@@ -53,6 +53,19 @@ RUN mkdir -p /home/steam/.steam/root/compatibilitytools.d && \
       "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton${PROTON_VERSION}/GE-Proton${PROTON_VERSION}.tar.gz" -O proton.tar.gz) && \
     ls -lh proton.tar.gz && \
     tar -xzf proton.tar.gz && rm proton.tar.gz && \
+    echo "清理 GE-Proton 冗余（游戏服作为 64 位 Windows 服务端，不需要 Mono/Gecko/文档/字体）..." && \
+    PROTODIR="GE-Proton${PROTON_VERSION}" && \
+    # Mono（.NET）和 Gecko（IE 控件）——游戏服完全不需要，通常各占 50-100MB
+    find "$PROTODIR" -maxdepth 6 -type d \( -iname "mono" -o -iname "gecko" \) -prune -exec rm -rf {} + 2>/dev/null || true && \
+    # 文档、man、locale、示例
+    rm -rf "$PROTODIR/files/share"/{man,doc,documentation,info,lintian,examples,bash-completion,zsh,applications} 2>/dev/null || true && \
+    find "$PROTODIR/files/share" -type d \( -name "locale" -o -name "i18n" -o -name "man*" -o -name "doc" \) -prune -exec rm -rf {} + 2>/dev/null || true && \
+    # 字体（游戏服不渲染界面）
+    rm -rf "$PROTODIR/files/share/wine/fonts" "$PROTODIR/files/share/fonts" 2>/dev/null || true && \
+    # 杂项文档/许可文件（保留目录结构，只删文件）
+    find "$PROTODIR" -type f \( -name "*.html" -o -name "*.md" -o -name "ANNOUNCE" -o -name "README*" -o -name "NEWS*" -o -name "AUTHORS*" \) -delete 2>/dev/null || true && \
+    find "$PROTODIR" -type d -name "__pycache__" -prune -exec rm -rf {} + 2>/dev/null || true && \
+    echo "清理后 Proton 大小：" && du -sh "$PROTODIR" && \
     chown -R steam:steam /home/steam
 
 ENV STEAM_COMPAT_CLIENT_INSTALL_PATH=/home/steam/.steam/root \

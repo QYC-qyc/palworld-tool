@@ -31,33 +31,78 @@
   | 8211 | UDP | 游戏端口（玩家连接） |
   | 8212 | TCP | 游戏 REST API（建议仅内网，不必对公网开放） |
 
-### 2. 一条命令启动
-
-在你想存放数据的目录下（例如 `~/palworld-panel`）执行：
+### 2. 创建数据目录
 
 ```bash
-mkdir -p ~/palworld-panel && cd ~/palworld-panel
+mkdir -p ~/palworld-panel/data/gameserver \
+         ~/palworld-panel/data/palworld-panel \
+         ~/palworld-panel/data/steamcmd
+cd ~/palworld-panel
+```
+
+- `data/gameserver`：游戏安装、存档、配置、PalDefender DLL
+- `data/palworld-panel`：面板数据库、备份、日志
+- `data/steamcmd`：SteamCMD（首次启动自动安装，之后持久化）
+
+国内镜像源：`crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal`。
+
+### 3. 启动（两种方式任选）
+
+**方式 A：docker compose（推荐）**
+
+下载 compose 文件并启动：
+
+```bash
 curl -fsSL -o docker-compose.yml \
   https://gitee.com/qyc-qyc/palworld-tool/raw/main/docker-compose.prod.yml
 docker compose up -d
 ```
 
-> 镜像默认用 `latest` 标签，执行 `docker compose pull && docker compose up -d` 即可更新到最新版。
-> 若需锁定版本，在 `.env` 中设置 `TAG=v3.0.2` 即可。
-
-首次启动会自动拉取两个镜像（约 1GB，国内网络可能需要几分钟）：
-
-- `palworld-panel`：管理面板
-- `palworld-gameserver`：游戏服（内含 SteamCMD + GE-Proton + PalServer）
-
-查看启动状态：
+**方式 B：纯 docker run（不想用 compose）**
 
 ```bash
-docker compose ps            # 两个容器应均为 Up
-docker compose logs -f gameserver   # 看游戏服安装进度（首次会自动下载游戏）
+# 游戏服容器
+docker run -d \
+  --name palworld-gameserver \
+  --restart unless-stopped \
+  -p 8211:8211/udp -p 8212:8212/tcp \
+  -v "$PWD/data/gameserver:/home/steam/palserver" \
+  -v "$PWD/data/steamcmd:/opt/steamcmd" \
+  -e REST_PASSWORD=paladmin \
+  crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal/palworld-gameserver:latest
+
+# 面板容器
+docker run -d \
+  --name palworld-panel \
+  --restart unless-stopped \
+  -p 8190:8190/tcp \
+  -v "$PWD/data/palworld-panel:/data" \
+  -v "$PWD:/compose" \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e GAMESERVER_CONTAINER=palworld-gameserver \
+  -e GAMESERVER_URL=http://gameserver:8212 \
+  -e REST_PASSWORD=paladmin \
+  -e COMPOSE_PROJECT_DIR=/compose \
+  crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal/palworld-panel:latest
 ```
 
-### 3. 访问面板
+> 把上面的 `paladmin` 改成你自己的强密码（游戏服和面板两处必须一致）。
+> 用 docker run 方式时，两容器需在同一网络才能互通；若用 compose 会自动处理。
+> 纯 docker run 跨容器网络需要手动 `docker network create` 并用 `--network` 连接，因此更推荐 compose。
+
+首次启动会自动拉取两个镜像（面板约 180MB，游戏服环境约 1.3GB / 压缩下载约 310MB），游戏服容器还会自动安装 SteamCMD 和游戏本体。
+
+查看状态与日志：
+
+```bash
+docker compose ps                          # 两个容器应均为 Up
+docker compose logs -f palworld-gameserver # 看游戏服安装进度
+# 或纯 docker：
+docker ps
+docker logs -f palworld-gameserver
+```
+
+### 4. 访问面板
 
 浏览器打开 **`http://服务器IP:8190`**，首次访问会要求设置管理员密码，设置后用该密码登录。
 
@@ -114,8 +159,9 @@ REST_PASSWORD=你的强密码
 
 ```
 ./data/
-├── gameserver/   # 游戏安装、存档、配置、PalDefender DLL
-└── palworld-panel/     # 面板数据库、备份 zip、日志
+├── gameserver/     # 游戏安装、存档、配置、PalDefender DLL
+├── palworld-panel/ # 面板数据库、备份 zip、日志
+└── steamcmd/       # SteamCMD（首次启动自动安装，持久化）
 ```
 
 **备份整个服务器**：只需备份 `./data` 目录。建议定期打包下载。
@@ -142,26 +188,54 @@ REST_PASSWORD=你的强密码
 
 ## 五、日常运维
 
-```bash
-docker compose logs -f palworld-panel      # 面板日志
-docker compose logs -f gameserver    # 游戏服日志（网页内也能看）
-docker compose restart palworld-panel      # 重启面板
-docker compose restart gameserver    # 重启游戏服
-docker compose down                  # 停止全部（数据保留）
-docker compose up -d                 # 启动
+### 常用命令
 
-# 更新到最新版：
+```bash
+# 查看状态
+docker compose ps
+
+# 查看日志
+docker compose logs -f palworld-panel     # 面板日志
+docker compose logs -f palworld-gameserver # 游戏服日志（网页内也能看）
+
+# 重启
+docker compose restart palworld-gameserver # 重启游戏服
+docker compose restart palworld-panel     # 重启面板
+
+# 停止 / 启动（数据保留在 ./data）
+docker compose down
+docker compose up -d
+
+# 进入游戏服容器排查
+docker compose exec palworld-gameserver bash
+```
+
+### 更新面板程序
+
+面板运行环境（`palworld-gameserver` 镜像）很少变化，日常只需更新面板镜像：
+
+```bash
+docker compose pull palworld-panel
+docker compose up -d palworld-panel
+```
+
+或直接在面板「设置 → 面板更新」点 **一键更新**（自动执行 compose pull && up）。
+
+### 更新游戏本体（PalServer）
+
+游戏文件在挂载卷里，无需重新拉镜像。两种方式：
+
+- 面板「游戏服」页点 **「安装 / 更新游戏服」**
+- 或命令行：
+  ```bash
+  docker compose exec palworld-gameserver /home/steam/entrypoint.sh update
+  docker compose restart palworld-gameserver
+  ```
+
+### 更新全部镜像
+
+```bash
 docker compose pull && docker compose up -d
-```
-
-**进入游戏服容器排查：**
-```bash
-docker compose exec gameserver bash
-```
-
-**手动在容器内更新游戏服：**
-```bash
-docker compose exec gameserver /home/steam/entrypoint.sh update
 ```
 
 ---
