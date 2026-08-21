@@ -45,9 +45,26 @@ RUN set -eux; \
         sed -i -E 's|https?://deb.debian.org|http://mirrors.aliyun.com|g; s|https?://security.debian.org|http://mirrors.aliyun.com|g' /etc/apt/sources.list; \
     fi
 
-# 安装 ca-certificates（HTTPS）、Docker CLI 与 compose 插件（面板自更新需要 compose pull/up）
+# 安装 ca-certificates、Docker CLI。docker-compose-plugin 不在 Debian 默认源，
+# 直接下载 compose v2 二进制到 CLI 插件目录（面板自更新需要 compose pull/up）。
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates curl docker.io docker-compose-plugin && \
+    apt-get install -y --no-install-recommends ca-certificates curl docker.io && \
+    mkdir -p /usr/local/lib/docker/cli-plugins && \
+    arch="$(dpkg --print-architecture)" && \
+    case "$arch" in \
+      amd64)  COMPOSE_ARCH=x86_64 ;; \
+      arm64)  COMPOSE_ARCH=aarch64 ;; \
+      *) echo "unsupported arch: $arch" && exit 1 ;; \
+    esac && \
+    curl -fSL --retry 5 \
+      "https://ghfast.top/https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-${COMPOSE_ARCH}" \
+      -o /usr/local/lib/docker/cli-plugins/docker-compose \
+    || curl -fSL --retry 5 \
+      "https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-${COMPOSE_ARCH}" \
+      -o /usr/local/lib/docker/cli-plugins/docker-compose && \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose && \
+    docker compose version && \
+    apt-get purge -y curl && apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
