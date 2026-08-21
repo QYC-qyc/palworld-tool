@@ -39,7 +39,7 @@ func callAPIWith(method, api string, param []byte, addr, username, password stri
 	req.SetBasicAuth(username, password)
 
 	if timeout <= 0 {
-		timeout = 5
+		timeout = 3
 	}
 	httpClient.Timeout = time.Duration(timeout) * time.Second
 	resp, err := httpClient.Do(req)

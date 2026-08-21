@@ -121,8 +121,10 @@ const statCards = computed(() => [
 ])
 
 async function loadAll() {
-  try { server.value = await api.getServer() } catch {}
-  try { metrics.value = await api.getMetrics() } catch {}
+  // 并行请求，避免游戏未运行时串行等待超时导致页面卡顿
+  const [s, m] = await Promise.allSettled([api.getServer(), api.getMetrics()])
+  if (s.status === 'fulfilled') server.value = s.value
+  if (m.status === 'fulfilled') metrics.value = m.value
 }
 
 // 优先走 PalDefender 广播；若 PD 未配置/不可用，回退官方 REST broadcast

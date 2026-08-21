@@ -27,18 +27,32 @@ const router = createRouter({
   ],
 })
 
+// 缓存初始化状态，避免每次切换菜单都请求后端阻塞导航
+let initCache: { initialized: boolean; checked: boolean } = { initialized: true, checked: false }
+
+export function resetRouterCache() {
+  initCache = { initialized: true, checked: false }
+}
+
 router.beforeEach(async (to, _from, next) => {
   if (to.meta.public) return next()
 
-  try {
-    const status = await api.setupStatus()
-    if (!status.initialized) return next({ name: 'setup' })
-  } catch {
-    // 接口异常不阻塞
-  }
-
   const token = localStorage.getItem('palworld-panel_token')
   if (!token) return next({ name: 'login' })
+
+  // 已初始化过则直接放行，不再串行请求阻塞菜单切换
+  if (!initCache.checked) {
+    try {
+      const status = await api.setupStatus()
+      initCache = { initialized: status.initialized, checked: true }
+      if (!status.initialized) return next({ name: 'setup' })
+    } catch {
+      // 接口异常不阻塞
+    }
+  } else if (!initCache.initialized) {
+    return next({ name: 'setup' })
+  }
+
   next()
 })
 

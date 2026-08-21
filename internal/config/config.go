@@ -99,7 +99,7 @@ func Init(cfgFile string, conf *Config) {
 	viper.SetDefault("web.port", 8080)
 	viper.SetDefault("task.sync_interval", 60)
 	viper.SetDefault("rest.username", "admin")
-	viper.SetDefault("rest.timeout", 5)
+	viper.SetDefault("rest.timeout", 3)
 	viper.SetDefault("save.sync_interval", 120)
 	viper.SetDefault("save.backup_interval", 14400)
 	viper.SetDefault("storage.path", "./pst.db")

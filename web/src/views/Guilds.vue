@@ -129,15 +129,14 @@ function rowProps(row: any) {
 }
 
 onMounted(async () => {
-  try {
-    guilds.value = await api.getGuilds()
-    try {
-      const players = await api.getPlayers()
-      const m: Record<string, any> = {}
-      players.forEach((p: any) => { m[p.player_uid] = p })
-      guildPlayers.value = m
-    } catch {}
-  } catch {}
+  // 并行请求，避免游戏未运行时串行等待超时
+  const [g, p] = await Promise.allSettled([api.getGuilds(), api.getPlayers()])
+  if (g.status === 'fulfilled') guilds.value = g.value
+  if (p.status === 'fulfilled') {
+    const m: Record<string, any> = {}
+    p.value.forEach((pl: any) => { m[pl.player_uid] = pl })
+    guildPlayers.value = m
+  }
 })
 </script>
 
