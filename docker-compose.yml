@@ -27,7 +27,10 @@ services:
       - "8211:8211/udp"   # 游戏端口
       - "8212:8212/tcp"   # REST API
     volumes:
-      - ./data/gameserver:/home/steam/palserver
+      # 游戏安装目录（存档、配置、PalDefender）
+      - ${GAMESERVER_DIR:-./data/gameserver}:/home/steam/palserver
+      # SteamCMD 持久化（自更新成功一次后保留，重启不重新联网）
+      - ${STEAMCMD_DIR:-./data/steamcmd}:/opt/steamcmd
     environment:
       - STEAMAPPID=2394010
       - PROTON_VERSION=9-22

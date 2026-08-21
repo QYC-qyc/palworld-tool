@@ -26,7 +26,7 @@ RUN dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         ca-certificates wget curl xz-utils cabextract \
-        lib32gcc-s1 lib32stdc++6 \
+        lib32gcc-s1 lib32stdc++6 procps \
         libc6:i386 libstdc++6:i386 libgcc-s1:i386 \
         dbus-x11 locales \
         && \
@@ -34,31 +34,13 @@ RUN dpkg --add-architecture i386 && \
     locale-gen en_US.UTF-8 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 安装 SteamCMD（Debian 官方源的 steamcmd 包在 bookworm 上依赖问题多，手动下载解压）。
-# 注意：akamaihd 在国内常被墙，优先用 cloudflare 的 steamstatic CDN。
-# test -s 兜底：下载失败时不会留下 0 字节文件导致后续静默坏掉。
-RUN set -eux; \
-    mkdir -p /opt/steamcmd; \
-    cd /opt/steamcmd; \
-    curl -fSL --retry 5 --retry-delay 3 --connect-timeout 30 \
-        "https://cdn.cloudflare.steamstatic.com/client/installer/steamcmd_linux.tar.gz" \
-        -o steamcmd.tar.gz \
-    || curl -fSL --retry 5 --retry-delay 3 --connect-timeout 30 \
-        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" \
-        -o steamcmd.tar.gz; \
-    test -s steamcmd.tar.gz; \
-    ls -lh steamcmd.tar.gz; \
-    tar -xzf steamcmd.tar.gz; \
-    rm steamcmd.tar.gz; \
-    # 解压后文件可能保留远端 uid（如 5020），修正属主并确保所有用户可读/执行
-    chown -R root:root /opt/steamcmd; \
-    chmod -R a+rX /opt/steamcmd; \
-    ln -sf /opt/steamcmd/steamcmd.sh /usr/local/bin/steamcmd; \
-    # 首次运行 steamcmd 完成自更新（可能因网络失败，不阻断构建，运行时会重试）
-    /opt/steamcmd/steamcmd.sh +login anonymous +quit || true
-
 # 创建非 root 用户
 RUN useradd -m -d /home/steam -s /bin/bash steam
+
+# SteamCMD 在容器首次启动时由 entrypoint 下载安装到可写卷 /opt/steamcmd，
+# 这样：1) 自更新成功一次后持久保留，容器重启不重新联网；2) 镜像更小。
+# 预创建目录并赋权给 steam 用户（运行时用户）。
+RUN mkdir -p /opt/steamcmd /home/steam/palserver && chown -R steam:steam /opt/steamcmd /home/steam
 
 # 下载并安装 GE-Proton（经国内镜像加速，失败重试）
 WORKDIR /home/steam
@@ -86,10 +68,12 @@ COPY --chmod=755 docker/gameserver/entrypoint.sh /home/steam/entrypoint.sh
 # 游戏服端口
 EXPOSE 8211/udp 8212/tcp
 
-# 游戏数据持久化
-VOLUME ["/home/steam/palserver"]
+# 数据持久化：游戏目录 + SteamCMD（均由 compose 映射到宿主机）
+VOLUME ["/home/steam/palserver", "/opt/steamcmd"]
 
-USER steam
+# 容器以 root 启动（处理挂载卷权限、安装 SteamCMD），
+# 启动游戏服时由 entrypoint 降权给 steam 用户。
+USER root
 WORKDIR /home/steam
 
 # 默认启动游戏服
