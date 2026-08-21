@@ -107,6 +107,8 @@ launch_game() {
 
 # 守护循环：游戏崩溃自动重启，除非用户手动 stop
 supervise() {
+    # 守护循环必须容忍子进程失败（游戏崩溃返回非零），否则 set -e 会让容器退出
+    set +e
     mkdir -p "${RUN_DIR}"
     # 清除可能残留的手动停止标记
     rm -f "${STOP_FILE}"
