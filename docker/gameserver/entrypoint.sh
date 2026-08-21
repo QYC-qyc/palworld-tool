@@ -99,7 +99,9 @@ start_server() {
         echo ">>> 警告：未设置 REST_PASSWORD，REST API 可能拒绝连接"
     fi
 
-    exec "${PROTONPATH}" run "${EXE}" \
+    # 不用 exec：游戏进程退出后回到 start 分支，由 tail 保持容器运行，避免 crash loop。
+    # trap 会在收到 SIGTERM 时转发给游戏进程。
+    "${PROTONPATH}" run "${EXE}" \
         -port=8211 \
         -publiclobby \
         -useperfthreads \
@@ -150,8 +152,21 @@ mkdir -p "${XDG_RUNTIME_DIR}" 2>/dev/null || true
 case "${_ENTRY_ARG:-start}" in
     start)
         trap stop_server SIGTERM SIGINT
-        start_server &
-        wait $!
+        # 启动阶段关闭 set -e：游戏安装/启动失败不应导致容器退出（避免 crash loop），
+        # 改为保持容器运行以便排查和重试。
+        set +e
+        start_server
+        start_rc=$?
+        set -e
+        echo ">>> start_server 退出码: $start_rc"
+        # 游戏进程退出（崩溃/启动失败/正常退出）后保持容器运行，避免 crash loop，
+        # 这样面板能 docker exec 排查，用户也能在面板点「启动」重试。
+        echo "!!!"
+        echo "!!! PalServer 进程已退出（可能是启动失败或崩溃）。"
+        echo "!!! 容器保持运行以便排查。查看上方日志定位原因，"
+        echo "!!! 或在面板点「启动」重试。"
+        echo "!!!"
+        tail -f /dev/null
         ;;
     install|update)
         install_server
