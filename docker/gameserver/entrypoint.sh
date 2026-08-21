@@ -258,13 +258,20 @@ cmd_restart() {
 # 容器以 root 启动：安装 SteamCMD、修权限，然后降权为 steam 执行
 if [ "$(id -u)" = "0" ]; then
     mkdir -p "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix "${RUN_DIR}"
-    chown -R steam:steam "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix /home/steam "${RUN_DIR}" 2>/dev/null || true
+
+    # SteamCMD / Proton 需要这些目录可写。prefix 尤其重要：
+    # Wine 要求 prefix 目录属主必须是运行用户，否则报 "is not owned by you"。
+    # 先 chown 父目录，再在最后递归 chown，确保 steam 运行中产生的文件也归属正确。
+    chown steam:steam /home/steam /home/steam/prefix "${PALSERVER_DIR}" "${STEAMCMD_DIR}" "${RUN_DIR}" 2>/dev/null || true
 
     if ! install_steamcmd; then
         echo "!!! SteamCMD 安装失败"
         exit 1
     fi
-    chown -R steam:steam "${STEAMCMD_DIR}" 2>/dev/null || true
+
+    # 最终递归修正权限（prefix 可能含上次 root 创建的残留）
+    chown -R steam:steam "${STEAMCMD_DIR}" "${PALSERVER_DIR}" /home/steam/prefix /home/steam/.steam "${RUN_DIR}" 2>/dev/null || true
+    echo ">>> 权限检查：prefix 属主 = $(stat -c '%U:%G' /home/steam/prefix 2>/dev/null || echo unknown)"
 
     # 降权为 steam 重新执行本脚本
     exec su steam -c '
