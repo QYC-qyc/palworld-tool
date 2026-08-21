@@ -1,0 +1,72 @@
+# PalWorld Panel + PalServer 纯镜像部署（无需克隆项目）
+#
+# 使用方法：
+#   1. 保存此文件为 docker-compose.yml
+#   2. 在同目录执行：docker compose up -d
+#   3. 浏览器访问 http://服务器IP:8190，首次设置密码
+#   4. 在面板里点「安装游戏服」「安装 PalDefender」「启动」
+#
+# 默认从阿里云 ACR（国内高速）拉取镜像，仓库已公开，无需登录。
+#
+# 可在同目录 .env 中覆盖：
+#   REGISTRY=crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal
+#   TAG=latest
+#   REST_PASSWORD=你的强密码
+
+services:
+  # 游戏服：SteamCMD + GE-Proton + PalServer + PalDefender
+  gameserver:
+    image: ${REGISTRY:-crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal}/palworld-gameserver:${TAG:-latest}
+    container_name: palworld-gameserver
+    restart: unless-stopped
+    ports:
+      - "8211:8211/udp"   # 游戏端口
+      - "8212:8212/tcp"   # REST API（建议仅内网，不需要可删掉）
+    volumes:
+      # 游戏安装目录（存档、配置、PalDefender）
+      - ${GAMESERVER_DIR:-./data/gameserver}:/home/steam/palserver
+      # SteamCMD 持久化（自更新成功一次后保留，重启不重新联网）
+      - ${STEAMCMD_DIR:-./data/steamcmd}:/opt/steamcmd
+      # Proton prefix 持久化（Wine 运行时数据）
+      - ./data/prefix:/home/steam/prefix
+    environment:
+      - STEAMAPPID=2394010
+      - PROTON_VERSION=9-22
+      # 官方 REST API 密码（用户名固定 admin，面板用它连接）
+      - REST_PASSWORD=${REST_PASSWORD:-paladmin}
+    networks:
+      - palnet
+
+  # 面板：Go + Vue
+  palworld-panel:
+    image: ${REGISTRY:-crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal}/palworld-panel:${TAG:-latest}
+    container_name: palworld-panel
+    restart: unless-stopped
+    depends_on:
+      - gameserver
+    ports:
+      - "8190:8190/tcp"   # 面板 Web
+    volumes:
+      - ./data/palworld-panel:/data
+      - /var/run/docker.sock:/var/run/docker.sock  # 面板管控/自更新需要读写
+      # 部署目录（含 docker-compose.yml），面板自更新在此执行 compose pull/up
+      - ${COMPOSE_DIR:-.}:/compose
+      # 共享游戏目录、SteamCMD 目录、prefix：面板直接读写宿主机文件，
+      # 无需 docker exec/cp，配置/PalDefender/存档/日志操作可靠且容器停止时也能用。
+      # 容器内路径必须与 gameserver 一致。
+      - ${GAMESERVER_DIR:-./data/gameserver}:/home/steam/palserver
+      - ${STEAMCMD_DIR:-./data/steamcmd}:/opt/steamcmd
+      - ./data/prefix:/home/steam/prefix
+    environment:
+      - GAMESERVER_CONTAINER=palworld-gameserver
+      - GAMESERVER_URL=http://gameserver:8212
+      - REST_PASSWORD=${REST_PASSWORD:-paladmin}
+      - COMPOSE_PROJECT_DIR=/compose
+      # 告诉面板游戏目录已以相同路径挂载，直接用文件系统访问
+      - GAMESERVER_GAME_DIR=/home/steam/palserver
+    networks:
+      - palnet
+
+networks:
+  palnet:
+    driver: bridge

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"palworld-panel/internal/compose"
 )
 
 // 面板自更新：通过挂载的 docker.sock 执行 `docker compose pull && up -d`。
@@ -189,6 +190,30 @@ func composeProjectDir() string {
 	return "/compose"
 }
 
+// updateComposeFile 用内置最新模板更新本地 compose 文件。
+// 会先备份旧文件（.bak），再写入新模板。用户自定义应放在 .env 中，
+// compose 文件本身由面板维护。
+func updateComposeFile(path string) error {
+	tmpl := compose.Template()
+	if len(tmpl) == 0 {
+		return fmt.Errorf("内置 compose 模板为空")
+	}
+	// 读取现有文件
+	existing, _ := os.ReadFile(path)
+	// 内容一致则不写
+	if string(existing) == string(tmpl) {
+		return nil
+	}
+	// 备份旧文件
+	if len(existing) > 0 {
+		_ = os.WriteFile(path+".bak", existing, 0644)
+	}
+	if err := os.WriteFile(path, tmpl, 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
 func runSelfUpdate() {
 	defer func() {
 		selfUpdate.mu.Lock()
@@ -213,6 +238,13 @@ func runSelfUpdate() {
 		return
 	}
 	appendLog("使用 compose 文件: " + composeFile)
+
+	// 用内置最新模板更新本地 compose 文件（保留用户 .env 的自定义）
+	if err := updateComposeFile(composeFile); err != nil {
+		appendLog("更新 compose 文件失败（继续使用现有文件）: " + err.Error())
+	} else {
+		appendLog("compose 文件已更新到最新版")
+	}
 
 	// 只拉取面板镜像，不动游戏服镜像
 	if err := runCmd(dir, "docker", "compose", "-f", composeFile, "pull", "palworld-panel"); err != nil {

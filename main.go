@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"palworld-panel/api"
+	"palworld-panel/internal/compose"
 	"palworld-panel/internal/config"
 	"palworld-panel/internal/database"
 	"palworld-panel/internal/logger"
@@ -54,6 +55,9 @@ func main() {
 
 	// 初始化运行时可改配置：首次从 config.yaml 写入数据库，之后以数据库为准
 	initRuntimeSettings(db)
+
+	// 容器模式：确保 /compose/docker-compose.yml 存在（不存在则释放内置模板）
+	ensureComposeFile()
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -180,4 +184,27 @@ func getDataDir() string {
 		return filepath.Dir(exe)
 	}
 	return "."
+}
+
+// ensureComposeFile 如果 COMPOSE_PROJECT_DIR 下的 docker-compose.yml 不存在，
+// 释放内置模板，避免用户手动下载。仅在容器内（挂载了 /compose）有意义。
+func ensureComposeFile() {
+	dir := os.Getenv("COMPOSE_PROJECT_DIR")
+	if dir == "" {
+		return
+	}
+	path := filepath.Join(dir, "docker-compose.yml")
+	if _, err := os.Stat(path); err == nil {
+		return // 已存在，不覆盖
+	}
+	_ = os.MkdirAll(dir, 0o755)
+	tmpl := compose.Template()
+	if len(tmpl) == 0 {
+		return
+	}
+	if err := os.WriteFile(path, tmpl, 0o644); err != nil {
+		logger.Warnf("释放 compose 模板失败: %v", err)
+	} else {
+		logger.Infof("已释放 docker-compose.yml 到 %s", path)
+	}
 }

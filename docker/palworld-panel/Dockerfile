@@ -18,6 +18,8 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+# 把根目录最新的 compose 模板复制到 embed 目录，保证自更新用的是最新版
+RUN cp docker-compose.prod.yml internal/compose/docker-compose.prod.yml
 COPY --from=web-builder /src/web/dist ./web/dist
 ARG VERSION=dev
 RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/palworld-panel .
