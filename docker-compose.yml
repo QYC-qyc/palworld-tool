@@ -20,7 +20,7 @@ services:
     build:
       context: .
       dockerfile: docker/gameserver/Dockerfile
-    image: ${REGISTRY:-crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal}/palworld-gameserver:${GAMESERVER_TAG:-runtime-1}
+    image: ${REGISTRY:-crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal}/palworld-gameserver:${TAG:-latest}
     container_name: palworld-gameserver
     restart: unless-stopped
     ports:
@@ -48,7 +48,7 @@ services:
       dockerfile: docker/palworld-panel/Dockerfile
       args:
         VERSION: dev
-    image: ${REGISTRY:-crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal}/palworld-panel:${PANEL_TAG:-latest}
+    image: ${REGISTRY:-crpi-pwq7gsi7qm6vv08p.cn-chengdu.personal.cr.aliyuncs.com/qyc_pal}/palworld-panel:${TAG:-latest}
     container_name: palworld-panel
     restart: unless-stopped
     depends_on:

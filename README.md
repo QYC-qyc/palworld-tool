@@ -211,16 +211,9 @@ docker compose up -d
 docker compose exec palworld-gameserver bash
 ```
 
-两个镜像职责不同，更新是分开的：
+### 更新面板程序
 
-| 镜像 | 内容 | 更新频率 | 标签 |
-|---|---|---|---|
-| `palworld-panel` | 面板程序 | 频繁 | `latest` |
-| `palworld-gameserver` | Proton + SteamCMD 运行环境 | 很少 | `runtime-1` |
-
-### 更新面板（日常最常用）
-
-只拉面板镜像，**不会动游戏服镜像**，游戏不中断（重启面板容器即可）：
+只拉取并重启面板，**不影响游戏服**：
 
 ```bash
 docker compose pull palworld-panel
@@ -228,6 +221,15 @@ docker compose up -d palworld-panel
 ```
 
 也可以在面板「设置 → 面板更新」点 **一键更新**。
+
+### 更新游戏服镜像
+
+游戏服运行环境（Proton/SteamCMD）有更新时，定向拉取游戏服镜像：
+
+```bash
+docker compose pull palworld-gameserver
+docker compose up -d palworld-gameserver
+```
 
 ### 更新游戏本体（PalServer）
 
@@ -240,16 +242,7 @@ docker compose up -d palworld-panel
   docker compose restart palworld-gameserver
   ```
 
-### 更新游戏服运行环境镜像（很少需要）
-
-只有当 Proton/SteamCMD 环境升级时才需要（例如发版说明提到 gameserver 镜像更新）：
-
-```bash
-docker compose pull palworld-gameserver
-docker compose up -d palworld-gameserver
-```
-
-### 一次性更新全部
+### 一次性更新全部镜像
 
 ```bash
 docker compose pull && docker compose up -d
