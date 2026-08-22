@@ -110,6 +110,7 @@ USER root
 WORKDIR /home/steam
 
 # 用 tini 作为 PID 1，回收僵尸 wineserver 进程（游戏反复重启会产生大量 defunct）
+# -g：信号转发给整个进程组，确保 wineserver 等子进程也被清理
 # entrypoint.sh 作为 tini 的子进程，负责安装 SteamCMD、降权、启动守护
-ENTRYPOINT ["/usr/bin/tini", "--", "/home/steam/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini", "-g", "--", "/home/steam/entrypoint.sh"]
 CMD ["run"]
