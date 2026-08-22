@@ -439,3 +439,83 @@ func (d *dockerCtl) tarStreamFrom(r io.Reader, sub string) error {
 	}
 	return nil
 }
+
+// ---- Host 接口需要的进程级操作（方案 A：容器常驻，游戏由 entrypoint 管理）----
+
+// startGame 通过 entrypoint 在容器内启动游戏进程。
+func (d *dockerCtl) startGame() error {
+	return d.execRun("/home/steam/entrypoint.sh", "start")
+}
+
+// stopGame 通过 entrypoint 停止游戏进程（不停止容器）。
+func (d *dockerCtl) stopGame() error {
+	return d.execRun("/home/steam/entrypoint.sh", "stop")
+}
+
+// restartGame 通过 entrypoint 重启游戏进程。
+func (d *dockerCtl) restartGame() error {
+	return d.execRun("/home/steam/entrypoint.sh", "restart")
+}
+
+// listDir 列出容器内游戏目录下的条目。
+func (d *dockerCtl) listDir(rel string) ([]string, error) {
+	out, err := d.execOutput("ls", "-1", "--", d.absPath(rel))
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(strings.TrimRight(string(out), "\n"), "\n")
+	if len(lines) == 1 && lines[0] == "" {
+		return []string{}, nil
+	}
+	return lines, nil
+}
+
+// installSteamCMD 在 Docker 模式下，SteamCMD 由 gameserver 容器 entrypoint
+// 在启动时自动安装到挂载卷 /opt/steamcmd，这里仅校验其存在。
+func (d *dockerCtl) installSteamCMD(steamDir string) error {
+	if d.fileExists(steamDir + "/steamcmd.sh") {
+		return nil
+	}
+	// 容器未运行或未初始化，触发一次容器启动让 entrypoint 安装
+	if !d.isRunning() {
+		if err := d.run("start"); err != nil {
+			return err
+		}
+	}
+	return fmt.Errorf("SteamCMD 尚未在容器内安装完成，请稍后重试")
+}
+
+// fetchSaved 把容器内 Pal/Saved 复制到本地（容器停止时用 docker cp）。
+func (d *dockerCtl) fetchSaved(localRoot string) error {
+	palDir := filepath.Join(localRoot, "Pal")
+	if err := os.MkdirAll(palDir, 0755); err != nil {
+		return err
+	}
+	pr, pw := io.Pipe()
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- d.tarStreamTo(pw, savedRel)
+		_ = pw.Close()
+	}()
+	err := extractTar(pr, palDir)
+	if e := <-errCh; e != nil && err == nil {
+		err = e
+	}
+	return err
+}
+
+// pushSaved 把本地 Pal/Saved 推回容器。
+func (d *dockerCtl) pushSaved(localRoot string) error {
+	localSaved := filepath.Join(localRoot, "Pal", savedRel)
+	pr, pw := io.Pipe()
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- createTar(pw, localSaved, "Saved")
+		_ = pw.Close()
+	}()
+	err := d.tarStreamFrom(pr, "Pal")
+	if e := <-errCh; e != nil && err == nil {
+		err = e
+	}
+	return err
+}

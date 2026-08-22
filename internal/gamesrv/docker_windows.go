@@ -47,4 +47,13 @@ func (d *dockerCtl) tarStreamTo(w io.Writer, sub string) error       { return er
 func (d *dockerCtl) tarStreamFrom(r io.Reader, sub string) error     { return errWindowsDocker }
 func (d *dockerCtl) fileExists(rel string) bool                      { return false }
 
+// Host 接口需要的进程级/存档方法在 Windows 上不可达，仅为满足编译。
+func (d *dockerCtl) startGame() error         { return errWindowsDocker }
+func (d *dockerCtl) stopGame() error          { return errWindowsDocker }
+func (d *dockerCtl) restartGame() error       { return errWindowsDocker }
+func (d *dockerCtl) listDir(rel string) ([]string, error) { return nil, errWindowsDocker }
+func (d *dockerCtl) installSteamCMD(steamDir string) error { return errWindowsDocker }
+func (d *dockerCtl) fetchSaved(localRoot string) error  { return errWindowsDocker }
+func (d *dockerCtl) pushSaved(localRoot string) error   { return errWindowsDocker }
+
 var errWindowsDocker = fmt.Errorf("docker 管控在 Windows 上不可用")
