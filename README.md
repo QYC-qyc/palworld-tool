@@ -1,4 +1,4 @@
-# PalAdmin
+# palworld-panel
 
 幻兽帕鲁（Palworld）服务器管理与反作弊面板。**Docker 一键部署**：一个命令同时启动面板和游戏服，在网页里完成安装、启停、配置、玩家管理、反作弊、备份回档。
 
@@ -146,7 +146,7 @@ docker logs -f palworld-gameserver
 # REST API 密码（同时作为游戏服 REST 连接密码，默认 paladmin，建议修改）
 REST_PASSWORD=你的强密码
 
-# 镜像标签（默认 latest，自动跟随最新版；想锁版本可设为 v3.0.2）
+# 镜像标签（默认 latest，自动跟随最新版；想锁版本可设为 v3.2.1）
 # TAG=latest
 ```
 

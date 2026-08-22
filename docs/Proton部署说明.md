@@ -1,11 +1,13 @@
 # Proton 模式部署说明
 
+> 本文档针对**二进制（bare-metal）部署**下的 Proton 细节。Docker 部署见「开发指南」。
+
 面板只运行 **Windows 版游戏服**，通过 [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom) 在 Linux 上运行，目的是加载 PalDefender（Windows DLL 反作弊）。
 
 ## 组件关系
 
 ```
-PalAdmin (Go 二进制, root)
+palworld-panel (Go 二进制, root)
   ├── SteamCMD (force platform windows)
   │     └─ 下载 Windows 版游戏服 → <安装目录>/PalServer-Win/
   ├── GE-Proton (/opt/GE-Proton/proton)
@@ -18,7 +20,7 @@ PalAdmin (Go 二进制, root)
 
 | 项目 | 路径 |
 |---|---|
-| 用户填写的安装目录 | 如 `/home/paladmin/PalServer` |
+| 用户填写的安装目录 | 如 `/home/palworld/PalServer` |
 | Windows 版游戏服 | `<安装目录>/PalServer-Win/` |
 | 游戏可执行文件 | `PalServer-Win/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe` |
 | 配置文件 | `PalServer-Win/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini` |
