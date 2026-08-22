@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -48,6 +49,20 @@ func Get() *Store { return global }
 
 // InitDB 打开/创建 SQLite 数据库并建表。
 func InitDB(path string) *Store {
+	// 旧版使用 bbolt，其 .db 文件不是 SQLite 格式。若检测到旧文件，
+	// 备份后重建，避免 SQLite 打开旧 bbolt 文件时 panic（file is not a database）。
+	if path != "" && !isSQLiteFile(path) {
+		if fi, err := os.Stat(path); err == nil && fi.Size() > 0 {
+			bak := path + ".bbolt.bak"
+			if renameErr := os.Rename(path, bak); renameErr == nil {
+				fmt.Printf("检测到旧版 bbolt 数据库，已备份为 %s，将新建 SQLite 数据库\n", bak)
+			} else {
+				// 重命名失败则直接删除，确保能新建
+				_ = os.Remove(path)
+			}
+		}
+	}
+
 	dsn := fmt.Sprintf("file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(ON)", path)
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
@@ -60,6 +75,22 @@ func InitDB(path string) *Store {
 	s.migrate()
 	global = s
 	return s
+}
+
+// isSQLiteFile 判断文件是否为 SQLite 数据库（前 16 字节为 "SQLite format 3\000"）。
+// 文件不存在时返回 true（视为新建，交给 SQLite 创建）。
+func isSQLiteFile(path string) bool {
+	f, err := os.Open(path)
+	if err != nil {
+		return true // 不存在 → 新建
+	}
+	defer f.Close()
+	header := make([]byte, 16)
+	n, _ := f.Read(header)
+	if n == 0 {
+		return true // 空文件 → 新建
+	}
+	return string(header[:n]) == "SQLite format 3\x00"
 }
 
 // migrate 建表。按实体建表，支持字段查询；JSON 字段保留原始数据。
