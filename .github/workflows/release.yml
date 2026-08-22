@@ -46,7 +46,7 @@ jobs:
           cp -r web/dist dist/web
           cp dist/sav_cli dist/ 2>/dev/null || true
           cp -r data dist/
-          cp deploy/palworld-panel.service dist/
+          cp deploy/bare-metal/palworld-panel.service dist/
           # amd64
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
             go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
