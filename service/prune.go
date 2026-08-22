@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"go.etcd.io/bbolt"
+	"palworld-panel/internal/database"
 	"palworld-panel/internal/tool"
 )
 
@@ -14,8 +14,8 @@ import (
 //   - keepDays > 0 时，删除早于 keepDays 天的备份
 //
 // 返回删除的数量。同时删除磁盘上的 zip 文件和数据库记录。
-func PruneBackups(db *bbolt.DB, keepCount, keepDays int) (int, error) {
-	backups, err := ListBackups(db)
+func PruneBackups(store *database.Store, keepCount, keepDays int) (int, error) {
+	backups, err := ListBackups(store)
 	if err != nil {
 		return 0, err
 	}
@@ -39,7 +39,7 @@ func PruneBackups(db *bbolt.DB, keepCount, keepDays int) (int, error) {
 		if b.Path != "" {
 			_ = os.Remove(filepath.Join(tool.BackupDir(), b.Path))
 		}
-		_ = DeleteBackup(db, b.BackupId)
+		_ = DeleteBackup(store, b.BackupId)
 		removed++
 	}
 	return removed, nil

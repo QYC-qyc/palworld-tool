@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/spf13/viper"
-	"go.etcd.io/bbolt"
 	"palworld-panel/internal/database"
 	"palworld-panel/internal/gamesrv"
 	"palworld-panel/internal/logger"
@@ -19,14 +18,14 @@ import (
 
 var (
 	scheduler gocron.Scheduler
-	dbRef     *bbolt.DB
+	dbRef     *database.Store
 
 	playerCache = map[string]string{}
 	firstPoll   = true
 )
 
 // Init 设置依赖
-func Init(db *bbolt.DB) {
+func Init(db *database.Store) {
 	dbRef = db
 }
 

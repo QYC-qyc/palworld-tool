@@ -1,4 +1,4 @@
-// Package audit 提供通用操作审计日志
+// Package audit 提供操作审计日志。
 package audit
 
 import (
@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"go.etcd.io/bbolt"
+	"palworld-panel/internal/database"
 )
 
-// Record 审计记录
+// Record 审计记录。
 type Record struct {
 	ID        string    `json:"id"`
 	Source    string    `json:"source"`
@@ -20,11 +20,11 @@ type Record struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-const bucketName = "audit"
+const tableName = "audit"
 
-// Add 记录一条审计日志
-func Add(db *bbolt.DB, source, action, target, detail, result string) error {
-	if db == nil {
+// Add 记录一条审计日志。
+func Add(store *database.Store, source, action, target, detail, result string) error {
+	if store == nil {
 		return nil
 	}
 	r := Record{
@@ -34,43 +34,42 @@ func Add(db *bbolt.DB, source, action, target, detail, result string) error {
 		Target:    target,
 		Detail:    detail,
 		Result:    result,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
-	return db.Update(func(tx *bbolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(bucketName))
-		if err != nil {
-			return err
-		}
-		v, err := json.Marshal(r)
-		if err != nil {
-			return err
-		}
-		return b.Put([]byte(r.ID), v)
-	})
+	data, err := json.Marshal(r)
+	if err != nil {
+		return err
+	}
+	_, err = store.DB().Exec(
+		`INSERT INTO audit(actor, action, detail, ip, created_at) VALUES(?,?,?,?,?)`,
+		r.Source, r.Action, string(data), "", r.CreatedAt)
+	return err
 }
 
-// List 返回最近的审计记录
-func List(db *bbolt.DB, limit int) ([]Record, error) {
-	if db == nil {
+// List 返回最近 limit 条审计记录。
+func List(store *database.Store, limit int) ([]Record, error) {
+	if store == nil {
 		return nil, nil
 	}
+	if limit <= 0 {
+		limit = 100
+	}
+	rows, err := store.DB().Query(
+		`SELECT detail FROM audit ORDER BY created_at DESC LIMIT ?`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 	var records []Record
-	err := db.View(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(bucketName))
-		if b == nil {
-			return nil
+	for rows.Next() {
+		var data string
+		if err := rows.Scan(&data); err != nil {
+			return nil, err
 		}
-		c := b.Cursor()
-		for k, v := c.Last(); k != nil; k, v = c.Prev() {
-			var r Record
-			if err := json.Unmarshal(v, &r); err == nil {
-				records = append(records, r)
-			}
-			if limit > 0 && len(records) >= limit {
-				break
-			}
+		var r Record
+		if err := json.Unmarshal([]byte(data), &r); err == nil {
+			records = append(records, r)
 		}
-		return nil
-	})
-	return records, err
+	}
+	return records, rows.Err()
 }

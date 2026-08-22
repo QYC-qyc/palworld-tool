@@ -25,8 +25,6 @@ import (
 	"palworld-panel/internal/updater"
 	"palworld-panel/internal/webdata"
 	"palworld-panel/service"
-
-	"go.etcd.io/bbolt"
 )
 
 var (
@@ -50,8 +48,8 @@ func main() {
 		dbPath = "./pst.db"
 	}
 	_ = os.MkdirAll(filepath.Dir(dbPath), 0755)
-	db := database.GetDB(dbPath)
-	defer database.Close()
+	db := database.InitDB(dbPath)
+	defer db.Close()
 
 	// 初始化运行时可改配置：首次从 config.yaml 写入数据库，之后以数据库为准
 	initRuntimeSettings(db)
@@ -153,7 +151,7 @@ func main() {
 	logger.Info("已优雅停止")
 }
 
-func initRuntimeSettings(db *bbolt.DB) {
+func initRuntimeSettings(db *database.Store) {
 	defaults := service.DefaultSettings()
 	for k := range defaults {
 		if k == service.SettingWebPassword {

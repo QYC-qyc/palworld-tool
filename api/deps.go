@@ -1,21 +1,21 @@
 package api
 
 import (
-	"go.etcd.io/bbolt"
 	"palworld-panel/internal/config"
+	"palworld-panel/internal/database"
 	"palworld-panel/internal/gamesrv"
 )
 
 var (
-	db           *bbolt.DB
+	db           *database.Store
 	cfg          *config.Config
 	gameAPI      *gameServerAPI
 	gameSettings = &gameSettingsAPI{}
 )
 
 // SetDeps 注入数据库与配置
-func SetDeps(database *bbolt.DB, c *config.Config) {
-	db = database
+func SetDeps(store *database.Store, c *config.Config) {
+	db = store
 	cfg = c
 	gameAPI, _ = newGameServerAPI()
 	if gameAPI != nil {

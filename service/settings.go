@@ -1,7 +1,9 @@
 package service
 
 import (
-	"go.etcd.io/bbolt"
+	"database/sql"
+	"errors"
+
 	"palworld-panel/internal/database"
 )
 
@@ -20,10 +22,10 @@ const (
 	SettingPalDefenderPort          = "paldefender.port"
 	SettingPalDefenderToken         = "paldefender.token"
 	SettingPalDefenderBasePath      = "paldefender.base_path"
-	SettingPalDefenderAntiCheat     = "paldefender.anticheat_enabled" // PalDefender 反作弊总开关
-	SettingPalDefenderCheatersKick  = "paldefender.cheaters_kick"     // 检测到作弊者踢出
-	SettingPalDefenderCheatersBan   = "paldefender.cheaters_ban"      // 检测到作弊者封禁
-	SettingPalDefenderCheatersIPBan = "paldefender.cheaters_ipban"    // 检测到作弊者 IP 封禁
+	SettingPalDefenderAntiCheat     = "paldefender.anticheat_enabled"
+	SettingPalDefenderCheatersKick  = "paldefender.cheaters_kick"
+	SettingPalDefenderCheatersBan   = "paldefender.cheaters_ban"
+	SettingPalDefenderCheatersIPBan = "paldefender.cheaters_ipban"
 )
 
 // DefaultSettings 返回需要在数据库中初始化的默认键（首次启动时从 viper 同步）
@@ -50,82 +52,76 @@ func DefaultSettings() map[string]string {
 	}
 }
 
-// InitSettings 首次启动时把 config.yaml 的值写入数据库（仅当该键不存在时）
-func InitSettings(db *bbolt.DB, initial map[string]string) error {
-	return db.Update(func(tx *bbolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(database.BucketSettings))
+func settingsTable() string { return database.BucketSettings }
+
+// InitSettings 首次启动时写入默认值（已存在的键不覆盖）。
+func InitSettings(store *database.Store, initial map[string]string) error {
+	tx, err := store.DB().Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for k, v := range initial {
+		_, err := tx.Exec(
+			`INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)`, k, v)
 		if err != nil {
 			return err
 		}
-		for k, v := range initial {
-			if b.Get([]byte(k)) == nil && v != "" {
-				if err := b.Put([]byte(k), []byte(v)); err != nil {
-					return err
-				}
-			} else if b.Get([]byte(k)) == nil {
-				_ = b.Put([]byte(k), []byte(v))
-			}
-		}
-		return nil
-	})
+	}
+	return tx.Commit()
 }
 
-// GetSetting 读取单个配置
-func GetSetting(db *bbolt.DB, key string) string {
+// GetSetting 读取单个配置。
+func GetSetting(store *database.Store, key string) string {
 	var val string
-	_ = db.View(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(database.BucketSettings))
-		if b == nil {
-			return nil
-		}
-		v := b.Get([]byte(key))
-		if v != nil {
-			val = string(v)
-		}
-		return nil
-	})
+	err := store.DB().QueryRow(`SELECT value FROM settings WHERE key=?`, key).Scan(&val)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ""
+	}
 	return val
 }
 
-// GetAllSettings 读取全部配置
-func GetAllSettings(db *bbolt.DB) (map[string]string, error) {
+// GetAllSettings 读取全部配置。
+func GetAllSettings(store *database.Store) (map[string]string, error) {
+	rows, err := store.DB().Query(`SELECT key, value FROM settings`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 	result := map[string]string{}
-	err := db.View(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(database.BucketSettings))
-		if b == nil {
-			return nil
+	for rows.Next() {
+		var k, v string
+		if err := rows.Scan(&k, &v); err != nil {
+			return nil, err
 		}
-		return b.ForEach(func(k, v []byte) error {
-			result[string(k)] = string(v)
-			return nil
-		})
-	})
-	return result, err
+		result[k] = v
+	}
+	return result, rows.Err()
 }
 
-// SetSetting 更新单个配置
-func SetSetting(db *bbolt.DB, key, value string) error {
-	return db.Update(func(tx *bbolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(database.BucketSettings))
-		if err != nil {
-			return err
-		}
-		return b.Put([]byte(key), []byte(value))
-	})
+// SetSetting 更新单个配置。
+func SetSetting(store *database.Store, key, value string) error {
+	_, err := store.DB().Exec(
+		`INSERT INTO settings(key,value) VALUES(?,?)
+		 ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP`,
+		key, value)
+	return err
 }
 
-// SetSettings 批量更新（传 JSON map）
-func SetSettings(db *bbolt.DB, updates map[string]string) error {
-	return db.Update(func(tx *bbolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(database.BucketSettings))
-		if err != nil {
+// SetSettings 批量更新。
+func SetSettings(store *database.Store, updates map[string]string) error {
+	tx, err := store.DB().Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for k, v := range updates {
+		if _, err := tx.Exec(
+			`INSERT INTO settings(key,value) VALUES(?,?)
+			 ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP`,
+			k, v); err != nil {
 			return err
 		}
-		for k, v := range updates {
-			if err := b.Put([]byte(k), []byte(v)); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	}
+	return tx.Commit()
 }

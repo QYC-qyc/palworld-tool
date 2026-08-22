@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"go.etcd.io/bbolt"
 	"palworld-panel/internal/database"
 	"palworld-panel/internal/gamesrv"
 	"palworld-panel/internal/logger"
@@ -19,7 +18,7 @@ import (
 
 // RestoreBackup 回档：停服→备份当前存档→解压目标备份→推送回游戏目录→启服。
 // backupPath 为备份 zip 文件名（位于持久化备份目录下）或绝对路径。
-func RestoreBackup(db *bbolt.DB, saveDir, backupPath string) error {
+func RestoreBackup(store *database.Store, saveDir, backupPath string) error {
 	fullPath := backupPath
 	if !filepath.IsAbs(fullPath) {
 		fullPath = filepath.Join(tool.BackupDir(), backupPath)
@@ -43,7 +42,7 @@ func RestoreBackup(db *bbolt.DB, saveDir, backupPath string) error {
 	if gamesrv.Default != nil {
 		if name, err := tool.Backup(); err == nil {
 			rollbackName = name
-			_ = AddBackup(db, database.Backup{Path: name})
+			_ = AddBackup(store, database.Backup{Path: name})
 			logger.Infof("回档前当前存档已安全备份为 %s", name)
 		} else {
 			logger.Errorf("回档前安全备份失败: %v（继续回档）", err)

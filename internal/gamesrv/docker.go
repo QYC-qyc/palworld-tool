@@ -519,3 +519,78 @@ func (d *dockerCtl) pushSaved(localRoot string) error {
 	}
 	return err
 }
+
+// ---- tar 辅助（存档传输用）----
+
+// extractTar 从 r 读取 tar 流并解压到 dst。
+func extractTar(r io.Reader, dst string) error {
+	tr := tar.NewReader(r)
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(dst, hdr.Name)
+		if !strings.HasPrefix(filepath.Clean(target), filepath.Clean(dst)+string(os.PathSeparator)) {
+			return fmt.Errorf("非法 tar 路径: %s", hdr.Name)
+		}
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+			_ = os.MkdirAll(target, os.FileMode(hdr.Mode))
+		case tar.TypeReg:
+			_ = os.MkdirAll(filepath.Dir(target), 0755)
+			f, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(hdr.Mode))
+			if err != nil {
+				return err
+			}
+			if _, err := io.Copy(f, tr); err != nil {
+				f.Close()
+				return err
+			}
+			f.Close()
+		}
+	}
+	return nil
+}
+
+// createTar 把 src 目录打包成 tar 流写入 w，根目录名为 rootName。
+func createTar(w io.Writer, src, rootName string) error {
+	tw := tar.NewWriter(w)
+	defer tw.Close()
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		if rel == "." {
+			return nil
+		}
+		hdr, err := tar.FileInfoHeader(info, "")
+		if err != nil {
+			return err
+		}
+		hdr.Name = filepath.ToSlash(filepath.Join(rootName, rel))
+		if info.IsDir() {
+			hdr.Name += "/"
+		}
+		if err := tw.WriteHeader(hdr); err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		_, err = io.Copy(tw, f)
+		return err
+	})
+}

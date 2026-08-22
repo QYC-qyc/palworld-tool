@@ -865,3 +865,11 @@ func (r *ringLog) WriteString(s string) {
 	}
 }
 func (r *ringLog) String() string { return strings.Join(r.lines, "\n") }
+
+// Tail 返回最近 n 行日志。
+func (r *ringLog) Tail(n int) string {
+	if n <= 0 || n >= len(r.lines) {
+		return r.String()
+	}
+	return strings.Join(r.lines[len(r.lines)-n:], "\n")
+}
