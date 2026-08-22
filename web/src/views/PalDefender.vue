@@ -209,46 +209,11 @@
 
     <!-- Tab 4：广播与警报 -->
     <n-tab-pane name="message" tab="广播与警报">
-      <n-space vertical :size="16">
-        <n-card title="全服广播" size="small">
-          <n-space vertical>
-            <n-input v-model:value="broadcastMsg" type="textarea" :autosize="{ minRows: 2 }"
-              placeholder="输入全服广播消息" />
-            <n-button type="primary" @click="sendBroadcast">发送广播</n-button>
-          </n-space>
-        </n-card>
-
-        <n-card title="高优先级警报" size="small">
-          <n-space vertical>
-            <n-alert type="warning" :show-icon="false" style="font-size:12px">
-              警报为高优先级消息，会在游戏内以醒目方式提示玩家，请谨慎使用。
-            </n-alert>
-            <n-input v-model:value="alertMsg" type="textarea" :autosize="{ minRows: 2 }"
-              placeholder="输入警报消息" />
-            <n-button type="error" @click="sendAlert">发送警报</n-button>
-          </n-space>
-        </n-card>
-
-        <n-card title="私聊玩家" size="small">
-          <n-space vertical>
-            <n-space align="center" :wrap="false">
-              <n-select
-                v-model:value="msgTarget"
-                filterable
-                placeholder="选择玩家"
-                :options="playerOptions"
-                style="max-width:320px"
-              />
-              <n-button v-if="!playersLoaded" size="small" @click="loadPlayers">
-                加载玩家列表
-              </n-button>
-            </n-space>
-            <n-input v-model:value="msgContent" type="textarea" :autosize="{ minRows: 2 }"
-              placeholder="输入私聊消息" />
-            <n-button type="primary" @click="sendPrivateMsg">发送私聊</n-button>
-          </n-space>
-        </n-card>
-      </n-space>
+      <PdMessages
+        :player-options="playerOptions"
+        :players-loaded="playersLoaded"
+        @load-players="loadPlayers"
+      />
     </n-tab-pane>
 
     <!-- Tab 5：公会与据点 -->
@@ -409,6 +374,7 @@ import {
 import type { DataTableColumns } from 'naive-ui'
 import { ShieldOutline, SwapHorizontalOutline, HelpCircleOutline, EyeOutline } from '@vicons/ionicons5'
 import { api } from '@/api'
+import PdMessages from '@/components/paldefender/PdMessages.vue'
 
 const message = useMessage()
 
@@ -928,46 +894,6 @@ async function loadBanlist() {
     message.error(e.message)
   } finally {
     banLoading.value = false
-  }
-}
-
-/* ============ Tab 4：广播与警报 ============ */
-const broadcastMsg = ref('')
-const alertMsg = ref('')
-const msgTarget = ref<string | null>(null)
-const msgContent = ref('')
-
-async function sendBroadcast() {
-  if (!broadcastMsg.value.trim()) { message.warning('请输入消息'); return }
-  try {
-    await api.pdBroadcast(broadcastMsg.value)
-    message.success('广播已发送')
-    broadcastMsg.value = ''
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
-async function sendAlert() {
-  if (!alertMsg.value.trim()) { message.warning('请输入消息'); return }
-  try {
-    await api.pdAlert(alertMsg.value)
-    message.success('警报已发送')
-    alertMsg.value = ''
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
-async function sendPrivateMsg() {
-  if (!msgTarget.value) { message.warning('请选择玩家'); return }
-  if (!msgContent.value.trim()) { message.warning('请输入消息'); return }
-  try {
-    await api.pdMessage(msgTarget.value, msgContent.value)
-    message.success('私聊已发送')
-    msgContent.value = ''
-  } catch (e: any) {
-    message.error(e.message)
   }
 }
 
