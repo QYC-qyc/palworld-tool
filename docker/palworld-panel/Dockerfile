@@ -11,7 +11,7 @@ COPY web/ ./
 RUN npm run build
 
 # ---- Go 后端构建 ----
-FROM golang:1.22-bookworm AS go-builder
+FROM golang:1.25-bookworm AS go-builder
 # 国内 Go 模块代理
 ENV GOPROXY=https://goproxy.cn,direct
 WORKDIR /src
