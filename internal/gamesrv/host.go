@@ -67,6 +67,8 @@ type Host interface {
 	Logs(lines int) string
 }
 
-// 编译期检查 dockerHost 实现 Host。
-// bareMetalHost 将在阶段 2.2 实现，届时加入检查。
-var _ Host = (*dockerHost)(nil)
+// 编译期检查 Host 实现。
+var (
+	_ Host = (*dockerHost)(nil)
+	_ Host = (*bareMetalHost)(nil)
+)
