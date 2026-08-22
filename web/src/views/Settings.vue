@@ -42,7 +42,7 @@
                 <template #trigger>
                   <n-icon :component="HelpCircleOutline" class="help-icon" />
                 </template>
-                通常无需手动填写。留空时自动使用游戏安装目录下的 Pal/Saved
+                <span class="help-text">通常无需手动填写。留空时自动使用游戏安装目录下的 Pal/Saved</span>
               </n-tooltip>
             </span>
           </template>
@@ -59,7 +59,7 @@
                     <template #trigger>
                       <n-icon :component="HelpCircleOutline" class="help-icon" />
                     </template>
-                    面板启动/停止游戏服的方式。systemd：通过 systemctl 管理服务；docker：控制容器；noop：仅提示手动操作
+                    <span class="help-text">面板启动/停止游戏服的方式。systemd：通过 systemctl 管理服务；docker：控制容器；noop：仅提示手动操作</span>
                   </n-tooltip>
                 </span>
               </template>
@@ -75,7 +75,7 @@
                     <template #trigger>
                       <n-icon :component="HelpCircleOutline" class="help-icon" />
                     </template>
-                    systemd 模式下游戏服的服务名，如 palworld 或 palServer
+                    <span class="help-text">systemd 模式下游戏服的服务名，如 palworld 或 palServer</span>
                   </n-tooltip>
                 </span>
               </template>
@@ -91,11 +91,11 @@
                     <template #trigger>
                       <n-icon :component="HelpCircleOutline" class="help-icon" />
                     </template>
-                    docker 模式下游戏服容器名或 ID
+                    <span class="help-text">docker 模式下游戏服容器名或 ID，默认 palworld-gameserver</span>
                   </n-tooltip>
                 </span>
               </template>
-              <n-input v-model:value="form['process.container']" placeholder="palworld" />
+              <n-input v-model:value="form['process.container']" placeholder="palworld-gameserver" />
             </n-form-item>
           </n-gi>
         </n-grid>
@@ -107,7 +107,7 @@
                 <template #trigger>
                   <n-icon :component="HelpCircleOutline" class="help-icon" />
                 </template>
-                每隔多少分钟自动备份存档，0 表示关闭。仅在游戏服运行时执行备份
+                <span class="help-text">每隔多少分钟自动备份存档，0 表示关闭。仅在游戏服运行时执行备份</span>
               </n-tooltip>
             </span>
           </template>
@@ -553,6 +553,11 @@ async function doUpdate() {
   font-size: 15px;
   color: var(--n-text-color-3, #999);
   cursor: help;
+}
+.help-text {
+  display: block;
+  max-width: 260px;
+  line-height: 1.5;
 }
 .tooltip-content {
   max-width: 300px;

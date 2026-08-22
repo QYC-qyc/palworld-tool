@@ -28,8 +28,8 @@ if [ -n "${REST_PASSWORD}" ]; then
     export REST__PASSWORD="${REST_PASSWORD}"
 fi
 
-# PalDefender REST 跑在 gameserver 容器内，面板需连容器名而非 127.0.0.1
-export PALDEFENDER__HOST="${PALDEFENDER__HOST:-gameserver}"
+# PalDefender REST 跑在游戏服容器内，面板需连容器名而非 127.0.0.1
+export PALDEFENDER__HOST="${PALDEFENDER__HOST:-palworld-gameserver}"
 
 # 回档等功能的进程控制：复用同一个游戏服容器
 export PROCESS__MODE=docker

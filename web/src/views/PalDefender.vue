@@ -68,18 +68,18 @@
 
         <n-card title="反作弊连接配置" size="small">
           <n-alert type="info" :show-icon="false" style="margin-bottom:16px;font-size:12px">
-            配置面板连接 PalDefender REST API 的地址。Docker 部署主机填 <code>gameserver</code>，
+            配置面板连接 PalDefender REST API 的地址。Docker 部署主机填 <code>palworld-gameserver</code>，
             端口默认 17993；生成 Token 后需保存才生效。
           </n-alert>
           <n-form label-placement="left" label-width="120">
             <n-form-item label="API 主机">
-              <n-input v-model:value="pdForm.host" placeholder="gameserver（Docker）或 127.0.0.1">
+              <n-input v-model:value="pdForm.host" placeholder="palworld-gameserver（Docker）或 127.0.0.1">
                 <template #suffix>
                   <n-tooltip trigger="hover" placement="top">
                     <template #trigger>
                       <n-icon :component="HelpCircleOutline" class="help-icon" />
                     </template>
-                    <span class="help-text">PalDefender REST API 所在主机。Docker 部署填 <code>gameserver</code>（容器名）；游戏服与面板在同一机器的非 Docker 部署填 <code>127.0.0.1</code>。</span>
+                    <span class="help-text">PalDefender REST API 所在主机。Docker 部署填 <code>palworld-gameserver</code>（容器名）；游戏服与面板在同一机器的非 Docker 部署填 <code>127.0.0.1</code>。</span>
                   </n-tooltip>
                 </template>
               </n-input>
@@ -469,7 +469,7 @@ const token = () => localStorage.getItem('palworld-panel_token') || ''
 
 // PalDefender 连接与处置配置（从「设置」页迁移至此）
 const pdForm = reactive({
-  host: 'gameserver',
+  host: 'palworld-gameserver',
   port: 17993,
   token: '',
   anticheat_enabled: 'true',
@@ -1026,4 +1026,23 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.help-icon {
+  font-size: 15px;
+  color: var(--n-text-color-3, #999);
+  cursor: help;
+}
+.help-text {
+  display: block;
+  max-width: 260px;
+  line-height: 1.5;
+}
+:deep(.n-tooltip) {
+  background: #1f1f1f !important;
+  color: #fff !important;
+}
 </style>
