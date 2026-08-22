@@ -134,6 +134,19 @@ INIEOF
     export WINEESYNC=0
     export WINEFSYNC=0
 
+    # 关键：PalServer 通过 Steamworks SDK 初始化 Steam API。Proton 的 lsteamclient
+    # 需要 Linux 版 steamclient.so（SteamCMD 自带）软链到 ~/.steam/sdk{64,32}，
+    # 且必须设 SteamAppId，否则 SteamAPI_Init 失败 → abort → 退出码 3。
+    export SteamAppId="${STEAMAPPID:-2394010}"
+    export SteamGameId="${STEAMAPPID:-2394010}"
+    mkdir -p /home/steam/.steam/sdk64 /home/steam/.steam/sdk32 2>/dev/null || true
+    if [ -f "${STEAMCMD_DIR}/linux64/steamclient.so" ]; then
+        ln -sf "${STEAMCMD_DIR}/linux64/steamclient.so" /home/steam/.steam/sdk64/steamclient.so
+    fi
+    if [ -f "${STEAMCMD_DIR}/linux32/steamclient.so" ]; then
+        ln -sf "${STEAMCMD_DIR}/linux32/steamclient.so" /home/steam/.steam/sdk32/steamclient.so
+    fi
+
     # 启动前清理可能残留的 wineserver，避免僵尸进程和 esync 冲突
     if command -v wineserver >/dev/null 2>&1; then
         wineserver -k 2>/dev/null || true
