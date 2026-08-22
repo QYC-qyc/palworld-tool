@@ -57,7 +57,9 @@ type Status struct {
 	State            string `json:"state,omitempty"`
 }
 
-// Manager 管理游戏服进程与 SteamCMD
+// Manager 管理游戏服进程与 SteamCMD。
+// 它通过 Host 接口操作底层环境（Docker 容器或裸机进程），
+// 业务层不直接调用 docker/exec。
 type Manager struct {
 	cfg       Config
 	serverCmd *exec.Cmd
@@ -65,8 +67,9 @@ type Manager struct {
 	logBuf    *ringLog
 	// getSetting 读取面板动态设置（由 deps 注入），用于读取 proton.path 等
 	getSetting func(string) string
-	// docker 非空时通过 Docker CLI 管控游戏服容器（容器化部署）
-	docker *dockerCtl
+	// host 是底层运行环境（Docker 或裸机）。
+	// 容器部署时为 dockerHost；二进制部署时为 bareMetalHost。
+	host Host
 	// startingUntil：点启动后的宽限期截止时间。这段内容器在跑但游戏进程
 	// 尚未出现时显示"启动中"；超时仍未起来则视为"待启动"。
 	startingUntil time.Time
@@ -78,9 +81,9 @@ func NewManager() *Manager {
 	m := &Manager{logBuf: newRingLog(200)}
 	// 容器化部署：若设置了 GAMESERVER_CONTAINER 环境变量，则通过 Docker 管控
 	if name := getEnv("GAMESERVER_CONTAINER", ""); name != "" {
-		dc := newDockerCtl(name)
-		if dc.available() {
-			m.docker = dc
+		dh := newDockerHost(name)
+		if dh.ctl.available() {
+			m.host = dh
 		}
 	}
 	return m
@@ -132,58 +135,55 @@ func (m *Manager) GetStatus() (*Status, error) {
 	st := &Status{
 		InstallDir: m.cfg.InstallDir,
 		ProtonMode: runtime.GOOS != "windows",
-		DockerMode: m.docker != nil,
+		DockerMode: m.host != nil && m.host.Kind() == "docker",
 	}
 	st.SteamExe = m.steamCmdExe()
 	st.WindowsExe = m.winServerExePath()
 	st.ServerExe = st.WindowsExe
-	// Docker 模式下展示容器内真实路径
-	if m.docker != nil {
-		st.InstallDir = m.gameRoot()
-		st.WindowsExe = m.gameRoot() + "/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe"
+
+	// Host 模式下路径与文件检查统一走 Host 接口
+	if m.host != nil {
+		st.InstallDir = m.host.GameRoot()
+		st.WindowsExe = m.host.GameRoot() + "/Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe"
 		st.ServerExe = st.WindowsExe
 		st.SteamExe = "/opt/steamcmd/steamcmd.sh"
 	}
 
-	// SteamCMD 是否就绪：优先检查挂载卷（/opt/steamcmd/steamcmd.sh），回退本地路径
-	steamExe := "/opt/steamcmd/steamcmd.sh"
-	if m.docker == nil {
+	// SteamCMD 是否就绪
+	steamExe := st.SteamExe
+	if m.host == nil {
 		steamExe = st.SteamExe
 	}
 	if steamExe != "" {
-		if info, err := os.Stat(steamExe); err == nil && !info.IsDir() {
+		if _, err := os.Stat(steamExe); err == nil {
 			st.SteamReady = true
 		}
 	}
 
-	// Windows 版游戏是否已安装（检查游戏 exe）。
-	// 游戏目录挂载到面板时直接 stat；否则跨容器检查。
+	// Windows 版游戏是否已安装（检查游戏 exe）
 	exeRel := "Pal/Binaries/Win64/PalServer-Win64-Shipping-Cmd.exe"
-	if m.docker != nil && m.gameFsRoot() == "" {
-		st.WindowsInstalled = m.docker.fileExists(exeRel)
-	} else {
-		if root := m.gameFsRoot(); root != "" {
-			if _, err := os.Stat(filepath.Join(root, exeRel)); err == nil {
-				st.WindowsInstalled = true
-			}
-		} else if st.WindowsExe != "" {
-			if info, err := os.Stat(st.WindowsExe); err == nil && !info.IsDir() {
-				st.WindowsInstalled = true
-			}
+	if m.host != nil {
+		if _, err := m.host.Stat(exeRel); err == nil {
+			st.WindowsInstalled = true
+		}
+	} else if st.WindowsExe != "" {
+		if info, err := os.Stat(st.WindowsExe); err == nil && !info.IsDir() {
+			st.WindowsInstalled = true
 		}
 	}
 	st.Installed = st.WindowsInstalled
-	// 是否在更新（本地 updateCmd 进程，或容器内 SteamCMD 更新中）
+
+	// 是否在更新
 	if m.dockerUpdating.Load() {
 		st.Updating = true
 	} else if m.updateCmd != nil && m.updateCmd.Process != nil && m.isAlive(m.updateCmd.Process.Pid) {
 		st.Updating = true
 	}
+
 	// 服务端是否在运行
-	if m.docker != nil {
-		// 容器化部署：Running 表示游戏进程真正在跑，ContainerRunning 仅表示容器 Up
-		st.ContainerRunning = m.docker.isRunning()
-		st.Running = m.docker.isGameRunning()
+	if m.host != nil {
+		st.ContainerRunning = m.host.IsContainerUp()
+		st.Running = m.host.IsRunning()
 	} else if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
 		st.Running = true
 		st.PID = m.serverCmd.Process.Pid
@@ -191,19 +191,17 @@ func (m *Manager) GetStatus() (*Status, error) {
 		st.Running = true
 		st.PID = pids[0]
 	}
+
 	switch {
 	case st.Running:
 		st.State = "running"
 	case st.Updating:
 		st.State = "updating"
-	case m.docker != nil && st.ContainerRunning && !st.WindowsInstalled:
-		// 容器在跑但游戏还没装好：正在安装
+	case st.ContainerRunning && !st.WindowsInstalled:
 		st.State = "installing"
-	case m.docker != nil && st.ContainerRunning && time.Now().Before(m.startingUntil):
-		// 点了启动、容器在跑，但游戏进程尚未就绪的宽限期：真正启动中
+	case st.ContainerRunning && time.Now().Before(m.startingUntil):
 		st.State = "starting"
-	case m.docker != nil && st.ContainerRunning:
-		// 容器在跑、游戏已装、但进程没起来：等待启动（空闲/启动失败）
+	case st.ContainerRunning:
 		st.State = "pending"
 	default:
 		st.State = "stopped"
@@ -215,9 +213,9 @@ func (m *Manager) GetStatus() (*Status, error) {
 // 如果目录下已存在 steamcmd 可执行文件则直接返回。
 // Linux 下载 steamcmd_linux.tar.gz，Windows 下载 steamcmd.zip 并解压。
 func (m *Manager) InstallSteamCMD() error {
-	// 容器化部署：游戏服镜像已内置 SteamCMD，面板无需也无法安装到 gameserver 容器
-	if m.docker != nil {
-		m.logBuf.WriteString("Docker 部署：游戏服镜像已内置 SteamCMD，无需安装\n")
+	// 容器化部署：SteamCMD 由游戏服容器 entrypoint 在启动时安装到挂载卷
+	if m.host != nil {
+		m.logBuf.WriteString("Host 部署：SteamCMD 由游戏服环境管理，无需面板安装\n")
 		return nil
 	}
 	if m.cfg.SteamCmdPath == "" {
@@ -333,19 +331,22 @@ func (m *Manager) installSteamCmdWindows() error {
 // Install 用 SteamCMD 安装/更新 Windows 版游戏服（阻塞直到完成，实时输出日志）。
 func (m *Manager) Install() error {
 	// 容器化部署：在游戏服容器内执行更新（异步，避免 HTTP 请求长时间阻塞）
-	if m.docker != nil {
+	if m.host != nil {
 		if m.dockerUpdating.Load() {
 			return errors.New("游戏服正在更新中")
 		}
-		if !m.docker.isRunning() {
-			return errors.New("游戏服容器未运行，请先启动容器")
+		if !m.host.IsContainerUp() {
+			// 尝试启动容器/环境
+			if err := m.host.Start(); err != nil {
+				return fmt.Errorf("游戏服环境未运行，且启动失败: %w", err)
+			}
 		}
 		m.dockerUpdating.Store(true)
-		m.logBuf.WriteString(fmt.Sprintf("在容器 %s 内更新游戏服...\n", m.docker.container))
+		m.logBuf.WriteString(fmt.Sprintf("开始在 %s 环境更新游戏服...\n", m.host.Kind()))
 		go func() {
 			defer m.dockerUpdating.Store(false)
 			m.logBuf.WriteString("开始下载/更新游戏文件（SteamCMD 输出如下，请耐心等待）...\n")
-			err := m.docker.installOrUpdateWithLog(func(line string) {
+			err := m.host.InstallOrUpdateGame(func(line string) {
 				m.logBuf.WriteString(line)
 			})
 			if err != nil {
@@ -596,17 +597,15 @@ func (m *Manager) checkProtonReady() error {
 //   - 若目录属主就是 root：自动创建/使用 palworld-panel 用户并 chown。
 //   - 若面板非 root：直接启动。
 func (m *Manager) Start() error {
-	// 容器化部署：容器常驻，通过 docker exec 控制游戏进程启停
-	if m.docker != nil {
-		// 游戏已在运行则不重复启动
-		if m.docker.isGameRunning() {
+	// 容器化/Host 部署：通过 Host 接口控制游戏进程启停
+	if m.host != nil {
+		if m.host.IsRunning() {
 			return errors.New("游戏服已在运行")
 		}
 		m.logBuf.WriteString("启动游戏服...\n")
-		if err := m.docker.start(); err != nil {
+		if err := m.host.Start(); err != nil {
 			return err
 		}
-		// 启动宽限期：60 秒内游戏进程可能正在拉起，状态显示"启动中"
 		m.startingUntil = time.Now().Add(60 * time.Second)
 		return nil
 	}
@@ -782,11 +781,10 @@ func shellQuote(s string) string {
 
 // Stop 停止游戏服（停止游戏进程，容器保持常驻）
 func (m *Manager) Stop() error {
-	// 容器化部署：通过 docker exec 停止游戏进程（不停止容器）
-	if m.docker != nil {
+	if m.host != nil {
 		m.logBuf.WriteString("停止游戏服...\n")
 		m.startingUntil = time.Time{}
-		return m.docker.stop()
+		return m.host.Stop()
 	}
 	if m.serverCmd != nil && m.serverCmd.Process != nil && m.isAlive(m.serverCmd.Process.Pid) {
 		_ = gracefulStop(m.serverCmd, 10*time.Second)
@@ -853,13 +851,8 @@ func (m *Manager) killAllPalServer() error {
 
 // Logs 返回最近日志
 func (m *Manager) Logs(lines int) string {
-	// 容器化部署：返回游戏服容器的日志（追加面板自身日志）
-	if m.docker != nil {
-		containerLogs, err := m.docker.logs(lines)
-		if err == nil {
-			return containerLogs + "\n" + m.logBuf.String()
-		}
-		m.logBuf.WriteString("获取容器日志失败: " + err.Error() + "\n")
+	if m.host != nil {
+		return m.host.Logs(lines) + "\n" + m.logBuf.String()
 	}
 	return m.logBuf.String()
 }

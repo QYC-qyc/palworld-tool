@@ -33,7 +33,7 @@ type pdStatus struct {
 // win64DisplayPath 返回供前端展示的 Win64 目录完整路径
 func win64DisplayPath() string {
 	if gameAPI != nil {
-		return gameAPI.mgr.GameDisplayPath() + "/Pal/Binaries/Win64"
+		return gameAPI.mgr.GameRoot() + "/Pal/Binaries/Win64"
 	}
 	return strings.Join(win64Elems, "/")
 }

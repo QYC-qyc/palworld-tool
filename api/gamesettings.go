@@ -20,7 +20,7 @@ var iniRelElems = []string{"Pal", "Saved", "Config", "WindowsServer", "PalWorldS
 // 文件读写统一走 mgr 的游戏文件访问层，不直接操作本地 FS。
 func iniPath() string {
 	if gameAPI != nil {
-		return gameAPI.mgr.GameDisplayPath() + "/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini"
+		return gameAPI.mgr.GameRoot() + "/Pal/Saved/Config/WindowsServer/PalWorldSettings.ini"
 	}
 	if p := os.Getenv("PALWORLD_INI_PATH"); p != "" {
 		return p
