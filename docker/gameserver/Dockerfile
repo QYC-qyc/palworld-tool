@@ -26,7 +26,7 @@ RUN set -eux; \
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        ca-certificates wget curl xz-utils cabextract procps python3 \
+        ca-certificates wget curl xz-utils cabextract procps python3 tini \
         lib32gcc-s1 lib32stdc++6 \
         libc6:i386 libstdc++6:i386 libgcc-s1:i386 \
         dbus-x11 locales \
@@ -109,6 +109,7 @@ VOLUME ["/home/steam/palserver", "/opt/steamcmd"]
 USER root
 WORKDIR /home/steam
 
-# 容器常驻：entrypoint run 启动守护进程，游戏由面板通过 docker exec 控制
-ENTRYPOINT ["/home/steam/entrypoint.sh"]
+# 用 tini 作为 PID 1，回收僵尸 wineserver 进程（游戏反复重启会产生大量 defunct）
+# entrypoint.sh 作为 tini 的子进程，负责安装 SteamCMD、降权、启动守护
+ENTRYPOINT ["/usr/bin/tini", "--", "/home/steam/entrypoint.sh"]
 CMD ["run"]

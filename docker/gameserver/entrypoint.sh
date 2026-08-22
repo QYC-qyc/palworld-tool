@@ -128,6 +128,18 @@ INIEOF
         unset WINEDLLOVERRIDES
     fi
 
+    # 禁用 esync/fsync：单机服务器不需要，且与残留 wineserver 冲突会导致退出码 3
+    export PROTON_NO_ESYNC=1
+    export PROTON_NO_FSYNC=1
+    export WINEESYNC=0
+    export WINEFSYNC=0
+
+    # 启动前清理可能残留的 wineserver，避免僵尸进程和 esync 冲突
+    if command -v wineserver >/dev/null 2>&1; then
+        wineserver -k 2>/dev/null || true
+        sleep 1
+    fi
+
     # 启动参数：仅游戏端口和性能参数。
     # REST API 通过 PalWorldSettings.ini 启用，不是命令行参数（传了会导致退出码 3）。
     local args=(-port=8211 -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS)
@@ -138,6 +150,10 @@ INIEOF
     "${PROTONPATH}" run "${EXE}" "${args[@]}"
     local rc=$?
     echo ">>> PalServer 退出，退出码: $rc"
+    # 游戏退出后杀掉残留 wineserver，防止僵尸进程累积
+    if command -v wineserver >/dev/null 2>&1; then
+        wineserver -k 2>/dev/null || true
+    fi
     return $rc
 }
 
