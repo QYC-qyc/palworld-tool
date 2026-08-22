@@ -17,7 +17,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	ghub "palworld-panel/internal/github"
 )
 
 // Palworld Steam APP ID
@@ -103,6 +102,10 @@ func getEnv(key, def string) string {
 
 func (m *Manager) SetConfig(cfg Config) {
 	m.cfg = cfg
+	// 非 Docker 部署：配置设置后初始化 bareMetalHost
+	if m.host == nil && m.cfg.InstallDir != "" {
+		m.host = newBareMetalHost(m.cfg, m.getSetting, m.logBuf)
+	}
 }
 func (m *Manager) ConfigValue() Config { return m.cfg }
 func (m *Manager) Available() bool     { return true }
@@ -213,86 +216,18 @@ func (m *Manager) GetStatus() (*Status, error) {
 // 如果目录下已存在 steamcmd 可执行文件则直接返回。
 // Linux 下载 steamcmd_linux.tar.gz，Windows 下载 steamcmd.zip 并解压。
 func (m *Manager) InstallSteamCMD() error {
-	// 容器化部署：SteamCMD 由游戏服容器 entrypoint 在启动时安装到挂载卷
-	if m.host != nil {
-		m.logBuf.WriteString("Host 部署：SteamCMD 由游戏服环境管理，无需面板安装\n")
+	// Docker 部署：SteamCMD 由游戏服容器 entrypoint 管理，面板无需安装
+	if m.IsDocker() {
+		m.logBuf.WriteString("Docker 部署：SteamCMD 由游戏服容器管理，无需面板安装\n")
 		return nil
 	}
-	if m.cfg.SteamCmdPath == "" {
-		return errors.New("请先在上方填写 SteamCMD 安装目录")
+	// 裸机部署：委托 Host 安装
+	if m.host != nil {
+		return m.host.InstallSteamCMD(m.cfg.SteamCmdPath)
 	}
-	// 已安装则跳过
-	if exe := m.steamCmdExe(); exe != "" {
-		if _, err := os.Stat(exe); err == nil {
-			m.logBuf.WriteString(fmt.Sprintf("SteamCMD 已存在：%s\n", exe))
-			return nil
-		}
-	}
-	if err := os.MkdirAll(m.cfg.SteamCmdPath, 0755); err != nil {
-		return fmt.Errorf("创建 SteamCMD 目录失败: %w", err)
-	}
-
-	m.logBuf.WriteString("=== 安装 SteamCMD ===\n")
-	if runtime.GOOS == "windows" {
-		return m.installSteamCmdWindows()
-	}
-	return m.installSteamCmdLinux()
-}
-
-// installSteamCmdLinux 下载 steamcmd_linux.tar.gz 并解压
-func (m *Manager) installSteamCmdLinux() error {
-	const url = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
-	m.logBuf.WriteString("下载 steamcmd_linux.tar.gz...\n")
-
-	tmpFile, err := os.CreateTemp("", "steamcmd-*.tar.gz")
-	if err != nil {
-		return err
-	}
-	tmpPath := tmpFile.Name()
-	defer os.Remove(tmpPath)
-
-	// 经镜像尝试下载（Steam CDN 直连通常可用，但用 ghub 兜底）
-	if err := ghub.DownloadToFile(url, tmpPath); err != nil {
-		// ghub 是为 github 设计的，Steam CDN 直连再试一次
-		m.logBuf.WriteString(fmt.Sprintf("镜像下载失败(%v)，尝试 Steam CDN 直连...\n", err))
-		resp, err2 := http.Get(url)
-		if err2 != nil {
-			return fmt.Errorf("下载 SteamCMD 失败: %w", err)
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("下载 SteamCMD 失败: HTTP %d", resp.StatusCode)
-		}
-		if _, err := io.Copy(tmpFile, resp.Body); err != nil {
-			return err
-		}
-	}
-	tmpFile.Close()
-
-	m.logBuf.WriteString("解压 SteamCMD...\n")
-	cmd := exec.Command("tar", "-xzf", tmpPath, "-C", m.cfg.SteamCmdPath)
-	cmd.SysProcAttr = newSysProcAttr(true)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("解压 SteamCMD 失败: %w: %s", err, string(out))
-	}
-
-	// SteamCMD 首次运行需要自更新，跑一次 +quit 完成初始化
-	m.logBuf.WriteString("首次运行 SteamCMD 自更新...\n")
-	steamExe := filepath.Join(m.cfg.SteamCmdPath, "steamcmd.sh")
-	initCmd := exec.Command(steamExe, "+login", "anonymous", "+quit")
-	initCmd.Dir = m.cfg.SteamCmdPath
-	initCmd.SysProcAttr = newSysProcAttr(true)
-	initOut, _ := initCmd.CombinedOutput()
-	m.logBuf.WriteString(string(initOut) + "\n")
-
-	// 验证
-	if _, err := os.Stat(steamExe); err != nil {
-		return errors.New("安装完成但未找到 steamcmd.sh，请检查目录权限")
-	}
-	m.logBuf.WriteString(fmt.Sprintf("SteamCMD 安装完成：%s\n", steamExe))
 	return nil
 }
+
 
 // installSteamCmdWindows 下载 steamcmd.zip 并解压（Windows 原生面板）
 func (m *Manager) installSteamCmdWindows() error {
